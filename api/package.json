@@ -1,5 +1,5 @@
 {
-  "name": "backend-template-ts",
+  "name": "password-manager",
   "version": "1.0.0",
   "description": "Plantilla Backend Node.js con TypeScript, Turso y Cloudinary",
   "main": "dist/server.js",
