@@ -1,0 +1,6 @@
+# Regla de fallback para la SPA.
+# esta regla se asegura de que el usuario vea la aplicación de React.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

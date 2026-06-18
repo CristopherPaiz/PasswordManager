@@ -1,0 +1,129 @@
+{
+  "common": {
+    "appName": "MiApp",
+    "loading": "Cargando...",
+    "close": "Cerrar",
+    "verifying": "Verificando sesión..."
+  },
+  "nav": {
+    "home": "Inicio",
+    "dashboard": "Dashboard",
+    "errors": "Errores",
+    "login": "Iniciar Sesión",
+    "logout": "Salir",
+    "logoutFull": "Cerrar Sesión",
+    "connectedAs": "Conectado como",
+    "themeToLight": "Cambiar a modo claro",
+    "themeToDark": "Cambiar a modo oscuro",
+    "themeToggle": "Cambiar tema",
+    "menu": "Menú principal",
+    "language": "Cambiar idioma",
+    "logoutSuccess": "Sesión cerrada correctamente"
+  },
+  "home": {
+    "welcome": "Bienvenido a tu",
+    "brand": "UI",
+    "subtitle": "Plantilla Frontend moderna configurada con React 19, Vite, Tailwind v4, Zustand y TanStack Query.",
+    "goToDashboard": "Ir al Panel de Control",
+    "login": "Iniciar Sesión"
+  },
+  "login": {
+    "title": "Acceder",
+    "subtitle": "Ingresa tus credenciales para continuar",
+    "username": "Usuario",
+    "password": "Contraseña",
+    "submit": "Ingresar",
+    "fillAllFields": "Por favor, completa todos los campos",
+    "success": "Inicio de sesión exitoso",
+    "errors": {
+      "usernameRequired": "El usuario es obligatorio.",
+      "passwordRequired": "La contraseña es obligatoria."
+    }
+  },
+  "dashboard": {
+    "profileInfo": "Información del Perfil",
+    "userId": "ID de Usuario",
+    "username": "Username",
+    "fullName": "Nombre Completo",
+    "na": "N/A",
+    "uploadImage": "Subir Imagen",
+    "selectImage": "Selecciona una imagen",
+    "preview": "Vista Previa",
+    "uploadSuccessTitle": "¡Subida Exitosa a Cloudinary!",
+    "openOriginal": "Abrir imagen original",
+    "confirmUpload": "Confirmar Subida",
+    "uploadSuccess": "Imagen procesada y subida con éxito",
+    "demoButton": "Ver ejemplo de Modal",
+    "demoTitle": "Ejemplo de Modal",
+    "demoIntro": "Este modal demuestra los arreglos: cierre con la tecla Escape, clic fuera para cerrar y bloqueo del scroll de fondo. Desplázate hasta el final: el contenido detrás NO se mueve.",
+    "demoLine": "Línea de relleno {{n}} para forzar el scroll interno.",
+    "demoClose": "Entendido",
+    "tableTitle": "Tabla de ejemplo",
+    "table": {
+      "name": "Nombre",
+      "role": "Rol",
+      "status": "Estado",
+      "active": "Activo",
+      "inactive": "Inactivo"
+    }
+  },
+  "loader": {
+    "messages": [
+      "Despertando el servidor...",
+      "Estableciendo conexión segura...",
+      "Preparando tu experiencia...",
+      "Cargando configuraciones..."
+    ],
+    "preparing": "Preparando sistema...",
+    "unavailableTitle": "Servicio no disponible",
+    "connectError": "No pudimos conectar con el servidor después de varios intentos.",
+    "webError": "Hubo un problema al cargar el servicio web. ",
+    "tryAgainHint": "Por favor, recarga la página o intenta más tarde.",
+    "retry": "Reintentar conexión"
+  },
+  "notFound": {
+    "code": "404",
+    "title": "Página no encontrada",
+    "description": "La página que buscas no existe o fue movida.",
+    "back": "Volver al inicio"
+  },
+  "errorBoundary": {
+    "title": "Algo salió mal",
+    "description": "Ocurrió un error inesperado. Intenta recargar la página.",
+    "reload": "Recargar página"
+  },
+  "table": {
+    "empty": "No hay datos para mostrar.",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "page": "Página {{page}} de {{total}}"
+  },
+  "search": {
+    "placeholder": "Buscar...",
+    "clear": "Limpiar búsqueda"
+  },
+  "serverTime": {
+    "title": "Reloj del servidor",
+    "server": "Servidor",
+    "guatemala": "Guatemala",
+    "drift": "Desfase con tu reloj: {{seconds}}s"
+  },
+  "errors": {
+    "title": "Registro de errores",
+    "message": "Mensaje",
+    "date": "Fecha (Guatemala)",
+    "dateGuatemala": "Fecha (Guatemala)",
+    "dateServer": "Fecha del servidor (UTC)",
+    "status": "Estado",
+    "resolved": "Resuelto",
+    "unresolved": "Pendiente",
+    "view": "Ver detalle",
+    "detailTitle": "Detalle del error",
+    "fullMessage": "Mensaje completo",
+    "stack": "Stack trace",
+    "noStack": "Sin stack trace",
+    "copy": "Copiar error",
+    "copied": "Error copiado al portapapeles",
+    "copyError": "No se pudo copiar"
+  }
+}

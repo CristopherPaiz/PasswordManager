@@ -1,0 +1,49 @@
+# Dependencias
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Entorno y variables secretas (¡MUY IMPORTANTE!)
+.env
+.env.test
+.env.production
+.env.local
+
+# Compilación de TypeScript
+dist/
+build/
+
+# Archivos de base de datos locales (por si alguna vez pruebas SQLite local en vez de Turso)
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# Archivos generados por el Sistema Operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Configuraciones de Editores/IDE
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Logs
+logs
+*.log
+
+# Archivos de cobertura de pruebas (si agregas Jest más adelante)
+coverage/
+.nyc_output/
+
+# pnpm
+pnpm-lock.yaml
+pnpm-workspace.yaml
+.npmrc
+.pnpmfile.yaml
+.pnpm-store

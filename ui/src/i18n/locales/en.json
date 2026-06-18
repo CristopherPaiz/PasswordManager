@@ -1,0 +1,129 @@
+{
+  "common": {
+    "appName": "MyApp",
+    "loading": "Loading...",
+    "close": "Close",
+    "verifying": "Verifying session..."
+  },
+  "nav": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "errors": "Errors",
+    "login": "Sign In",
+    "logout": "Log out",
+    "logoutFull": "Log out",
+    "connectedAs": "Signed in as",
+    "themeToLight": "Switch to light mode",
+    "themeToDark": "Switch to dark mode",
+    "themeToggle": "Toggle theme",
+    "menu": "Main menu",
+    "language": "Change language",
+    "logoutSuccess": "Session closed successfully"
+  },
+  "home": {
+    "welcome": "Welcome to your",
+    "brand": "UI",
+    "subtitle": "Modern frontend template configured with React 19, Vite, Tailwind v4, Zustand and TanStack Query.",
+    "goToDashboard": "Go to Dashboard",
+    "login": "Sign In"
+  },
+  "login": {
+    "title": "Sign In",
+    "subtitle": "Enter your credentials to continue",
+    "username": "Username",
+    "password": "Password",
+    "submit": "Sign in",
+    "fillAllFields": "Please fill in all fields",
+    "success": "Signed in successfully",
+    "errors": {
+      "usernameRequired": "Username is required.",
+      "passwordRequired": "Password is required."
+    }
+  },
+  "dashboard": {
+    "profileInfo": "Profile Information",
+    "userId": "User ID",
+    "username": "Username",
+    "fullName": "Full Name",
+    "na": "N/A",
+    "uploadImage": "Upload Image",
+    "selectImage": "Select an image",
+    "preview": "Preview",
+    "uploadSuccessTitle": "Successfully uploaded to Cloudinary!",
+    "openOriginal": "Open original image",
+    "confirmUpload": "Confirm Upload",
+    "uploadSuccess": "Image processed and uploaded successfully",
+    "demoButton": "View Modal example",
+    "demoTitle": "Modal example",
+    "demoIntro": "This modal demonstrates the fixes: close with the Escape key, click outside to close, and background scroll lock. Scroll to the bottom: the content behind does NOT move.",
+    "demoLine": "Filler line {{n}} to force inner scrolling.",
+    "demoClose": "Got it",
+    "tableTitle": "Example table",
+    "table": {
+      "name": "Name",
+      "role": "Role",
+      "status": "Status",
+      "active": "Active",
+      "inactive": "Inactive"
+    }
+  },
+  "loader": {
+    "messages": [
+      "Waking up the server...",
+      "Establishing secure connection...",
+      "Preparing your experience...",
+      "Loading configurations..."
+    ],
+    "preparing": "Preparing system...",
+    "unavailableTitle": "Service unavailable",
+    "connectError": "We couldn't connect to the server after several attempts.",
+    "webError": "There was a problem loading the web service. ",
+    "tryAgainHint": "Please reload the page or try again later.",
+    "retry": "Retry connection"
+  },
+  "notFound": {
+    "code": "404",
+    "title": "Page not found",
+    "description": "The page you are looking for does not exist or was moved.",
+    "back": "Back to home"
+  },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred. Try reloading the page.",
+    "reload": "Reload page"
+  },
+  "table": {
+    "empty": "No data to display.",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {{page}} of {{total}}"
+  },
+  "search": {
+    "placeholder": "Search...",
+    "clear": "Clear search"
+  },
+  "serverTime": {
+    "title": "Server clock",
+    "server": "Server",
+    "guatemala": "Guatemala",
+    "drift": "Drift vs your clock: {{seconds}}s"
+  },
+  "errors": {
+    "title": "Error log",
+    "message": "Message",
+    "date": "Date (Guatemala)",
+    "dateGuatemala": "Date (Guatemala)",
+    "dateServer": "Server date (UTC)",
+    "status": "Status",
+    "resolved": "Resolved",
+    "unresolved": "Pending",
+    "view": "View detail",
+    "detailTitle": "Error detail",
+    "fullMessage": "Full message",
+    "stack": "Stack trace",
+    "noStack": "No stack trace",
+    "copy": "Copy error",
+    "copied": "Error copied to clipboard",
+    "copyError": "Could not copy"
+  }
+}
