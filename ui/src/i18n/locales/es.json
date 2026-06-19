@@ -89,25 +89,25 @@
       "setupError": "No se pudo iniciar la configuración."
     },
     "passkey": {
-      "title": "Desbloqueo con huella (passkey)",
-      "description": "Desbloquea el baúl con tu huella o PIN del dispositivo, sin escribir la maestra. La contraseña maestra sigue siendo necesaria en dispositivos nuevos.",
+      "title": "Desbloqueo con passkey",
+      "description": "Desbloquea el baúl con tu dispositivo (huella, rostro o PIN/Windows Hello), sin escribir la maestra. La contraseña maestra sigue siendo necesaria en dispositivos nuevos.",
       "active": "Activo",
       "inactive": "Inactivo",
-      "activate": "Activar huella en este dispositivo",
-      "disable": "Quitar huella",
-      "enabled": "Desbloqueo con huella activado.",
-      "disabled": "Desbloqueo con huella desactivado.",
+      "activate": "Agregar passkey en este dispositivo",
+      "disable": "Quitar passkey",
+      "enabled": "Desbloqueo con passkey activado.",
+      "disabled": "Desbloqueo con passkey desactivado.",
       "unsupported": "Tu navegador o dispositivo no soporta passkeys.",
       "needUnlock": "Desbloquea el baúl primero (ve a Mi baúl e ingresa tu maestra).",
       "noPrf": "Tu dispositivo no soporta la extensión PRF necesaria para esto.",
       "cancelled": "Operación cancelada.",
-      "error": "No se pudo activar el desbloqueo con huella.",
-      "none": "No tienes ninguna huella registrada.",
-      "addThisDevice": "Agregar huella en este dispositivo",
+      "error": "No se pudo activar el desbloqueo con passkey.",
+      "none": "No tienes ninguna passkey registrada.",
+      "addThisDevice": "Agregar passkey en este dispositivo",
       "addedOn": "Agregada el {{date}}",
       "remove": "Quitar",
       "unknownDevice": "Dispositivo",
-      "help": "Cada dispositivo registra su propia huella. En Windows, si solo te ofrece escanear un QR, es porque Windows Hello no soporta la extensión necesaria en este navegador; puedes usar tu teléfono o tu contraseña maestra."
+      "help": "Cada dispositivo registra su propia passkey y la verifica como pueda (huella, rostro, PIN o contraseña de Windows). En Windows, si solo te ofrece escanear un QR, es porque Windows Hello no soporta la extensión necesaria en este navegador; usa tu teléfono o tu contraseña maestra."
     },
     "autolock": {
       "title": "Bloqueo automático",
@@ -157,8 +157,8 @@
     "masterPassword": "Contraseña maestra",
     "submit": "Desbloquear",
     "wrongPassword": "Contraseña maestra incorrecta.",
-    "usePasskey": "Desbloquear con huella",
-    "passkeyError": "No se pudo desbloquear con huella. Usa tu contraseña maestra."
+    "usePasskey": "Desbloquear con este dispositivo",
+    "passkeyError": "No se pudo desbloquear con la passkey. Usa tu contraseña maestra."
   },
   "vault": {
     "title": "Mi baúl",

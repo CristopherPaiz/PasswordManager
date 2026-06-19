@@ -89,25 +89,25 @@
       "setupError": "Could not start setup."
     },
     "passkey": {
-      "title": "Fingerprint unlock (passkey)",
-      "description": "Unlock the vault with your device fingerprint or PIN, without typing the master password. The master password is still required on new devices.",
+      "title": "Passkey unlock",
+      "description": "Unlock the vault with your device (fingerprint, face or PIN/Windows Hello), without typing the master password. The master password is still required on new devices.",
       "active": "Active",
       "inactive": "Inactive",
-      "activate": "Enable fingerprint on this device",
-      "disable": "Remove fingerprint",
-      "enabled": "Fingerprint unlock enabled.",
-      "disabled": "Fingerprint unlock disabled.",
+      "activate": "Add passkey on this device",
+      "disable": "Remove passkey",
+      "enabled": "Passkey unlock enabled.",
+      "disabled": "Passkey unlock disabled.",
       "unsupported": "Your browser or device does not support passkeys.",
       "needUnlock": "Unlock the vault first (go to My vault and enter your master password).",
       "noPrf": "Your device does not support the PRF extension required for this.",
       "cancelled": "Operation cancelled.",
-      "error": "Could not enable fingerprint unlock.",
-      "none": "You have no fingerprint registered.",
-      "addThisDevice": "Add fingerprint on this device",
+      "error": "Could not enable passkey unlock.",
+      "none": "You have no passkey registered.",
+      "addThisDevice": "Add passkey on this device",
       "addedOn": "Added on {{date}}",
       "remove": "Remove",
       "unknownDevice": "Device",
-      "help": "Each device registers its own fingerprint. On Windows, if it only offers a QR to scan, it's because Windows Hello doesn't support the required extension in this browser; use your phone or your master password instead."
+      "help": "Each device registers its own passkey and verifies it however it can (fingerprint, face, PIN or Windows password). On Windows, if it only offers a QR to scan, it's because Windows Hello doesn't support the required extension in this browser; use your phone or your master password instead."
     },
     "autolock": {
       "title": "Auto-lock",
@@ -157,8 +157,8 @@
     "masterPassword": "Master password",
     "submit": "Unlock",
     "wrongPassword": "Incorrect master password.",
-    "usePasskey": "Unlock with fingerprint",
-    "passkeyError": "Could not unlock with fingerprint. Use your master password."
+    "usePasskey": "Unlock with this device",
+    "passkeyError": "Could not unlock with the passkey. Use your master password."
   },
   "vault": {
     "title": "My vault",
