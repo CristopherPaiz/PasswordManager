@@ -294,6 +294,11 @@ export const getMe = async (
       return
     }
 
+    const { rows: pkCount } = await dbClient.execute({
+      sql: 'SELECT COUNT(*) as c FROM Passkeys WHERE usuario_id = ?',
+      args: [userId]
+    })
+
     res.status(HTTP_STATUS.OK).json({
       user: {
         id: user.id,
@@ -301,7 +306,7 @@ export const getMe = async (
         nombre: user.nombre,
         apellido: user.apellido,
         totpEnabled: Boolean(user.totp_enabled),
-        passkeyEnabled: Boolean(user.passkey_cred_id)
+        passkeyEnabled: Number(pkCount[0].c) > 0
       }
     })
   } catch (error) {
@@ -311,8 +316,8 @@ export const getMe = async (
 
 // ---------- Passkey / huella (desbloqueo del baúl con WebAuthn PRF) ----------
 
-// Registra la passkey: guarda el id de credencial y la vaultKey envuelta por el
-// secreto PRF. El server no puede abrir el blob (no tiene el secreto PRF).
+// Registra una passkey (una por dispositivo): guarda cred_id + vaultKey envuelta
+// por el secreto PRF de ese autenticador. Re-registrar el mismo cred_id actualiza.
 export const passkeyRegister = async (
   req: AuthenticatedRequest,
   res: Response,
@@ -320,12 +325,16 @@ export const passkeyRegister = async (
 ): Promise<void> => {
   try {
     const userId = req.user?.userId
-    const { cred_id, wrapped_vault_key } = req.body
+    const { cred_id, wrapped_vault_key, label } = req.body
     const dbClient = await DatabaseService.getInstance().getClient()
 
     await dbClient.execute({
-      sql: 'UPDATE Usuarios SET passkey_cred_id = ?, wrapped_vault_key_passkey = ? WHERE id = ?',
-      args: [cred_id, JSON.stringify(wrapped_vault_key), userId ?? 0]
+      sql: `INSERT INTO Passkeys (usuario_id, cred_id, wrapped_vault_key, label)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(cred_id) DO UPDATE SET
+              wrapped_vault_key = excluded.wrapped_vault_key,
+              label = excluded.label`,
+      args: [userId ?? 0, cred_id, JSON.stringify(wrapped_vault_key), label ?? null]
     })
 
     res.status(HTTP_STATUS.OK).json({ message: 'Desbloqueo con huella activado.' })
@@ -334,8 +343,8 @@ export const passkeyRegister = async (
   }
 }
 
-// Quita la passkey registrada.
-export const passkeyDelete = async (
+// Lista las passkeys registradas (solo metadatos para mostrar; sin blobs).
+export const passkeyList = async (
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
@@ -344,10 +353,37 @@ export const passkeyDelete = async (
     const userId = req.user?.userId
     const dbClient = await DatabaseService.getInstance().getClient()
 
-    await dbClient.execute({
-      sql: 'UPDATE Usuarios SET passkey_cred_id = NULL, wrapped_vault_key_passkey = NULL WHERE id = ?',
+    const { rows } = await dbClient.execute({
+      sql: 'SELECT id, label, fecha_creacion FROM Passkeys WHERE usuario_id = ? ORDER BY fecha_creacion DESC',
       args: [userId ?? 0]
     })
+
+    res.status(HTTP_STATUS.OK).json({ passkeys: rows })
+  } catch (error) {
+    next(error)
+  }
+}
+
+// Elimina una passkey por id (solo si pertenece al usuario).
+export const passkeyDelete = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = req.user?.userId
+    const passkeyId = Number(req.params.id)
+    const dbClient = await DatabaseService.getInstance().getClient()
+
+    const result = await dbClient.execute({
+      sql: 'DELETE FROM Passkeys WHERE id = ? AND usuario_id = ?',
+      args: [passkeyId, userId ?? 0]
+    })
+
+    if (result.rowsAffected === 0) {
+      res.status(HTTP_STATUS.NOT_FOUND).json({ message: 'Passkey no encontrada.' })
+      return
+    }
 
     res.status(HTTP_STATUS.OK).json({ message: 'Desbloqueo con huella desactivado.' })
   } catch (error) {

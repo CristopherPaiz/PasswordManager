@@ -60,6 +60,13 @@ export interface ServerTimeInfo {
   serverTimezone: string;
 }
 
+// Passkey registrada (metadatos para mostrar en Ajustes).
+export interface PasskeyInfo {
+  id: number;
+  label: string | null;
+  fecha_creacion: string;
+}
+
 // ---------- Baúl (vault) ----------
 
 // Contenido descifrado de un item (vive solo en memoria del navegador).

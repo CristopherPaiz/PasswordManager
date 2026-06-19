@@ -1,4 +1,4 @@
-import { LayoutDashboard, Home, AlertTriangle, KeyRound, ShieldCheck } from "lucide-react";
+import { AlertTriangle, KeyRound, Settings } from "lucide-react";
 import { ElementType } from "react";
 
 export const ROUTES = {
@@ -7,13 +7,13 @@ export const ROUTES = {
   REGISTER: "/register",
   RECOVERY: "/recovery",
   VAULT: "/vault",
-  SECURITY: "/security",
+  SETTINGS: "/settings",
   DASHBOARD: "/dashboard",
   ERRORS: "/errors",
 } as const;
 
-// Inactividad antes de bloquear el baúl automáticamente (borra la vaultKey).
-export const VAULT_AUTO_LOCK_MS = 10 * 60 * 1000;
+// Opciones (en minutos) para el bloqueo automático del baúl, configurables en Ajustes.
+export const AUTO_LOCK_OPTIONS = [1, 5, 10, 15, 30, 60] as const;
 
 export const API_ENDPOINTS = {
   AUTH: {
@@ -28,6 +28,8 @@ export const API_ENDPOINTS = {
     TOTP_ENABLE: "/api/auth/totp/enable",
     TOTP_DISABLE: "/api/auth/totp/disable",
     PASSKEY: "/api/auth/passkey",
+    PASSKEY_LIST: "/api/auth/passkeys",
+    PASSKEY_ITEM: (id: number) => `/api/auth/passkey/${id}`,
   },
   VAULT: {
     KEYS: "/api/vault/keys",
@@ -77,11 +79,14 @@ export interface NavigationItem {
 }
 
 export const NAVIGATION = {
-  PUBLIC: [{ labelKey: "nav.home", path: ROUTES.HOME, icon: Home }] as NavigationItem[],
+  // El logo de la app ya sirve de ancla a inicio; no hace falta enlace "Inicio".
+  PUBLIC: [] as NavigationItem[],
   PRIVATE: [
     { labelKey: "nav.vault", path: ROUTES.VAULT, icon: KeyRound },
-    { labelKey: "nav.security", path: ROUTES.SECURITY, icon: ShieldCheck },
-    { labelKey: "nav.dashboard", path: ROUTES.DASHBOARD, icon: LayoutDashboard },
+    { labelKey: "nav.settings", path: ROUTES.SETTINGS, icon: Settings },
     { labelKey: "nav.errors", path: ROUTES.ERRORS, icon: AlertTriangle },
   ] as NavigationItem[],
 } as const;
+
+// Páginas válidas como destino de inicio (reusa la navegación privada).
+export const START_PAGE_PATHS = NAVIGATION.PRIVATE.map((item) => item.path);

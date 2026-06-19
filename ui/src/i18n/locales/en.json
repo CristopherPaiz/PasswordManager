@@ -8,7 +8,7 @@
   "nav": {
     "home": "Home",
     "vault": "Vault",
-    "security": "Security",
+    "settings": "Settings",
     "dashboard": "Dashboard",
     "errors": "Errors",
     "login": "Sign In",
@@ -68,8 +68,8 @@
       "generic": "Could not reset. Check your details."
     }
   },
-  "security": {
-    "title": "Security",
+  "settings": {
+    "title": "Settings",
     "totp": {
       "title": "Two-factor authentication (2FA)",
       "description": "Add a code from your phone when signing in. Protects your account even if someone has your password.",
@@ -101,11 +101,24 @@
       "needUnlock": "Unlock the vault first (go to My vault and enter your master password).",
       "noPrf": "Your device does not support the PRF extension required for this.",
       "cancelled": "Operation cancelled.",
-      "error": "Could not enable fingerprint unlock."
+      "error": "Could not enable fingerprint unlock.",
+      "none": "You have no fingerprint registered.",
+      "addThisDevice": "Add fingerprint on this device",
+      "addedOn": "Added on {{date}}",
+      "remove": "Remove",
+      "unknownDevice": "Device",
+      "help": "Each device registers its own fingerprint. On Windows, if it only offers a QR to scan, it's because Windows Hello doesn't support the required extension in this browser; use your phone or your master password instead."
     },
     "autolock": {
       "title": "Auto-lock",
-      "description": "The vault locks itself after {{minutes}} minutes of inactivity and when you reload the page. You'll need to enter your master password again."
+      "description": "The vault locks itself after this idle time and when you reload the page. You'll need to enter your master password again.",
+      "label": "Lock after",
+      "option": "{{minutes}} min"
+    },
+    "startpage": {
+      "title": "Start page",
+      "description": "When you sign in, open this page directly.",
+      "label": "Open at"
     }
   },
   "register": {

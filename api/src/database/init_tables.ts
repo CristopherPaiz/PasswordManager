@@ -54,6 +54,21 @@ const initializeDatabase = async (): Promise<void> => {
       )
     `)
 
+    // Passkeys: una por dispositivo. Cada una guarda la vaultKey envuelta por el
+    // secreto PRF de ESE autenticador (Windows Hello, Touch ID, teléfono...).
+    // `label` es un nombre legible del dispositivo/navegador para mostrar la lista.
+    await dbClient.execute(`
+      CREATE TABLE IF NOT EXISTS Passkeys (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        usuario_id INTEGER NOT NULL,
+        cred_id TEXT NOT NULL UNIQUE,
+        wrapped_vault_key TEXT NOT NULL,
+        label TEXT,
+        fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(usuario_id) REFERENCES Usuarios(id) ON DELETE CASCADE
+      )
+    `)
+
     await dbClient.execute(`
       CREATE TABLE IF NOT EXISTS Sesiones (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

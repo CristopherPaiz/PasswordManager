@@ -18,8 +18,7 @@ export const getVaultKeys = async (
     const dbClient = await DatabaseService.getInstance().getClient()
 
     const { rows } = await dbClient.execute({
-      sql: `SELECT kdf_salt, kdf_params, wrapped_vault_key, passkey_cred_id, wrapped_vault_key_passkey
-              FROM Usuarios WHERE id = ?`,
+      sql: 'SELECT kdf_salt, kdf_params, wrapped_vault_key FROM Usuarios WHERE id = ?',
       args: [userId ?? 0]
     })
 
@@ -28,17 +27,23 @@ export const getVaultKeys = async (
       return
     }
 
+    // Todas las passkeys del usuario: el navegador intentará con la disponible
+    // en ESTE dispositivo (allowCredentials) y casa por cred_id.
+    const { rows: passkeys } = await dbClient.execute({
+      sql: 'SELECT cred_id, wrapped_vault_key FROM Passkeys WHERE usuario_id = ?',
+      args: [userId ?? 0]
+    })
+
     res.status(HTTP_STATUS.OK).json({
       kdf_salt: String(rows[0].kdf_salt),
       kdf_params: JSON.parse(String(rows[0].kdf_params)),
       wrapped_vault_key: rows[0].wrapped_vault_key
         ? JSON.parse(String(rows[0].wrapped_vault_key))
         : null,
-      // Para desbloqueo con huella (si el usuario lo activó en este dispositivo/cuenta).
-      passkey_cred_id: rows[0].passkey_cred_id ? String(rows[0].passkey_cred_id) : null,
-      wrapped_vault_key_passkey: rows[0].wrapped_vault_key_passkey
-        ? JSON.parse(String(rows[0].wrapped_vault_key_passkey))
-        : null
+      passkeys: passkeys.map((p) => ({
+        cred_id: String(p.cred_id),
+        wrapped_vault_key: JSON.parse(String(p.wrapped_vault_key))
+      }))
     })
   } catch (error) {
     next(error)

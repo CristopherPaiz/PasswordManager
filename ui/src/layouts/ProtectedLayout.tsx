@@ -2,12 +2,14 @@ import { Navigate, Outlet } from "react-router";
 import { useTranslation } from "react-i18next";
 import { useAuthQuery } from "@hooks/queries/auth.queries";
 import { useAutoLock } from "@hooks/useAutoLock";
-import { ROUTES, VAULT_AUTO_LOCK_MS } from "@constants/app.constants";
+import { useSettingsStore } from "@store/settings.store";
+import { ROUTES } from "@constants/app.constants";
 
 export const ProtectedLayout = () => {
   const { t } = useTranslation();
   const { data, isLoading } = useAuthQuery();
-  useAutoLock(VAULT_AUTO_LOCK_MS);
+  const autoLockMinutes = useSettingsStore((s) => s.autoLockMinutes);
+  useAutoLock(autoLockMinutes * 60000);
 
   if (isLoading) {
     return (

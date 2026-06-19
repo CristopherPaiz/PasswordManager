@@ -8,7 +8,7 @@
   "nav": {
     "home": "Inicio",
     "vault": "Baúl",
-    "security": "Seguridad",
+    "settings": "Ajustes",
     "dashboard": "Dashboard",
     "errors": "Errores",
     "login": "Iniciar Sesión",
@@ -68,8 +68,8 @@
       "generic": "No se pudo restablecer. Verifica tus datos."
     }
   },
-  "security": {
-    "title": "Seguridad",
+  "settings": {
+    "title": "Ajustes",
     "totp": {
       "title": "Verificación en dos pasos (2FA)",
       "description": "Agrega un código de tu teléfono al iniciar sesión. Protege tu cuenta aunque alguien tenga tu contraseña.",
@@ -101,11 +101,24 @@
       "needUnlock": "Desbloquea el baúl primero (ve a Mi baúl e ingresa tu maestra).",
       "noPrf": "Tu dispositivo no soporta la extensión PRF necesaria para esto.",
       "cancelled": "Operación cancelada.",
-      "error": "No se pudo activar el desbloqueo con huella."
+      "error": "No se pudo activar el desbloqueo con huella.",
+      "none": "No tienes ninguna huella registrada.",
+      "addThisDevice": "Agregar huella en este dispositivo",
+      "addedOn": "Agregada el {{date}}",
+      "remove": "Quitar",
+      "unknownDevice": "Dispositivo",
+      "help": "Cada dispositivo registra su propia huella. En Windows, si solo te ofrece escanear un QR, es porque Windows Hello no soporta la extensión necesaria en este navegador; puedes usar tu teléfono o tu contraseña maestra."
     },
     "autolock": {
       "title": "Bloqueo automático",
-      "description": "El baúl se bloquea solo tras {{minutes}} minutos de inactividad y al recargar la página. Tendrás que ingresar tu contraseña maestra de nuevo."
+      "description": "El baúl se bloquea solo tras este tiempo de inactividad y al recargar la página. Tendrás que ingresar tu contraseña maestra de nuevo.",
+      "label": "Bloquear tras",
+      "option": "{{minutes}} min"
+    },
+    "startpage": {
+      "title": "Página de inicio",
+      "description": "Al iniciar sesión, abrir directamente esta página.",
+      "label": "Abrir en"
     }
   },
   "register": {

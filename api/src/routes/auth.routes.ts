@@ -11,6 +11,7 @@ import {
   totpEnable,
   totpDisable,
   passkeyRegister,
+  passkeyList,
   passkeyDelete
 } from '@controllers/auth.controller.js'
 import { authMiddleware } from '@middlewares/auth.middleware.js'
@@ -42,8 +43,9 @@ router.post('/totp/setup', authMiddleware, totpSetup)
 router.post('/totp/enable', authMiddleware, validate(totpTokenSchema), totpEnable)
 router.post('/totp/disable', authMiddleware, validate(totpTokenSchema), totpDisable)
 
-// Passkey / huella (requieren sesión válida).
+// Passkey / huella (requieren sesión válida). Una por dispositivo.
+router.get('/passkeys', authMiddleware, passkeyList)
 router.post('/passkey', authMiddleware, validate(passkeyRegisterSchema), passkeyRegister)
-router.delete('/passkey', authMiddleware, passkeyDelete)
+router.delete('/passkey/:id', authMiddleware, passkeyDelete)
 
 export default router

@@ -14,12 +14,16 @@ import { Card } from "@components/ui/Card";
 import { Input } from "@components/ui/Input";
 import { Button } from "@components/ui/Button";
 
+interface PasskeyEntry {
+  cred_id: string;
+  wrapped_vault_key: EncryptedBlob;
+}
+
 interface VaultKeysResponse {
   kdf_salt: string;
   kdf_params: KdfParams;
   wrapped_vault_key: EncryptedBlob | null;
-  passkey_cred_id: string | null;
-  wrapped_vault_key_passkey: EncryptedBlob | null;
+  passkeys: PasskeyEntry[];
 }
 
 export const UnlockVault = () => {
@@ -42,8 +46,7 @@ export const UnlockVault = () => {
     showToast: false,
   });
 
-  const canUsePasskey =
-    isPasskeySupported() && !!keys?.passkey_cred_id && !!keys?.wrapped_vault_key_passkey;
+  const canUsePasskey = isPasskeySupported() && (keys?.passkeys?.length ?? 0) > 0;
 
   const handleUnlock = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,13 +71,18 @@ export const UnlockVault = () => {
   };
 
   const handlePasskeyUnlock = async () => {
-    if (!keys?.passkey_cred_id || !keys?.wrapped_vault_key_passkey) return;
+    const list = keys?.passkeys ?? [];
+    if (list.length === 0) return;
     setError("");
     setIsPasskeyWorking(true);
     try {
-      const prfSecret = await getPasskeySecret(keys.passkey_cred_id);
+      // El navegador elige la passkey disponible en este dispositivo; casamos
+      // por cred_id para tomar la vaultKey envuelta correspondiente.
+      const { credId, prfSecret } = await getPasskeySecret(list.map((p) => p.cred_id));
+      const match = list.find((p) => p.cred_id === credId);
+      if (!match) throw new Error("PASSKEY_NO_MATCH");
       const wrapKey = await deriveWrapKeyBytes(prfSecret);
-      const { key, raw } = await openVaultKey(keys.wrapped_vault_key_passkey, wrapKey);
+      const { key, raw } = await openVaultKey(match.wrapped_vault_key, wrapKey);
       setVaultKey(key, raw);
     } catch {
       toast.error(t("unlock.passkeyError"));

@@ -9,8 +9,12 @@ import { randomBytes, toBase64, fromBase64 } from "./crypto";
  * usuario (huella/PIN). El server solo guarda el id de credencial + el blob
  * envuelto; no puede abrirlo.
  *
- * OJO: la extensión PRF depende del navegador + SO + autenticador. Si no está,
- * estas funciones lanzan un error claro y la UI cae de vuelta a la maestra.
+ * Una passkey por dispositivo: cada autenticador (Windows Hello, Touch ID,
+ * teléfono...) genera su propio secreto PRF y envuelve su propia copia.
+ *
+ * OJO: PRF depende del navegador + SO + autenticador. Windows Hello solo lo
+ * soporta en Windows 11 reciente + Chrome/Edge actuales; si no, el navegador
+ * ofrece un teléfono (QR). Si no hay PRF, estas funciones lanzan error claro.
  */
 
 // Salt fijo de la app para la evaluación PRF (no es secreto; ata la derivación).
@@ -36,6 +40,32 @@ export const isPlatformAuthenticatorAvailable = async (): Promise<boolean> => {
   }
 };
 
+// Etiqueta legible del dispositivo/navegador para distinguir passkeys en la lista.
+export const getDeviceLabel = (): string => {
+  const ua = navigator.userAgent;
+  const os = /Windows/i.test(ua)
+    ? "Windows"
+    : /Mac/i.test(ua)
+      ? "macOS"
+      : /Android/i.test(ua)
+        ? "Android"
+        : /iPhone|iPad/i.test(ua)
+          ? "iOS"
+          : /Linux/i.test(ua)
+            ? "Linux"
+            : "Dispositivo";
+  const browser = /Edg/i.test(ua)
+    ? "Edge"
+    : /Chrome/i.test(ua)
+      ? "Chrome"
+      : /Firefox/i.test(ua)
+        ? "Firefox"
+        : /Safari/i.test(ua)
+          ? "Safari"
+          : "Navegador";
+  return `${browser} · ${os}`;
+};
+
 const extractPrf = (cred: PublicKeyCredential): Uint8Array | null => {
   const ext = cred.getClientExtensionResults() as unknown as PrfExtensionResults;
   const first = ext.prf?.results?.first;
@@ -44,8 +74,8 @@ const extractPrf = (cred: PublicKeyCredential): Uint8Array | null => {
 };
 
 /**
- * Crea una passkey y obtiene el secreto PRF. Devuelve el id de credencial
- * (base64) y el secreto. Puede pedir biometría una o dos veces (create + get).
+ * Crea una passkey y obtiene su secreto PRF. Puede pedir biometría una o dos
+ * veces (create + get) según el navegador.
  */
 export const registerPasskey = async (
   username: string,
@@ -79,21 +109,24 @@ export const registerPasskey = async (
   const fromCreate = extractPrf(created);
   if (fromCreate) return { credId, prfSecret: fromCreate };
 
-  const prfSecret = await getPasskeySecret(credId);
-  return { credId, prfSecret };
+  const result = await getPasskeySecret([credId]);
+  return { credId, prfSecret: result.prfSecret };
 };
 
 /**
- * Pide una assertion de la passkey y devuelve el secreto PRF (para desbloquear).
+ * Pide una assertion y devuelve el secreto PRF + el cred_id que se usó. El
+ * navegador elige la passkey disponible en ESTE dispositivo de entre las dadas.
  */
-export const getPasskeySecret = async (credId: string): Promise<Uint8Array> => {
+export const getPasskeySecret = async (
+  credIds: string[],
+): Promise<{ credId: string; prfSecret: Uint8Array }> => {
   if (!isPasskeySupported()) throw new Error("PASSKEY_UNSUPPORTED");
 
   const assertion = (await navigator.credentials.get({
     publicKey: {
       challenge: randomBytes(32),
       rpId: window.location.hostname,
-      allowCredentials: [{ type: "public-key", id: fromBase64(credId) }],
+      allowCredentials: credIds.map((id) => ({ type: "public-key", id: fromBase64(id) })),
       userVerification: "required",
       timeout: 60000,
       extensions: { prf: { eval: { first: PRF_SALT } } } as unknown as AuthenticationExtensionsClientInputs,
@@ -104,5 +137,6 @@ export const getPasskeySecret = async (credId: string): Promise<Uint8Array> => {
 
   const prfSecret = extractPrf(assertion);
   if (!prfSecret) throw new Error("PASSKEY_NO_PRF");
-  return prfSecret;
+
+  return { credId: toBase64(new Uint8Array(assertion.rawId)), prfSecret };
 };

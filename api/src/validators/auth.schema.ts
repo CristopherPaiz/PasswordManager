@@ -90,8 +90,10 @@ export const totpTokenSchema = z.object({
   token: z.string().regex(/^\d{6}$/, 'El código debe tener 6 dígitos.')
 })
 
-// Passkey: id de credencial (base64url) + vaultKey envuelta por el secreto PRF.
+// Passkey: id de credencial (base64) + vaultKey envuelta por el secreto PRF +
+// etiqueta legible del dispositivo.
 export const passkeyRegisterSchema = z.object({
   cred_id: z.string().min(1).max(1000),
-  wrapped_vault_key: encryptedBlobSchema
+  wrapped_vault_key: encryptedBlobSchema,
+  label: z.string().trim().max(80).optional()
 })
