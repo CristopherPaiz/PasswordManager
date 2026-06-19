@@ -1,5 +1,19 @@
-# Regla de fallback para la SPA.
-# esta regla se asegura de que el usuario vea la aplicación de React.
+# Base directory en Netlify = "ui" (este archivo se lee desde ahí).
+# command + publish son relativos a esa base.
+
+[build]
+  # Compila la SPA. Genera ui/dist con index.html + assets hasheados.
+  command = "pnpm build"
+  # Publicar dist (NO la carpeta ui cruda; si no, sirve /src/main.tsx como
+  # octet-stream y el navegador rechaza el módulo).
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Fallback SPA: cualquier ruta no-archivo va a index.html (React Router).
+# Netlify sirve primero los archivos reales de /assets, así que esto NO
+# rompe el MIME de los .js.
 [[redirects]]
   from = "/*"
   to = "/index.html"

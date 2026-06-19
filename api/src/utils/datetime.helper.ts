@@ -16,7 +16,8 @@ const guatemalaFormatter = new Intl.DateTimeFormat('en-CA', {
 })
 
 // 'YYYY-MM-DD HH:mm:ss' en hora de Guatemala.
-export const formatGuatemala = (date: Date = new Date()): string => guatemalaFormatter.format(date).replace(',', '')
+export const formatGuatemala = (date: Date = new Date()): string =>
+  guatemalaFormatter.format(date).replace(',', '')
 
 // Convierte un timestamp UTC de SQLite ("YYYY-MM-DD HH:MM:SS", sin zona) a Date.
 export const sqliteUtcToDate = (value: string): Date => new Date(value.replace(' ', 'T') + 'Z')

@@ -7,6 +7,7 @@
   },
   "nav": {
     "home": "Home",
+    "vault": "Vault",
     "dashboard": "Dashboard",
     "errors": "Errors",
     "login": "Sign In",
@@ -29,15 +30,97 @@
   },
   "login": {
     "title": "Sign In",
-    "subtitle": "Enter your credentials to continue",
+    "subtitle": "Enter your username and master password",
     "username": "Username",
     "password": "Password",
+    "masterPassword": "Master password",
     "submit": "Sign in",
     "fillAllFields": "Please fill in all fields",
     "success": "Signed in successfully",
+    "invalidCredentials": "Incorrect username or master password.",
+    "noAccount": "Don't have an account?",
+    "createAccount": "Create account",
     "errors": {
       "usernameRequired": "Username is required.",
       "passwordRequired": "Password is required."
+    }
+  },
+  "register": {
+    "title": "Create account",
+    "subtitle": "Your master password encrypts your whole vault",
+    "username": "Username",
+    "email": "Email",
+    "masterPassword": "Master password",
+    "confirmPassword": "Confirm master password",
+    "masterHint": "Your master password is never sent to the server and CANNOT be recovered. If you forget it, only your recovery key can open your vault. Choose something strong and memorable.",
+    "submit": "Create account",
+    "haveAccount": "Already have an account?",
+    "signIn": "Sign in",
+    "genericError": "Could not create the account. Please try again.",
+    "errors": {
+      "usernameShort": "Username must be at least 3 characters.",
+      "usernameLong": "Username cannot exceed 30 characters.",
+      "usernameInvalid": "Only letters, numbers and underscore are allowed.",
+      "emailInvalid": "Email is not valid.",
+      "passwordShort": "Master password must be at least 10 characters.",
+      "confirmRequired": "Confirm your master password.",
+      "passwordMismatch": "Passwords do not match."
+    },
+    "recovery": {
+      "title": "Save your recovery key",
+      "warning": "This is the ONLY way to recover your vault if you forget your master password. It is shown only once. Store it somewhere safe and offline.",
+      "copy": "Copy key",
+      "copied": "Key copied",
+      "confirm": "I saved my recovery key in a safe place.",
+      "continue": "Enter the vault"
+    }
+  },
+  "unlock": {
+    "title": "Vault locked",
+    "subtitle": "Enter your master password to unlock",
+    "masterPassword": "Master password",
+    "submit": "Unlock",
+    "wrongPassword": "Incorrect master password."
+  },
+  "vault": {
+    "title": "My vault",
+    "subtitle": "Your passwords, end-to-end encrypted",
+    "add": "Add",
+    "searchPlaceholder": "Search by title, username or site...",
+    "empty": "Your vault is empty. Add your first password.",
+    "noResults": "No results for your search.",
+    "copyPassword": "Copy password",
+    "copyUsername": "Copy username",
+    "passwordCopied": "Password copied",
+    "usernameCopied": "Username copied",
+    "edit": "Edit",
+    "editTitle": "Edit item",
+    "newTitle": "New item",
+    "save": "Save",
+    "saved": "Item saved",
+    "saveError": "Could not save the item.",
+    "delete": "Delete",
+    "deleted": "Item deleted",
+    "cancel": "Cancel",
+    "titleRequired": "Title is required.",
+    "deleteConfirmTitle": "Delete item",
+    "deleteConfirmText": "Are you sure you want to delete \"{{title}}\"? This action cannot be undone.",
+    "fields": {
+      "title": "Title",
+      "username": "Username or email",
+      "password": "Password",
+      "url": "Website (URL)",
+      "notes": "Notes"
+    },
+    "generator": {
+      "generate": "Generate",
+      "options": "Options",
+      "hide": "Hide",
+      "length": "Length",
+      "uppercase": "Uppercase (A-Z)",
+      "lowercase": "Lowercase (a-z)",
+      "numbers": "Numbers (0-9)",
+      "symbols": "Symbols (!@#)"
     }
   },
   "dashboard": {

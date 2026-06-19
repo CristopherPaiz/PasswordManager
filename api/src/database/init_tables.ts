@@ -1,5 +1,4 @@
 import { DatabaseService } from './connection.js'
-import bcrypt from 'bcryptjs'
 import dotenv from 'dotenv'
 
 dotenv.config()
@@ -8,6 +7,13 @@ const initializeDatabase = async (): Promise<void> => {
   try {
     const dbClient = await DatabaseService.getInstance().getClient()
 
+    // Usuarios: además de la cuenta, guarda los parámetros cripto del baúl.
+    // IMPORTANTE: `password` NO es la contraseña maestra. Es el bcrypt de un
+    // authHash derivado en el navegador (la maestra nunca llega al server).
+    // kdf_salt / kdf_params: para re-derivar la llave maestra en el cliente.
+    // wrapped_vault_key: la vaultKey (que cifra el baúl) envuelta por la maestra.
+    // wrapped_vault_key_recovery: la misma vaultKey envuelta por la llave de recuperación.
+    // El server NUNCA puede abrir estos blobs: es zero-knowledge.
     await dbClient.execute(`
       CREATE TABLE IF NOT EXISTS Usuarios (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -16,9 +22,30 @@ const initializeDatabase = async (): Promise<void> => {
         email TEXT NOT NULL UNIQUE,
         nombre TEXT,
         apellido TEXT,
+        kdf_salt TEXT,
+        kdf_params TEXT,
+        wrapped_vault_key TEXT,
+        wrapped_vault_key_recovery TEXT,
         activo INTEGER DEFAULT 1,
         ultimo_login DATETIME,
         fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+
+    // Baúl: el server solo ve blobs cifrados. `ciphertext` es el JSON del item
+    // (título, usuario, contraseña, url, notas) cifrado con AES-256-GCM en el
+    // navegador usando la vaultKey. `iv` es el nonce por item. `tipo` queda en
+    // claro solo para poder listar/filtrar sin descifrar (password|note|card...).
+    await dbClient.execute(`
+      CREATE TABLE IF NOT EXISTS VaultItems (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        usuario_id INTEGER NOT NULL,
+        tipo TEXT NOT NULL DEFAULT 'password',
+        ciphertext TEXT NOT NULL,
+        iv TEXT NOT NULL,
+        fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+        fecha_modificacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(usuario_id) REFERENCES Usuarios(id) ON DELETE CASCADE
       )
     `)
 
@@ -65,20 +92,10 @@ const initializeDatabase = async (): Promise<void> => {
       })
     }
 
-    const { rows: userCount } = await dbClient.execute('SELECT COUNT(*) as count FROM Usuarios')
-
-    if (Number(userCount[0].count) === 0) {
-      const adminEmail = process.env.ADMIN_EMAIL ?? 'admin@admin.com'
-      const adminPass = process.env.ADMIN_PASSWORD ?? 'admin'
-      const saltRounds = parseInt(process.env.SALT_ROUNDS ?? '10')
-
-      const hashedPassword = await bcrypt.hash(adminPass, saltRounds)
-
-      await dbClient.execute({
-        sql: 'INSERT INTO Usuarios (username, password, email, nombre, apellido, activo) VALUES (?, ?, ?, ?, ?, ?)',
-        args: ['admin', hashedPassword, adminEmail, 'Administrador', 'Admin', 1]
-      })
-    }
+    // Nota: NO se siembra un usuario admin. En un gestor de contraseñas la
+    // primera cuenta se crea por el flujo de registro (que genera salt, vaultKey
+    // y llave de recuperación en el navegador). Un admin con bcrypt('admin') no
+    // tendría parámetros cripto y no podría abrir ningún baúl.
 
     process.exit(0)
   } catch (error) {

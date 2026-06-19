@@ -14,7 +14,11 @@ interface ErrorLogRow {
 }
 
 // Lista paginada de ErrorLogs. Responde { data, pagination } para usePaginatedQuery.
-export const getErrorLogs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const getErrorLogs = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     const page = Math.max(1, parseInt(String(req.query.page ?? '1'), 10) || 1)
     const limitRaw = parseInt(String(req.query.limit ?? '10'), 10) || 10

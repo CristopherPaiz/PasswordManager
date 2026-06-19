@@ -57,3 +57,29 @@ export interface ServerTimeInfo {
   offset: string;
   serverTimezone: string;
 }
+
+// ---------- Baúl (vault) ----------
+
+// Contenido descifrado de un item (vive solo en memoria del navegador).
+export interface VaultItemData {
+  title: string;
+  username: string;
+  password: string;
+  url: string;
+  notes: string;
+}
+
+// Fila tal cual la guarda/devuelve el server: cifrada, ilegible para el server.
+export interface VaultItemRow {
+  id: number;
+  tipo: string;
+  ciphertext: string;
+  iv: string;
+  fecha_creacion: string;
+  fecha_modificacion: string;
+}
+
+// Item ya descifrado en el cliente: fila + datos en claro.
+export interface VaultItem extends VaultItemRow {
+  data: VaultItemData;
+}

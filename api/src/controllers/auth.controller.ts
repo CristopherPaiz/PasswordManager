@@ -12,11 +12,24 @@ interface DbUser {
   nombre?: string
   apellido?: string
   activo?: number
+  kdf_salt?: string
+  kdf_params?: string
+  wrapped_vault_key?: string
 }
 
 export const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { username, password, email, nombre, apellido } = req.body
+    const {
+      username,
+      password,
+      email,
+      nombre,
+      apellido,
+      kdf_salt,
+      kdf_params,
+      wrapped_vault_key,
+      wrapped_vault_key_recovery
+    } = req.body
 
     if (!username || !password || !email) {
       res.status(HTTP_STATUS.BAD_REQUEST).json({ message: MESSAGES.AUTH.MISSING_CREDENTIALS })
@@ -36,11 +49,24 @@ export const register = async (req: Request, res: Response, next: NextFunction):
     }
 
     const saltRounds = parseInt(process.env.SALT_ROUNDS ?? String(SYSTEM.DEFAULT_SALT_ROUNDS))
+    // `password` aquí es el authHash derivado en el navegador, no la maestra.
     const hashedPassword = await bcrypt.hash(password, saltRounds)
 
     const result = await dbClient.execute({
-      sql: 'INSERT INTO Usuarios (username, password, email, nombre, apellido) VALUES (?, ?, ?, ?, ?)',
-      args: [username, hashedPassword, email, nombre ?? null, apellido ?? null]
+      sql: `INSERT INTO Usuarios
+              (username, password, email, nombre, apellido, kdf_salt, kdf_params, wrapped_vault_key, wrapped_vault_key_recovery)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: [
+        username,
+        hashedPassword,
+        email,
+        nombre ?? null,
+        apellido ?? null,
+        kdf_salt,
+        JSON.stringify(kdf_params),
+        JSON.stringify(wrapped_vault_key),
+        JSON.stringify(wrapped_vault_key_recovery)
+      ]
     })
 
     res.status(HTTP_STATUS.CREATED).json({
@@ -52,6 +78,32 @@ export const register = async (req: Request, res: Response, next: NextFunction):
         nombre: nombre ?? null,
         apellido: apellido ?? null
       }
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+// Pre-login: entrega salt + params del KDF para que el cliente derive el authHash.
+// Los salts no son secretos. Si el usuario no existe, 404 genérico.
+export const prelogin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { username } = req.body
+
+    const dbClient = await DatabaseService.getInstance().getClient()
+    const { rows } = await dbClient.execute({
+      sql: 'SELECT kdf_salt, kdf_params FROM Usuarios WHERE username = ? AND activo = 1',
+      args: [username]
+    })
+
+    if (rows.length === 0 || !rows[0].kdf_salt) {
+      res.status(HTTP_STATUS.NOT_FOUND).json({ message: MESSAGES.AUTH.INVALID_CREDENTIALS })
+      return
+    }
+
+    res.status(HTTP_STATUS.OK).json({
+      kdf_salt: String(rows[0].kdf_salt),
+      kdf_params: JSON.parse(String(rows[0].kdf_params))
     })
   } catch (error) {
     next(error)
@@ -138,7 +190,10 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
         username: user.username,
         nombre: user.nombre,
         apellido: user.apellido
-      }
+      },
+      // El cliente ya derivó la wrapKey en el prelogin; con esto desenvuelve la
+      // vaultKey sin un segundo viaje. El server no puede abrir este blob.
+      wrapped_vault_key: user.wrapped_vault_key ? JSON.parse(user.wrapped_vault_key) : null
     })
   } catch (error) {
     next(error)

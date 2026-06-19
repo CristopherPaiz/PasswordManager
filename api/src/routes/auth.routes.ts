@@ -1,12 +1,13 @@
 import { Router } from 'express'
-import { register, login, logout, getMe } from '@controllers/auth.controller.js'
+import { register, login, logout, getMe, prelogin } from '@controllers/auth.controller.js'
 import { authMiddleware } from '@middlewares/auth.middleware.js'
 import { validate } from '@middlewares/validate.middleware.js'
-import { registerSchema, loginSchema } from '@validators/auth.schema.js'
+import { registerSchema, loginSchema, preloginSchema } from '@validators/auth.schema.js'
 
 const router = Router()
 
 router.post('/register', validate(registerSchema), register)
+router.post('/prelogin', validate(preloginSchema), prelogin)
 router.post('/login', validate(loginSchema), login)
 router.post('/logout', logout)
 router.get('/me', authMiddleware, getMe)

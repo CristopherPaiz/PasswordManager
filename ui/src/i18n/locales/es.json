@@ -7,6 +7,7 @@
   },
   "nav": {
     "home": "Inicio",
+    "vault": "Baúl",
     "dashboard": "Dashboard",
     "errors": "Errores",
     "login": "Iniciar Sesión",
@@ -29,15 +30,97 @@
   },
   "login": {
     "title": "Acceder",
-    "subtitle": "Ingresa tus credenciales para continuar",
+    "subtitle": "Ingresa tu usuario y tu contraseña maestra",
     "username": "Usuario",
     "password": "Contraseña",
+    "masterPassword": "Contraseña maestra",
     "submit": "Ingresar",
     "fillAllFields": "Por favor, completa todos los campos",
     "success": "Inicio de sesión exitoso",
+    "invalidCredentials": "Usuario o contraseña maestra incorrectos.",
+    "noAccount": "¿No tienes una cuenta?",
+    "createAccount": "Crear cuenta",
     "errors": {
       "usernameRequired": "El usuario es obligatorio.",
       "passwordRequired": "La contraseña es obligatoria."
+    }
+  },
+  "register": {
+    "title": "Crear cuenta",
+    "subtitle": "Tu contraseña maestra cifra todo tu baúl",
+    "username": "Usuario",
+    "email": "Correo electrónico",
+    "masterPassword": "Contraseña maestra",
+    "confirmPassword": "Confirmar contraseña maestra",
+    "masterHint": "Tu contraseña maestra nunca se envía al servidor y NO se puede recuperar. Si la olvidas, solo la llave de recuperación podrá abrir tu baúl. Elige algo fuerte y memorable.",
+    "submit": "Crear cuenta",
+    "haveAccount": "¿Ya tienes una cuenta?",
+    "signIn": "Inicia sesión",
+    "genericError": "No se pudo crear la cuenta. Intenta de nuevo.",
+    "errors": {
+      "usernameShort": "El usuario debe tener al menos 3 caracteres.",
+      "usernameLong": "El usuario no puede exceder 30 caracteres.",
+      "usernameInvalid": "Solo se permiten letras, números y guion bajo.",
+      "emailInvalid": "El correo no es válido.",
+      "passwordShort": "La contraseña maestra debe tener al menos 10 caracteres.",
+      "confirmRequired": "Confirma tu contraseña maestra.",
+      "passwordMismatch": "Las contraseñas no coinciden."
+    },
+    "recovery": {
+      "title": "Guarda tu llave de recuperación",
+      "warning": "Esta es la ÚNICA forma de recuperar tu baúl si olvidas la contraseña maestra. Se muestra una sola vez. Guárdala en un lugar seguro y offline.",
+      "copy": "Copiar llave",
+      "copied": "Llave copiada",
+      "confirm": "Guardé mi llave de recuperación en un lugar seguro.",
+      "continue": "Entrar al baúl"
+    }
+  },
+  "unlock": {
+    "title": "Baúl bloqueado",
+    "subtitle": "Ingresa tu contraseña maestra para desbloquear",
+    "masterPassword": "Contraseña maestra",
+    "submit": "Desbloquear",
+    "wrongPassword": "Contraseña maestra incorrecta."
+  },
+  "vault": {
+    "title": "Mi baúl",
+    "subtitle": "Tus contraseñas, cifradas de extremo a extremo",
+    "add": "Agregar",
+    "searchPlaceholder": "Buscar por título, usuario o sitio...",
+    "empty": "Tu baúl está vacío. Agrega tu primera contraseña.",
+    "noResults": "No hay resultados para tu búsqueda.",
+    "copyPassword": "Copiar contraseña",
+    "copyUsername": "Copiar usuario",
+    "passwordCopied": "Contraseña copiada",
+    "usernameCopied": "Usuario copiado",
+    "edit": "Editar",
+    "editTitle": "Editar elemento",
+    "newTitle": "Nuevo elemento",
+    "save": "Guardar",
+    "saved": "Elemento guardado",
+    "saveError": "No se pudo guardar el elemento.",
+    "delete": "Eliminar",
+    "deleted": "Elemento eliminado",
+    "cancel": "Cancelar",
+    "titleRequired": "El título es obligatorio.",
+    "deleteConfirmTitle": "Eliminar elemento",
+    "deleteConfirmText": "¿Seguro que deseas eliminar \"{{title}}\"? Esta acción no se puede deshacer.",
+    "fields": {
+      "title": "Título",
+      "username": "Usuario o correo",
+      "password": "Contraseña",
+      "url": "Sitio web (URL)",
+      "notes": "Notas"
+    },
+    "generator": {
+      "generate": "Generar",
+      "options": "Opciones",
+      "hide": "Ocultar",
+      "length": "Longitud",
+      "uppercase": "Mayúsculas (A-Z)",
+      "lowercase": "Minúsculas (a-z)",
+      "numbers": "Números (0-9)",
+      "symbols": "Símbolos (!@#)"
     }
   },
   "dashboard": {

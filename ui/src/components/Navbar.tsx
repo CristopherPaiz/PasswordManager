@@ -6,6 +6,7 @@ import { useAuthQuery } from "@hooks/queries/auth.queries";
 import { useMutationQuery, useGetQuery } from "@hooks/queries/core.queries";
 import { useUiStore } from "@store/ui.store";
 import { useAuthStore } from "@store/auth.store";
+import { useVaultStore } from "@store/vault.store";
 import { ROUTES, API_ENDPOINTS, THEMES, NAVIGATION, LANGUAGES } from "@constants/app.constants";
 import { useQueryClient } from "@tanstack/react-query";
 import { ApiResponse } from "@apptypes";
@@ -17,6 +18,7 @@ export const Navbar = () => {
   const { data, isLoading } = useAuthQuery();
   const { theme, toggleTheme } = useUiStore();
   const { setAuthenticatedHint } = useAuthStore();
+  const lockVault = useVaultStore((s) => s.lock);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -44,6 +46,7 @@ export const Navbar = () => {
       await logout({});
     } finally {
       setAuthenticatedHint(false);
+      lockVault(); // borra la vaultKey de memoria al cerrar sesión
       queryClient.removeQueries({ queryKey: [API_ENDPOINTS.AUTH.ME] });
       navigate(ROUTES.HOME);
     }

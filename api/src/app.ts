@@ -7,6 +7,7 @@ import rateLimit from 'express-rate-limit'
 import { errorMiddleware } from '@middlewares/error.middleware.js'
 import { HTTP_STATUS } from '@config/constants.js'
 import authRoutes from '@routes/auth.routes.js'
+import vaultRoutes from '@routes/vault.routes.js'
 import uploadRoutes from '@routes/upload.routes.js'
 import configRoutes from '@routes/config.routes.js'
 import systemRoutes from '@routes/system.routes.js'
@@ -45,7 +46,8 @@ const allowedOrigins = [
   ...parseOrigins(process.env.CORS_ORIGINS)
 ]
 
-const corsOrigins = allowedOrigins.length > 0 ? Array.from(new Set(allowedOrigins)) : ['http://localhost:5173']
+const corsOrigins =
+  allowedOrigins.length > 0 ? Array.from(new Set(allowedOrigins)) : ['http://localhost:5173']
 
 app.use(
   cors({
@@ -67,6 +69,7 @@ app.use(express.json())
 app.use(cookieParser())
 
 app.use('/api/auth', authRoutes)
+app.use('/api/vault', vaultRoutes)
 app.use('/api/upload', uploadRoutes)
 app.use('/api/config', configRoutes)
 app.use('/api/system', systemRoutes)
