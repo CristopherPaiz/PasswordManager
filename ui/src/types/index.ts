@@ -3,6 +3,8 @@ export interface User {
   username: string;
   nombre: string | null;
   apellido: string | null;
+  totpEnabled?: boolean;
+  passkeyEnabled?: boolean;
 }
 
 export interface ApiResponse<T = null> {

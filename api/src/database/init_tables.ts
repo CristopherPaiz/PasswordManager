@@ -26,6 +26,11 @@ const initializeDatabase = async (): Promise<void> => {
         kdf_params TEXT,
         wrapped_vault_key TEXT,
         wrapped_vault_key_recovery TEXT,
+        recovery_hash TEXT,
+        totp_secret TEXT,
+        totp_enabled INTEGER DEFAULT 0,
+        passkey_cred_id TEXT,
+        wrapped_vault_key_passkey TEXT,
         activo INTEGER DEFAULT 1,
         ultimo_login DATETIME,
         fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP

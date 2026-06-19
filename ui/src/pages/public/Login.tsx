@@ -3,7 +3,7 @@ import { useNavigate, Navigate, Link } from "react-router";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LogIn } from "lucide-react";
+import { LogIn, ShieldCheck } from "lucide-react";
 import { useMutationQuery } from "@hooks/queries/core.queries";
 import { useAuthQuery } from "@hooks/queries/auth.queries";
 import { useAuthStore } from "@store/auth.store";
@@ -23,9 +23,16 @@ interface PreloginResponse {
 }
 
 interface LoginResponse {
-  message: string;
-  user: User;
-  wrapped_vault_key: EncryptedBlob | null;
+  message?: string;
+  user?: User;
+  wrapped_vault_key?: EncryptedBlob | null;
+  totpRequired?: boolean;
+}
+
+interface PendingTotp {
+  username: string;
+  authHash: string;
+  wrapKeyBytes: Uint8Array;
 }
 
 export const Login = () => {
@@ -36,6 +43,9 @@ export const Login = () => {
   const setVaultKey = useVaultStore((s) => s.setVaultKey);
 
   const [isWorking, setIsWorking] = useState(false);
+  const [pending, setPending] = useState<PendingTotp | null>(null);
+  const [totp, setTotp] = useState("");
+  const [totpError, setTotpError] = useState("");
 
   const schema = useMemo(() => createLoginSchema(t), [t]);
   const {
@@ -53,7 +63,10 @@ export const Login = () => {
     showToast: false,
   });
 
-  const { mutateAsync: login } = useMutationQuery<LoginResponse, { username: string; password: string }>({
+  const { mutateAsync: login } = useMutationQuery<
+    LoginResponse,
+    { username: string; password: string; token?: string }
+  >({
     endpoint: API_ENDPOINTS.AUTH.LOGIN,
     invalidateQueryKey: [API_ENDPOINTS.AUTH.ME],
     showToast: false,
@@ -64,38 +77,99 @@ export const Login = () => {
   if (isAuthLoading) return null;
   if (authData?.user) return <Navigate to={ROUTES.VAULT} replace />;
 
+  // Desbloquea el baúl con la wrapKey ya derivada y navega.
+  const finishLogin = async (res: LoginResponse, wrapKeyBytes: Uint8Array) => {
+    if (res.wrapped_vault_key) {
+      const { key, raw } = await openVaultKey(res.wrapped_vault_key, wrapKeyBytes);
+      setVaultKey(key, raw);
+    }
+    setAuthenticatedHint(true);
+    navigate(ROUTES.VAULT);
+  };
+
   const onSubmit = async (values: LoginForm) => {
     setIsWorking(true);
     try {
-      // 1. Pedir salt + params (no secreto) para poder derivar.
       const params = await prelogin({ username: values.username });
-
-      // 2. Derivar authHash (login) y wrapKey (abrir baúl) desde la maestra.
       const { authHash, wrapKeyBytes } = await deriveLoginCredentials(
         values.password,
         params.kdf_salt,
         params.kdf_params,
       );
-
-      // 3. Login con el authHash. El server bcrypt-ea y devuelve la vaultKey envuelta.
       const res = await login({ username: values.username, password: authHash });
 
-      // 4. Desenvolver la vaultKey en memoria.
-      if (res.wrapped_vault_key) {
-        const vaultKey = await openVaultKey(res.wrapped_vault_key, wrapKeyBytes);
-        setVaultKey(vaultKey);
+      if (res.totpRequired) {
+        // La cuenta tiene 2FA: guarda lo derivado y pide el código.
+        setPending({ username: values.username, authHash, wrapKeyBytes });
+        return;
       }
-
-      setAuthenticatedHint(true);
-      navigate(ROUTES.VAULT);
+      await finishLogin(res, wrapKeyBytes);
     } catch {
-      // prelogin (404) o login (401) fallan con credenciales malas.
       setError("password", { message: t("login.invalidCredentials") });
     } finally {
       setIsWorking(false);
     }
   };
 
+  const onSubmitTotp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pending) return;
+    setTotpError("");
+    setIsWorking(true);
+    try {
+      const res = await login({
+        username: pending.username,
+        password: pending.authHash,
+        token: totp,
+      });
+      await finishLogin(res, pending.wrapKeyBytes);
+    } catch {
+      setTotpError(t("login.totpInvalid"));
+    } finally {
+      setIsWorking(false);
+    }
+  };
+
+  // ---- Paso 2FA ----
+  if (pending) {
+    return (
+      <div className="flex items-center justify-center min-h-[70dvh] animate-in fade-in duration-300">
+        <Card className="w-full max-w-md space-y-6">
+          <div className="text-center space-y-2">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary-500/10">
+              <ShieldCheck className="h-7 w-7 text-primary-500" />
+            </div>
+            <h2 className="text-2xl font-bold text-text-base">{t("login.totpTitle")}</h2>
+            <p className="text-text-muted text-sm">{t("login.totpSubtitle")}</p>
+          </div>
+          <form onSubmit={onSubmitTotp} className="space-y-5" noValidate>
+            <Input
+              label={t("login.totpCode")}
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={6}
+              autoFocus
+              disabled={isWorking}
+              error={totpError}
+              value={totp}
+              onChange={(e) => setTotp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+            />
+            <Button
+              type="submit"
+              isLoading={isWorking}
+              disabled={totp.length !== 6}
+              icon={ShieldCheck}
+              className="w-full"
+            >
+              {t("login.totpSubmit")}
+            </Button>
+          </form>
+        </Card>
+      </div>
+    );
+  }
+
+  // ---- Paso credenciales ----
   return (
     <div className="flex items-center justify-center min-h-[70dvh] animate-in fade-in scale-in-95 duration-300">
       <Card className="w-full max-w-md space-y-8 shadow-xl shadow-primary-500/5">
@@ -134,12 +208,19 @@ export const Login = () => {
           </Button>
         </form>
 
-        <p className="text-center text-sm text-text-muted">
-          {t("login.noAccount")}{" "}
-          <Link to={ROUTES.REGISTER} className="font-semibold text-primary-500 hover:text-primary-600">
-            {t("login.createAccount")}
-          </Link>
-        </p>
+        <div className="space-y-2 text-center text-sm text-text-muted">
+          <p>
+            {t("login.noAccount")}{" "}
+            <Link to={ROUTES.REGISTER} className="font-semibold text-primary-500 hover:text-primary-600">
+              {t("login.createAccount")}
+            </Link>
+          </p>
+          <p>
+            <Link to={ROUTES.RECOVERY} className="text-primary-500 hover:text-primary-600">
+              {t("login.forgotMaster")}
+            </Link>
+          </p>
+        </div>
       </Card>
     </div>
   );

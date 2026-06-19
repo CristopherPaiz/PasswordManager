@@ -8,6 +8,7 @@
   "nav": {
     "home": "Home",
     "vault": "Vault",
+    "security": "Security",
     "dashboard": "Dashboard",
     "errors": "Errors",
     "login": "Sign In",
@@ -40,9 +41,71 @@
     "invalidCredentials": "Incorrect username or master password.",
     "noAccount": "Don't have an account?",
     "createAccount": "Create account",
+    "forgotMaster": "I forgot my master password",
+    "totpTitle": "Two-factor verification",
+    "totpSubtitle": "Enter the code from your authenticator app",
+    "totpCode": "6-digit code",
+    "totpSubmit": "Verify",
+    "totpInvalid": "Invalid code. Try again.",
     "errors": {
       "usernameRequired": "Username is required.",
       "passwordRequired": "Password is required."
+    }
+  },
+  "recovery": {
+    "title": "Recover access",
+    "subtitle": "Use your recovery key to set a new master password",
+    "username": "Username",
+    "recoveryKey": "Recovery key",
+    "newPassword": "New master password",
+    "confirmPassword": "Confirm new password",
+    "submit": "Reset master password",
+    "backToLogin": "Back to sign in",
+    "success": "Master password reset. Sign in with the new one.",
+    "errors": {
+      "keyRequired": "Recovery key is required.",
+      "keyInvalid": "Incorrect recovery key.",
+      "generic": "Could not reset. Check your details."
+    }
+  },
+  "security": {
+    "title": "Security",
+    "totp": {
+      "title": "Two-factor authentication (2FA)",
+      "description": "Add a code from your phone when signing in. Protects your account even if someone has your password.",
+      "active": "Active",
+      "inactive": "Inactive",
+      "activate": "Enable 2FA",
+      "scan": "Scan this QR code with Google Authenticator, Authy or similar.",
+      "qrAlt": "QR code to set up 2FA",
+      "manualKey": "Or enter this key manually:",
+      "code": "6-digit code",
+      "confirm": "Confirm and enable",
+      "cancel": "Cancel",
+      "enabled": "Two-factor authentication enabled.",
+      "disabled": "Two-factor authentication disabled.",
+      "disableHint": "Enter a current code to disable 2FA.",
+      "disable": "Disable 2FA",
+      "setupError": "Could not start setup."
+    },
+    "passkey": {
+      "title": "Fingerprint unlock (passkey)",
+      "description": "Unlock the vault with your device fingerprint or PIN, without typing the master password. The master password is still required on new devices.",
+      "active": "Active",
+      "inactive": "Inactive",
+      "activate": "Enable fingerprint on this device",
+      "disable": "Remove fingerprint",
+      "enabled": "Fingerprint unlock enabled.",
+      "disabled": "Fingerprint unlock disabled.",
+      "unsupported": "Your browser or device does not support passkeys.",
+      "needUnlock": "Unlock the vault first (go to My vault and enter your master password).",
+      "noPrf": "Your device does not support the PRF extension required for this.",
+      "cancelled": "Operation cancelled.",
+      "error": "Could not enable fingerprint unlock."
+    },
+    "autolock": {
+      "title": "Auto-lock",
+      "description": "The vault locks itself after {{minutes}} minutes of inactivity and when you reload the page. You'll need to enter your master password again."
     }
   },
   "register": {
@@ -80,7 +143,9 @@
     "subtitle": "Enter your master password to unlock",
     "masterPassword": "Master password",
     "submit": "Unlock",
-    "wrongPassword": "Incorrect master password."
+    "wrongPassword": "Incorrect master password.",
+    "usePasskey": "Unlock with fingerprint",
+    "passkeyError": "Could not unlock with fingerprint. Use your master password."
   },
   "vault": {
     "title": "My vault",

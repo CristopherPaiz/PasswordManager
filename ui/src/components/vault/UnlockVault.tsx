@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
-import { Lock, LogOut } from "lucide-react";
+import { Lock, LogOut, Fingerprint } from "lucide-react";
 import { toast } from "sonner";
 import { useGetQuery, useMutationQuery } from "@hooks/queries/core.queries";
 import { useVaultStore } from "@store/vault.store";
 import { useAuthStore } from "@store/auth.store";
 import { API_ENDPOINTS } from "@constants/app.constants";
 import { deriveLoginCredentials, openVaultKey } from "@utils/vault";
-import { EncryptedBlob, KdfParams } from "@utils/crypto";
+import { EncryptedBlob, KdfParams, deriveWrapKeyBytes } from "@utils/crypto";
+import { getPasskeySecret, isPasskeySupported } from "@utils/webauthn";
 import { Card } from "@components/ui/Card";
 import { Input } from "@components/ui/Input";
 import { Button } from "@components/ui/Button";
@@ -17,6 +18,8 @@ interface VaultKeysResponse {
   kdf_salt: string;
   kdf_params: KdfParams;
   wrapped_vault_key: EncryptedBlob | null;
+  passkey_cred_id: string | null;
+  wrapped_vault_key_passkey: EncryptedBlob | null;
 }
 
 export const UnlockVault = () => {
@@ -28,8 +31,8 @@ export const UnlockVault = () => {
   const [masterPassword, setMasterPassword] = useState("");
   const [error, setError] = useState("");
   const [isWorking, setIsWorking] = useState(false);
+  const [isPasskeyWorking, setIsPasskeyWorking] = useState(false);
 
-  // La sesión (cookie) ya es válida: pedimos los params para re-derivar la llave.
   const { data: keys, isLoading } = useGetQuery<VaultKeysResponse>({
     endpoint: API_ENDPOINTS.VAULT.KEYS,
   });
@@ -38,6 +41,9 @@ export const UnlockVault = () => {
     endpoint: API_ENDPOINTS.AUTH.LOGOUT,
     showToast: false,
   });
+
+  const canUsePasskey =
+    isPasskeySupported() && !!keys?.passkey_cred_id && !!keys?.wrapped_vault_key_passkey;
 
   const handleUnlock = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,13 +57,29 @@ export const UnlockVault = () => {
         keys.kdf_params,
       );
       // Si la maestra es incorrecta, el tag GCM falla y lanza → contraseña mala.
-      const vaultKey = await openVaultKey(keys.wrapped_vault_key, wrapKeyBytes);
-      setVaultKey(vaultKey);
+      const { key, raw } = await openVaultKey(keys.wrapped_vault_key, wrapKeyBytes);
+      setVaultKey(key, raw);
       setMasterPassword("");
     } catch {
       setError(t("unlock.wrongPassword"));
     } finally {
       setIsWorking(false);
+    }
+  };
+
+  const handlePasskeyUnlock = async () => {
+    if (!keys?.passkey_cred_id || !keys?.wrapped_vault_key_passkey) return;
+    setError("");
+    setIsPasskeyWorking(true);
+    try {
+      const prfSecret = await getPasskeySecret(keys.passkey_cred_id);
+      const wrapKey = await deriveWrapKeyBytes(prfSecret);
+      const { key, raw } = await openVaultKey(keys.wrapped_vault_key_passkey, wrapKey);
+      setVaultKey(key, raw);
+    } catch {
+      toast.error(t("unlock.passkeyError"));
+    } finally {
+      setIsPasskeyWorking(false);
     }
   };
 
@@ -81,6 +103,19 @@ export const UnlockVault = () => {
           <h2 className="text-2xl font-bold text-text-base">{t("unlock.title")}</h2>
           <p className="text-text-muted text-sm">{t("unlock.subtitle")}</p>
         </div>
+
+        {canUsePasskey && (
+          <Button
+            type="button"
+            variant="secondary"
+            icon={Fingerprint}
+            isLoading={isPasskeyWorking}
+            onClick={handlePasskeyUnlock}
+            className="w-full"
+          >
+            {t("unlock.usePasskey")}
+          </Button>
+        )}
 
         <form onSubmit={handleUnlock} className="space-y-5" noValidate>
           <Input

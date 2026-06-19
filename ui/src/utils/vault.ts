@@ -6,6 +6,7 @@ import {
   aesEncrypt,
   deriveAuthHash,
   deriveMasterKey,
+  deriveRecoveryAuth,
   deriveWrapKeyBytes,
   generateRecoveryKey,
   generateVaultKey,
@@ -26,12 +27,22 @@ export interface RegistrationCrypto {
   kdf_params: KdfParams;
   wrapped_vault_key: EncryptedBlob;
   wrapped_vault_key_recovery: EncryptedBlob;
+  recovery_auth: string; // hash de la llave de recuperación (autoriza reset)
+}
+
+// Cripto nueva que reemplaza a la maestra durante un reset por recovery.
+export interface MasterResetCrypto {
+  password: string; // nuevo authHash
+  kdf_salt: string;
+  kdf_params: KdfParams;
+  wrapped_vault_key: EncryptedBlob;
 }
 
 export interface RegistrationResult {
   crypto: RegistrationCrypto;
   recoveryKey: string; // mostrar UNA vez al usuario
   vaultCryptoKey: CryptoKey; // ya lista en memoria, para desbloquear sin re-derivar
+  vaultKeyRaw: Uint8Array; // bytes crudos (para re-envolver: passkey, etc.)
 }
 
 /**
@@ -53,12 +64,45 @@ export const buildRegistration = async (masterPassword: string): Promise<Registr
   const recovery = generateRecoveryKey();
   const recWrapKey = await deriveWrapKeyBytes(recovery.bytes);
   const wrapped_vault_key_recovery = await wrapVaultKey(vaultKey, recWrapKey);
+  const recovery_auth = await deriveRecoveryAuth(recovery.bytes);
 
   return {
-    crypto: { password: authHash, kdf_salt, kdf_params, wrapped_vault_key, wrapped_vault_key_recovery },
+    crypto: {
+      password: authHash,
+      kdf_salt,
+      kdf_params,
+      wrapped_vault_key,
+      wrapped_vault_key_recovery,
+      recovery_auth,
+    },
     recoveryKey: recovery.display,
     vaultCryptoKey: await importAesKey(vaultKey),
+    vaultKeyRaw: vaultKey,
   };
+};
+
+// Recupera la vaultKey cruda usando la llave de recuperación (para re-envolverla
+// con una maestra nueva). Lanza si la llave de recuperación es incorrecta.
+export const recoverVaultKeyRaw = async (
+  wrappedRecovery: EncryptedBlob,
+  recoveryKey: string,
+): Promise<Uint8Array> => {
+  const recWrapKey = await deriveWrapKeyBytes(recoveryKeyToBytes(recoveryKey));
+  return unwrapVaultKey(wrappedRecovery, recWrapKey);
+};
+
+// Construye la cripto nueva (maestra nueva) reusando la misma vaultKey.
+export const buildMasterReset = async (
+  newMasterPassword: string,
+  vaultKeyRaw: Uint8Array,
+): Promise<MasterResetCrypto> => {
+  const kdf_salt = toBase64(randomBytes(16));
+  const kdf_params = DEFAULT_KDF_PARAMS;
+  const masterKey = await deriveMasterKey(newMasterPassword, kdf_salt, kdf_params);
+  const authHash = await deriveAuthHash(masterKey);
+  const wrapKey = await deriveWrapKeyBytes(masterKey);
+  const wrapped_vault_key = await wrapVaultKey(vaultKeyRaw, wrapKey);
+  return { password: authHash, kdf_salt, kdf_params, wrapped_vault_key };
 };
 
 // Deriva authHash + wrapKey para el login (con salt/params obtenidos del prelogin).
@@ -73,22 +117,13 @@ export const deriveLoginCredentials = async (
   return { authHash, wrapKeyBytes };
 };
 
-// Desenvuelve la vaultKey y la importa como CryptoKey lista para usar.
+// Desenvuelve la vaultKey: devuelve la CryptoKey lista y los bytes crudos.
 export const openVaultKey = async (
   wrapped: EncryptedBlob,
   wrapKeyBytes: Uint8Array,
-): Promise<CryptoKey> => {
+): Promise<{ key: CryptoKey; raw: Uint8Array }> => {
   const raw = await unwrapVaultKey(wrapped, wrapKeyBytes);
-  return importAesKey(raw);
-};
-
-// Apertura por llave de recuperación (deriva wrapKey desde la recoveryKey).
-export const openVaultKeyWithRecovery = async (
-  wrappedRecovery: EncryptedBlob,
-  recoveryKey: string,
-): Promise<CryptoKey> => {
-  const recWrapKey = await deriveWrapKeyBytes(recoveryKeyToBytes(recoveryKey));
-  return openVaultKey(wrappedRecovery, recWrapKey);
+  return { key: await importAesKey(raw), raw };
 };
 
 // ---------- cifrado/descifrado de items ----------

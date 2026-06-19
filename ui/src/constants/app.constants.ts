@@ -1,14 +1,19 @@
-import { LayoutDashboard, Home, AlertTriangle, KeyRound } from "lucide-react";
+import { LayoutDashboard, Home, AlertTriangle, KeyRound, ShieldCheck } from "lucide-react";
 import { ElementType } from "react";
 
 export const ROUTES = {
   HOME: "/",
   LOGIN: "/login",
   REGISTER: "/register",
+  RECOVERY: "/recovery",
   VAULT: "/vault",
+  SECURITY: "/security",
   DASHBOARD: "/dashboard",
   ERRORS: "/errors",
 } as const;
+
+// Inactividad antes de bloquear el baúl automáticamente (borra la vaultKey).
+export const VAULT_AUTO_LOCK_MS = 10 * 60 * 1000;
 
 export const API_ENDPOINTS = {
   AUTH: {
@@ -17,6 +22,12 @@ export const API_ENDPOINTS = {
     LOGIN: "/api/auth/login",
     LOGOUT: "/api/auth/logout",
     ME: "/api/auth/me",
+    RECOVERY_START: "/api/auth/recovery/start",
+    RECOVERY_RESET: "/api/auth/recovery/reset",
+    TOTP_SETUP: "/api/auth/totp/setup",
+    TOTP_ENABLE: "/api/auth/totp/enable",
+    TOTP_DISABLE: "/api/auth/totp/disable",
+    PASSKEY: "/api/auth/passkey",
   },
   VAULT: {
     KEYS: "/api/vault/keys",
@@ -69,6 +80,7 @@ export const NAVIGATION = {
   PUBLIC: [{ labelKey: "nav.home", path: ROUTES.HOME, icon: Home }] as NavigationItem[],
   PRIVATE: [
     { labelKey: "nav.vault", path: ROUTES.VAULT, icon: KeyRound },
+    { labelKey: "nav.security", path: ROUTES.SECURITY, icon: ShieldCheck },
     { labelKey: "nav.dashboard", path: ROUTES.DASHBOARD, icon: LayoutDashboard },
     { labelKey: "nav.errors", path: ROUTES.ERRORS, icon: AlertTriangle },
   ] as NavigationItem[],

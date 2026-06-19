@@ -8,6 +8,7 @@
   "nav": {
     "home": "Inicio",
     "vault": "Baúl",
+    "security": "Seguridad",
     "dashboard": "Dashboard",
     "errors": "Errores",
     "login": "Iniciar Sesión",
@@ -40,9 +41,71 @@
     "invalidCredentials": "Usuario o contraseña maestra incorrectos.",
     "noAccount": "¿No tienes una cuenta?",
     "createAccount": "Crear cuenta",
+    "forgotMaster": "Olvidé mi contraseña maestra",
+    "totpTitle": "Verificación en dos pasos",
+    "totpSubtitle": "Ingresa el código de tu app de autenticación",
+    "totpCode": "Código de 6 dígitos",
+    "totpSubmit": "Verificar",
+    "totpInvalid": "Código inválido. Intenta de nuevo.",
     "errors": {
       "usernameRequired": "El usuario es obligatorio.",
       "passwordRequired": "La contraseña es obligatoria."
+    }
+  },
+  "recovery": {
+    "title": "Recuperar acceso",
+    "subtitle": "Usa tu llave de recuperación para fijar una nueva contraseña maestra",
+    "username": "Usuario",
+    "recoveryKey": "Llave de recuperación",
+    "newPassword": "Nueva contraseña maestra",
+    "confirmPassword": "Confirmar nueva contraseña",
+    "submit": "Restablecer maestra",
+    "backToLogin": "Volver a iniciar sesión",
+    "success": "Contraseña maestra restablecida. Inicia sesión con la nueva.",
+    "errors": {
+      "keyRequired": "La llave de recuperación es obligatoria.",
+      "keyInvalid": "Llave de recuperación incorrecta.",
+      "generic": "No se pudo restablecer. Verifica tus datos."
+    }
+  },
+  "security": {
+    "title": "Seguridad",
+    "totp": {
+      "title": "Verificación en dos pasos (2FA)",
+      "description": "Agrega un código de tu teléfono al iniciar sesión. Protege tu cuenta aunque alguien tenga tu contraseña.",
+      "active": "Activo",
+      "inactive": "Inactivo",
+      "activate": "Activar 2FA",
+      "scan": "Escanea este código QR con Google Authenticator, Authy o similar.",
+      "qrAlt": "Código QR para configurar 2FA",
+      "manualKey": "O ingresa esta clave manualmente:",
+      "code": "Código de 6 dígitos",
+      "confirm": "Confirmar y activar",
+      "cancel": "Cancelar",
+      "enabled": "Verificación en dos pasos activada.",
+      "disabled": "Verificación en dos pasos desactivada.",
+      "disableHint": "Ingresa un código actual para desactivar el 2FA.",
+      "disable": "Desactivar 2FA",
+      "setupError": "No se pudo iniciar la configuración."
+    },
+    "passkey": {
+      "title": "Desbloqueo con huella (passkey)",
+      "description": "Desbloquea el baúl con tu huella o PIN del dispositivo, sin escribir la maestra. La contraseña maestra sigue siendo necesaria en dispositivos nuevos.",
+      "active": "Activo",
+      "inactive": "Inactivo",
+      "activate": "Activar huella en este dispositivo",
+      "disable": "Quitar huella",
+      "enabled": "Desbloqueo con huella activado.",
+      "disabled": "Desbloqueo con huella desactivado.",
+      "unsupported": "Tu navegador o dispositivo no soporta passkeys.",
+      "needUnlock": "Desbloquea el baúl primero (ve a Mi baúl e ingresa tu maestra).",
+      "noPrf": "Tu dispositivo no soporta la extensión PRF necesaria para esto.",
+      "cancelled": "Operación cancelada.",
+      "error": "No se pudo activar el desbloqueo con huella."
+    },
+    "autolock": {
+      "title": "Bloqueo automático",
+      "description": "El baúl se bloquea solo tras {{minutes}} minutos de inactividad y al recargar la página. Tendrás que ingresar tu contraseña maestra de nuevo."
     }
   },
   "register": {
@@ -80,7 +143,9 @@
     "subtitle": "Ingresa tu contraseña maestra para desbloquear",
     "masterPassword": "Contraseña maestra",
     "submit": "Desbloquear",
-    "wrongPassword": "Contraseña maestra incorrecta."
+    "wrongPassword": "Contraseña maestra incorrecta.",
+    "usePasskey": "Desbloquear con huella",
+    "passkeyError": "No se pudo desbloquear con huella. Usa tu contraseña maestra."
   },
   "vault": {
     "title": "Mi baúl",

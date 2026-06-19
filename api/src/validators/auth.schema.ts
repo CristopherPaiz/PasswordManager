@@ -32,7 +32,9 @@ export const registerSchema = z.object({
   kdf_salt: z.string().min(1).max(128),
   kdf_params: kdfParamsSchema,
   wrapped_vault_key: encryptedBlobSchema,
-  wrapped_vault_key_recovery: encryptedBlobSchema
+  wrapped_vault_key_recovery: encryptedBlobSchema,
+  // Hash de la llave de recuperación: autoriza un reset de maestra a futuro.
+  recovery_auth: z.string().min(1).max(200)
 })
 
 export const loginSchema = z.object({
@@ -42,7 +44,12 @@ export const loginSchema = z.object({
     .min(1, 'El usuario es obligatorio.')
     .transform((value) => value.toLowerCase()),
   // authHash derivado en el navegador, base64.
-  password: z.string().min(1, 'La contraseña es obligatoria.')
+  password: z.string().min(1, 'La contraseña es obligatoria.'),
+  // Código TOTP de 6 dígitos (solo si el usuario tiene 2FA activo).
+  token: z
+    .string()
+    .regex(/^\d{6}$/, 'El código debe tener 6 dígitos.')
+    .optional()
 })
 
 // Pre-login: el cliente necesita salt + params ANTES de poder derivar el authHash.
@@ -53,4 +60,38 @@ export const preloginSchema = z.object({
     .trim()
     .min(1, 'El usuario es obligatorio.')
     .transform((value) => value.toLowerCase())
+})
+
+// Recuperación: inicia el flujo entregando el blob de recovery.
+export const recoveryStartSchema = z.object({
+  username: z
+    .string()
+    .trim()
+    .min(1, 'El usuario es obligatorio.')
+    .transform((value) => value.toLowerCase())
+})
+
+// Recuperación: aplica una maestra nueva, autorizada por recovery_auth.
+export const recoveryResetSchema = z.object({
+  username: z
+    .string()
+    .trim()
+    .min(1, 'El usuario es obligatorio.')
+    .transform((value) => value.toLowerCase()),
+  recovery_auth: z.string().min(1).max(200),
+  password: z.string().min(20, 'Credencial inválida.').max(200, 'Credencial inválida.'),
+  kdf_salt: z.string().min(1).max(128),
+  kdf_params: kdfParamsSchema,
+  wrapped_vault_key: encryptedBlobSchema
+})
+
+// TOTP: solo un código de 6 dígitos.
+export const totpTokenSchema = z.object({
+  token: z.string().regex(/^\d{6}$/, 'El código debe tener 6 dígitos.')
+})
+
+// Passkey: id de credencial (base64url) + vaultKey envuelta por el secreto PRF.
+export const passkeyRegisterSchema = z.object({
+  cred_id: z.string().min(1).max(1000),
+  wrapped_vault_key: encryptedBlobSchema
 })

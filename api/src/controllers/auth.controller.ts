@@ -1,9 +1,14 @@
 import { Request, Response, NextFunction } from 'express'
 import bcrypt from 'bcryptjs'
 import jwt, { SignOptions } from 'jsonwebtoken'
+import { generateSecret, generateURI, verify as verifyTotp } from 'otplib'
+import QRCode from 'qrcode'
 import { DatabaseService } from '@database/connection.js'
 import { HTTP_STATUS, MESSAGES, SYSTEM } from '@config/constants.js'
 import { AuthenticatedRequest } from '@apptypes/index.js'
+
+// Tolera ±30s de desfase de reloj al verificar códigos TOTP.
+const TOTP_EPOCH_TOLERANCE = 30
 
 interface DbUser {
   id: number
@@ -15,6 +20,9 @@ interface DbUser {
   kdf_salt?: string
   kdf_params?: string
   wrapped_vault_key?: string
+  totp_secret?: string
+  totp_enabled?: number
+  passkey_cred_id?: string
 }
 
 export const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -28,7 +36,8 @@ export const register = async (req: Request, res: Response, next: NextFunction):
       kdf_salt,
       kdf_params,
       wrapped_vault_key,
-      wrapped_vault_key_recovery
+      wrapped_vault_key_recovery,
+      recovery_auth
     } = req.body
 
     if (!username || !password || !email) {
@@ -51,11 +60,13 @@ export const register = async (req: Request, res: Response, next: NextFunction):
     const saltRounds = parseInt(process.env.SALT_ROUNDS ?? String(SYSTEM.DEFAULT_SALT_ROUNDS))
     // `password` aquí es el authHash derivado en el navegador, no la maestra.
     const hashedPassword = await bcrypt.hash(password, saltRounds)
+    // recovery_auth: hash de posesión de la llave de recuperación, bcrypt-eado.
+    const recoveryHash = await bcrypt.hash(recovery_auth, saltRounds)
 
     const result = await dbClient.execute({
       sql: `INSERT INTO Usuarios
-              (username, password, email, nombre, apellido, kdf_salt, kdf_params, wrapped_vault_key, wrapped_vault_key_recovery)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              (username, password, email, nombre, apellido, kdf_salt, kdf_params, wrapped_vault_key, wrapped_vault_key_recovery, recovery_hash)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
         username,
         hashedPassword,
@@ -65,7 +76,8 @@ export const register = async (req: Request, res: Response, next: NextFunction):
         kdf_salt,
         JSON.stringify(kdf_params),
         JSON.stringify(wrapped_vault_key),
-        JSON.stringify(wrapped_vault_key_recovery)
+        JSON.stringify(wrapped_vault_key_recovery),
+        recoveryHash
       ]
     })
 
@@ -112,7 +124,7 @@ export const prelogin = async (req: Request, res: Response, next: NextFunction):
 
 export const login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { username, password } = req.body
+    const { username, password, token: totpToken } = req.body
 
     if (!username || !password) {
       res.status(HTTP_STATUS.BAD_REQUEST).json({ message: MESSAGES.AUTH.MISSING_CREDENTIALS })
@@ -143,6 +155,24 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
     if (!passwordMatch) {
       res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: MESSAGES.AUTH.INVALID_CREDENTIALS })
       return
+    }
+
+    // Segundo factor: si el usuario tiene TOTP activo, exige el código antes de
+    // emitir la cookie. Sin token válido NO hay sesión.
+    if (user.totp_enabled && user.totp_secret) {
+      if (!totpToken) {
+        res.status(HTTP_STATUS.OK).json({ totpRequired: true })
+        return
+      }
+      const result = await verifyTotp({
+        token: String(totpToken),
+        secret: user.totp_secret,
+        epochTolerance: TOTP_EPOCH_TOLERANCE
+      })
+      if (!result.valid) {
+        res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: 'Código de verificación inválido.' })
+        return
+      }
     }
 
     await dbClient.execute({
@@ -247,7 +277,7 @@ export const getMe = async (
     const dbClient = await DatabaseService.getInstance().getClient()
 
     const { rows: users } = await dbClient.execute({
-      sql: 'SELECT id, username, nombre, apellido, activo FROM Usuarios WHERE id = ?',
+      sql: 'SELECT id, username, nombre, apellido, activo, totp_enabled FROM Usuarios WHERE id = ?',
       args: [userId]
     })
 
@@ -269,9 +299,272 @@ export const getMe = async (
         id: user.id,
         username: user.username,
         nombre: user.nombre,
-        apellido: user.apellido
+        apellido: user.apellido,
+        totpEnabled: Boolean(user.totp_enabled),
+        passkeyEnabled: Boolean(user.passkey_cred_id)
       }
     })
+  } catch (error) {
+    next(error)
+  }
+}
+
+// ---------- Passkey / huella (desbloqueo del baúl con WebAuthn PRF) ----------
+
+// Registra la passkey: guarda el id de credencial y la vaultKey envuelta por el
+// secreto PRF. El server no puede abrir el blob (no tiene el secreto PRF).
+export const passkeyRegister = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = req.user?.userId
+    const { cred_id, wrapped_vault_key } = req.body
+    const dbClient = await DatabaseService.getInstance().getClient()
+
+    await dbClient.execute({
+      sql: 'UPDATE Usuarios SET passkey_cred_id = ?, wrapped_vault_key_passkey = ? WHERE id = ?',
+      args: [cred_id, JSON.stringify(wrapped_vault_key), userId ?? 0]
+    })
+
+    res.status(HTTP_STATUS.OK).json({ message: 'Desbloqueo con huella activado.' })
+  } catch (error) {
+    next(error)
+  }
+}
+
+// Quita la passkey registrada.
+export const passkeyDelete = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = req.user?.userId
+    const dbClient = await DatabaseService.getInstance().getClient()
+
+    await dbClient.execute({
+      sql: 'UPDATE Usuarios SET passkey_cred_id = NULL, wrapped_vault_key_passkey = NULL WHERE id = ?',
+      args: [userId ?? 0]
+    })
+
+    res.status(HTTP_STATUS.OK).json({ message: 'Desbloqueo con huella desactivado.' })
+  } catch (error) {
+    next(error)
+  }
+}
+
+// ---------- Recuperación de maestra por llave de recuperación ----------
+
+// Paso 1: entrega el blob de recovery para que el cliente desenvuelva la vaultKey.
+// El blob es inútil sin la llave de recuperación, así que exponerlo es seguro.
+export const recoveryStart = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { username } = req.body
+    const dbClient = await DatabaseService.getInstance().getClient()
+
+    const { rows } = await dbClient.execute({
+      sql: 'SELECT wrapped_vault_key_recovery FROM Usuarios WHERE username = ? AND activo = 1',
+      args: [username]
+    })
+
+    if (rows.length === 0 || !rows[0].wrapped_vault_key_recovery) {
+      res.status(HTTP_STATUS.NOT_FOUND).json({ message: MESSAGES.AUTH.INVALID_CREDENTIALS })
+      return
+    }
+
+    res.status(HTTP_STATUS.OK).json({
+      wrapped_vault_key_recovery: JSON.parse(String(rows[0].wrapped_vault_key_recovery))
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+// Paso 2: aplica la maestra nueva. Autorizado por recovery_auth (bcrypt vs hash).
+export const recoveryReset = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { username, recovery_auth, password, kdf_salt, kdf_params, wrapped_vault_key } = req.body
+    const dbClient = await DatabaseService.getInstance().getClient()
+
+    const { rows } = await dbClient.execute({
+      sql: 'SELECT id, recovery_hash FROM Usuarios WHERE username = ? AND activo = 1',
+      args: [username]
+    })
+
+    if (rows.length === 0 || !rows[0].recovery_hash) {
+      res.status(HTTP_STATUS.NOT_FOUND).json({ message: MESSAGES.AUTH.INVALID_CREDENTIALS })
+      return
+    }
+
+    const ok = await bcrypt.compare(recovery_auth, String(rows[0].recovery_hash))
+    if (!ok) {
+      res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: 'Llave de recuperación incorrecta.' })
+      return
+    }
+
+    const userId = Number(rows[0].id)
+    const saltRounds = parseInt(process.env.SALT_ROUNDS ?? String(SYSTEM.DEFAULT_SALT_ROUNDS))
+    const hashedPassword = await bcrypt.hash(password, saltRounds)
+
+    await dbClient.execute({
+      sql: 'UPDATE Usuarios SET password = ?, kdf_salt = ?, kdf_params = ?, wrapped_vault_key = ? WHERE id = ?',
+      args: [
+        hashedPassword,
+        kdf_salt,
+        JSON.stringify(kdf_params),
+        JSON.stringify(wrapped_vault_key),
+        userId
+      ]
+    })
+
+    // Invalida sesiones activas: tras resetear la maestra se vuelve a entrar.
+    await dbClient.execute({
+      sql: 'UPDATE Sesiones SET activa = 0 WHERE usuario_id = ?',
+      args: [userId]
+    })
+
+    res.status(HTTP_STATUS.OK).json({ message: 'Contraseña maestra restablecida.' })
+  } catch (error) {
+    next(error)
+  }
+}
+
+// ---------- TOTP (2FA en el login) ----------
+
+// Genera un secreto nuevo (aún no activo) y devuelve el QR para escanear.
+export const totpSetup = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = req.user?.userId
+    const dbClient = await DatabaseService.getInstance().getClient()
+
+    const { rows } = await dbClient.execute({
+      sql: 'SELECT username, totp_enabled FROM Usuarios WHERE id = ?',
+      args: [userId ?? 0]
+    })
+
+    if (rows.length === 0) {
+      res.status(HTTP_STATUS.NOT_FOUND).json({ message: 'Usuario no encontrado.' })
+      return
+    }
+
+    if (Number(rows[0].totp_enabled) === 1) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json({ message: 'El 2FA ya está activo.' })
+      return
+    }
+
+    const secret = generateSecret()
+    const otpauth = generateURI({
+      issuer: 'PasswordManager',
+      label: String(rows[0].username),
+      secret
+    })
+    const qr = await QRCode.toDataURL(otpauth)
+
+    // Guarda el secreto provisional; se activa solo tras verificar un código.
+    await dbClient.execute({
+      sql: 'UPDATE Usuarios SET totp_secret = ?, totp_enabled = 0 WHERE id = ?',
+      args: [secret, userId ?? 0]
+    })
+
+    res.status(HTTP_STATUS.OK).json({ otpauth, qr, secret })
+  } catch (error) {
+    next(error)
+  }
+}
+
+// Verifica un código y activa el 2FA.
+export const totpEnable = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = req.user?.userId
+    const { token } = req.body
+    const dbClient = await DatabaseService.getInstance().getClient()
+
+    const { rows } = await dbClient.execute({
+      sql: 'SELECT totp_secret FROM Usuarios WHERE id = ?',
+      args: [userId ?? 0]
+    })
+
+    if (rows.length === 0 || !rows[0].totp_secret) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json({ message: 'Primero genera el código QR.' })
+      return
+    }
+
+    const result = await verifyTotp({
+      token: String(token),
+      secret: String(rows[0].totp_secret),
+      epochTolerance: TOTP_EPOCH_TOLERANCE
+    })
+    if (!result.valid) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json({ message: 'Código inválido. Intenta de nuevo.' })
+      return
+    }
+
+    await dbClient.execute({
+      sql: 'UPDATE Usuarios SET totp_enabled = 1 WHERE id = ?',
+      args: [userId ?? 0]
+    })
+
+    res.status(HTTP_STATUS.OK).json({ message: 'Verificación en dos pasos activada.' })
+  } catch (error) {
+    next(error)
+  }
+}
+
+// Desactiva el 2FA (exige un código válido para evitar abuso si dejas la sesión abierta).
+export const totpDisable = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = req.user?.userId
+    const { token } = req.body
+    const dbClient = await DatabaseService.getInstance().getClient()
+
+    const { rows } = await dbClient.execute({
+      sql: 'SELECT totp_secret, totp_enabled FROM Usuarios WHERE id = ?',
+      args: [userId ?? 0]
+    })
+
+    if (rows.length === 0 || Number(rows[0].totp_enabled) !== 1) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json({ message: 'El 2FA no está activo.' })
+      return
+    }
+
+    const result = await verifyTotp({
+      token: String(token),
+      secret: String(rows[0].totp_secret),
+      epochTolerance: TOTP_EPOCH_TOLERANCE
+    })
+    if (!result.valid) {
+      res.status(HTTP_STATUS.BAD_REQUEST).json({ message: 'Código inválido. Intenta de nuevo.' })
+      return
+    }
+
+    await dbClient.execute({
+      sql: 'UPDATE Usuarios SET totp_enabled = 0, totp_secret = NULL WHERE id = ?',
+      args: [userId ?? 0]
+    })
+
+    res.status(HTTP_STATUS.OK).json({ message: 'Verificación en dos pasos desactivada.' })
   } catch (error) {
     next(error)
   }

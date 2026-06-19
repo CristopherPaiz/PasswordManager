@@ -97,6 +97,14 @@ export const deriveAuthHash = async (masterKey: Uint8Array): Promise<string> => 
 export const deriveWrapKeyBytes = (keyMaterial: Uint8Array): Promise<Uint8Array> =>
   hkdf(keyMaterial, "pm-wrap-v1");
 
+// Prueba de posesión de la llave de recuperación para autorizar el reset de la
+// maestra en el server (se compara contra bcrypt(recovery_hash)). La llave de
+// recuperación en sí nunca viaja: solo este hash derivado.
+export const deriveRecoveryAuth = async (recoveryBytes: Uint8Array): Promise<string> => {
+  const bytes = await hkdf(recoveryBytes, "pm-recauth-v1");
+  return toBase64(bytes);
+};
+
 // ---------- AES-256-GCM ----------
 
 export const importAesKey = (raw: Uint8Array): Promise<CryptoKey> =>

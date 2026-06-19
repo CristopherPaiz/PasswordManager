@@ -26,6 +26,7 @@ interface PendingUnlock {
   username: string;
   authHash: string;
   vaultCryptoKey: CryptoKey;
+  vaultKeyRaw: Uint8Array;
 }
 
 export const Register = () => {
@@ -86,6 +87,7 @@ export const Register = () => {
         username: values.username.toLowerCase(),
         authHash: built.crypto.password,
         vaultCryptoKey: built.vaultCryptoKey,
+        vaultKeyRaw: built.vaultKeyRaw,
       });
       setRecoveryKey(built.recoveryKey);
     } catch (error) {
@@ -108,7 +110,7 @@ export const Register = () => {
     setIsWorking(true);
     try {
       await login({ username: pending.username, password: pending.authHash });
-      setVaultKey(pending.vaultCryptoKey);
+      setVaultKey(pending.vaultCryptoKey, pending.vaultKeyRaw);
       setAuthenticatedHint(true);
       navigate(ROUTES.VAULT);
     } catch (error) {

@@ -8,7 +8,9 @@ import { ProtectedLayout } from "@layouts/ProtectedLayout";
 const Home = lazy(() => import("@pages/public/Home").then((m) => ({ default: m.Home })));
 const Login = lazy(() => import("@pages/public/Login").then((m) => ({ default: m.Login })));
 const Register = lazy(() => import("@pages/public/Register").then((m) => ({ default: m.Register })));
+const Recovery = lazy(() => import("@pages/public/Recovery").then((m) => ({ default: m.Recovery })));
 const Vault = lazy(() => import("@pages/protected/Vault").then((m) => ({ default: m.Vault })));
+const Security = lazy(() => import("@pages/protected/Security").then((m) => ({ default: m.Security })));
 const Dashboard = lazy(() => import("@pages/protected/Dashboard").then((m) => ({ default: m.Dashboard })));
 const Errors = lazy(() => import("@pages/protected/Errors").then((m) => ({ default: m.Errors })));
 const NotFound = lazy(() => import("@pages/public/NotFound").then((m) => ({ default: m.NotFound })));
@@ -30,11 +32,19 @@ export const router = createBrowserRouter([
         element: <Register />,
       },
       {
+        path: ROUTES.RECOVERY,
+        element: <Recovery />,
+      },
+      {
         element: <ProtectedLayout />,
         children: [
           {
             path: ROUTES.VAULT,
             element: <Vault />,
+          },
+          {
+            path: ROUTES.SECURITY,
+            element: <Security />,
           },
           {
             path: ROUTES.DASHBOARD,
