@@ -1,6 +1,13 @@
 import dotenv from 'dotenv'
 dotenv.config()
 
+// Node <20 no expone Web Crypto como global. otplib (@noble/hashes) usa
+// `globalThis.crypto.getRandomValues`, así que lo definimos si falta.
+import { webcrypto } from 'node:crypto'
+if (typeof globalThis.crypto === 'undefined') {
+  Object.defineProperty(globalThis, 'crypto', { value: webcrypto, configurable: true })
+}
+
 import { validateEnv } from '@config/env.validator.js'
 validateEnv()
 
