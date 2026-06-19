@@ -76,6 +76,8 @@ const initializeDatabase = async (): Promise<void> => {
         token TEXT NOT NULL,
         fecha_expiracion DATETIME NOT NULL,
         activa INTEGER DEFAULT 1,
+        user_agent TEXT,
+        ip TEXT,
         fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY(usuario_id) REFERENCES Usuarios(id) ON DELETE CASCADE
       )

@@ -16,6 +16,9 @@ import { Input } from "@components/ui/Input";
 import { Select } from "@components/ui/Select";
 import { Button } from "@components/ui/Button";
 import { Badge } from "@components/ui/Badge";
+import { ChangeMasterCard } from "@components/settings/ChangeMasterCard";
+import { BackupCard } from "@components/settings/BackupCard";
+import { SessionsCard } from "@components/settings/SessionsCard";
 
 interface TotpSetupResponse {
   otpauth: string;
@@ -342,6 +345,11 @@ export const Settings = () => {
           }))}
         />
       </Card>
+
+      {/* --- Cambiar maestra / Respaldo / Sesiones --- */}
+      <ChangeMasterCard />
+      <BackupCard />
+      <SessionsCard />
     </div>
   );
 };

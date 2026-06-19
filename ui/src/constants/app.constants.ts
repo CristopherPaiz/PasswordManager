@@ -30,10 +30,14 @@ export const API_ENDPOINTS = {
     PASSKEY: "/api/auth/passkey",
     PASSKEY_LIST: "/api/auth/passkeys",
     PASSKEY_ITEM: (id: number) => `/api/auth/passkey/${id}`,
+    MASTER: "/api/auth/master",
+    SESSIONS: "/api/auth/sessions",
+    SESSION_ITEM: (id: number) => `/api/auth/sessions/${id}`,
   },
   VAULT: {
     KEYS: "/api/vault/keys",
     LIST: "/api/vault",
+    BULK: "/api/vault/bulk",
     ITEM: (id: number) => `/api/vault/${id}`,
   },
   UPLOAD: {

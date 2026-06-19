@@ -97,3 +97,12 @@ export const passkeyRegisterSchema = z.object({
   wrapped_vault_key: encryptedBlobSchema,
   label: z.string().trim().max(80).optional()
 })
+
+// Cambio de maestra estando dentro: verifica la actual y aplica la nueva.
+export const changeMasterSchema = z.object({
+  current_password: z.string().min(1).max(200),
+  password: z.string().min(20, 'Credencial inválida.').max(200, 'Credencial inválida.'),
+  kdf_salt: z.string().min(1).max(128),
+  kdf_params: kdfParamsSchema,
+  wrapped_vault_key: encryptedBlobSchema
+})

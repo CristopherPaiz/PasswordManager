@@ -119,6 +119,49 @@
       "title": "Página de inicio",
       "description": "Al iniciar sesión, abrir directamente esta página.",
       "label": "Abrir en"
+    },
+    "master": {
+      "title": "Cambiar contraseña maestra",
+      "description": "Cambia tu maestra sin perder el baúl. Se re-cifra la llave interna; el contenido no cambia.",
+      "current": "Contraseña maestra actual",
+      "new": "Nueva contraseña maestra",
+      "confirm": "Confirmar nueva contraseña",
+      "submit": "Cambiar maestra",
+      "success": "Contraseña maestra actualizada.",
+      "needUnlock": "Desbloquea el baúl primero (ve a Mi baúl e ingresa tu maestra).",
+      "error": "No se pudo cambiar la contraseña maestra."
+    },
+    "backup": {
+      "title": "Respaldo (exportar / importar)",
+      "description": "Tu baúl vive solo en el servidor. Exporta una copia que tú controles, o importa desde otro gestor.",
+      "needUnlock": "Desbloquea el baúl primero para exportar o importar.",
+      "exportTitle": "Exportar copia cifrada",
+      "exportHint": "Genera un archivo .json cifrado con la contraseña que elijas. Guárdalo en lugar seguro.",
+      "exportPw": "Contraseña para el archivo",
+      "exportPwShort": "Usa al menos 6 caracteres para el archivo.",
+      "exportBtn": "Exportar",
+      "exported": "Exportados {{count}} elementos.",
+      "exportError": "No se pudo exportar.",
+      "importTitle": "Importar",
+      "importHint": "Acepta tu respaldo cifrado (.json) o un CSV de Chrome/Bitwarden. Los items se agregan al baúl.",
+      "file": "Archivo (.json o .csv)",
+      "importPw": "Contraseña del archivo (si es respaldo cifrado)",
+      "importPwNeeded": "Este respaldo está cifrado: ingresa su contraseña.",
+      "importBtn": "Importar",
+      "imported": "Importados {{count}} elementos.",
+      "importError": "No se pudo importar. Revisa el archivo o la contraseña.",
+      "badFile": "Archivo no reconocido.",
+      "pickFile": "Selecciona un archivo primero.",
+      "nothing": "El archivo no tiene elementos."
+    },
+    "sessions": {
+      "title": "Sesiones activas",
+      "description": "Dispositivos donde tu sesión está abierta. Cierra las que no reconozcas.",
+      "none": "No hay sesiones activas.",
+      "current": "Esta sesión",
+      "unknown": "Dispositivo desconocido",
+      "revoke": "Cerrar sesión",
+      "revoked": "Sesión cerrada."
     }
   },
   "register": {

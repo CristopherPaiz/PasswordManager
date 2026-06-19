@@ -14,3 +14,8 @@ export const vaultItemUpdateSchema = z.object({
   ciphertext: z.string().min(1).max(20000),
   iv: z.string().min(1).max(64)
 })
+
+// Import masivo: lista de items cifrados (máx 2000 por seguridad).
+export const vaultBulkSchema = z.object({
+  items: z.array(vaultItemSchema).min(1).max(2000)
+})

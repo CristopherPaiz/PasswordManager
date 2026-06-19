@@ -150,3 +150,27 @@ export const deleteVaultItem = async (
     next(error)
   }
 }
+
+// Inserta varios items cifrados de una (import/restauración). Todo o nada (batch).
+export const bulkCreateVaultItems = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = req.user?.userId
+    const { items } = req.body as { items: { tipo?: string; ciphertext: string; iv: string }[] }
+
+    const dbClient = await DatabaseService.getInstance().getClient()
+    const statements = items.map((it) => ({
+      sql: 'INSERT INTO VaultItems (usuario_id, tipo, ciphertext, iv) VALUES (?, ?, ?, ?)',
+      args: [userId ?? 0, it.tipo ?? 'password', it.ciphertext, it.iv]
+    }))
+
+    await dbClient.batch(statements)
+
+    res.status(HTTP_STATUS.CREATED).json({ message: 'Elementos importados.', count: items.length })
+  } catch (error) {
+    next(error)
+  }
+}

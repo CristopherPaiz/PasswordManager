@@ -13,7 +13,10 @@ import {
   totpDisable,
   passkeyRegister,
   passkeyList,
-  passkeyDelete
+  passkeyDelete,
+  changeMaster,
+  sessionsList,
+  sessionRevoke
 } from '@controllers/auth.controller.js'
 import { authMiddleware } from '@middlewares/auth.middleware.js'
 import { validate } from '@middlewares/validate.middleware.js'
@@ -24,7 +27,8 @@ import {
   recoveryStartSchema,
   recoveryResetSchema,
   totpTokenSchema,
-  passkeyRegisterSchema
+  passkeyRegisterSchema,
+  changeMasterSchema
 } from '@validators/auth.schema.js'
 
 const router = Router()
@@ -58,5 +62,10 @@ router.post('/totp/disable', authMiddleware, validate(totpTokenSchema), totpDisa
 router.get('/passkeys', authMiddleware, passkeyList)
 router.post('/passkey', authMiddleware, validate(passkeyRegisterSchema), passkeyRegister)
 router.delete('/passkey/:id', authMiddleware, passkeyDelete)
+
+// Cambio de maestra y gestión de sesiones (requieren sesión válida).
+router.put('/master', authMiddleware, validate(changeMasterSchema), changeMaster)
+router.get('/sessions', authMiddleware, sessionsList)
+router.delete('/sessions/:id', authMiddleware, sessionRevoke)
 
 export default router

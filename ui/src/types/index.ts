@@ -67,6 +67,15 @@ export interface PasskeyInfo {
   fecha_creacion: string;
 }
 
+// Sesión activa (para gestionarlas en Ajustes).
+export interface SessionInfo {
+  id: number;
+  user_agent: string | null;
+  ip: string | null;
+  fecha_creacion: string;
+  current: boolean;
+}
+
 // ---------- Baúl (vault) ----------
 
 // Contenido descifrado de un item (vive solo en memoria del navegador).

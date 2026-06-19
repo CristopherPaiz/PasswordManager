@@ -200,8 +200,14 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
     })
 
     await dbClient.execute({
-      sql: 'INSERT INTO Sesiones (usuario_id, token, fecha_expiracion, activa) VALUES (?, ?, ?, 1)',
-      args: [user.id, token, expirationDate.toISOString()]
+      sql: 'INSERT INTO Sesiones (usuario_id, token, fecha_expiracion, activa, user_agent, ip) VALUES (?, ?, ?, 1, ?, ?)',
+      args: [
+        user.id,
+        token,
+        expirationDate.toISOString(),
+        req.headers['user-agent'] ?? null,
+        req.ip ?? null
+      ]
     })
 
     const isProduction = process.env.NODE_ENV === SYSTEM.ENV_PRODUCTION
@@ -387,6 +393,119 @@ export const passkeyDelete = async (
     }
 
     res.status(HTTP_STATUS.OK).json({ message: 'Desbloqueo con huella desactivado.' })
+  } catch (error) {
+    next(error)
+  }
+}
+
+// ---------- Cambiar contraseña maestra (estando dentro) ----------
+
+// Verifica la maestra ACTUAL (su authHash) y aplica la nueva: el cliente ya
+// re-envolvió la vaultKey con la maestra nueva, así que el contenido no cambia.
+export const changeMaster = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = req.user?.userId
+    const { current_password, password, kdf_salt, kdf_params, wrapped_vault_key } = req.body
+    const dbClient = await DatabaseService.getInstance().getClient()
+
+    const { rows } = await dbClient.execute({
+      sql: 'SELECT password FROM Usuarios WHERE id = ?',
+      args: [userId ?? 0]
+    })
+
+    if (rows.length === 0 || !rows[0].password) {
+      res.status(HTTP_STATUS.NOT_FOUND).json({ message: 'Usuario no encontrado.' })
+      return
+    }
+
+    const ok = await bcrypt.compare(current_password, String(rows[0].password))
+    if (!ok) {
+      res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: 'Contraseña maestra actual incorrecta.' })
+      return
+    }
+
+    const saltRounds = parseInt(process.env.SALT_ROUNDS ?? String(SYSTEM.DEFAULT_SALT_ROUNDS))
+    const hashedPassword = await bcrypt.hash(password, saltRounds)
+
+    await dbClient.execute({
+      sql: 'UPDATE Usuarios SET password = ?, kdf_salt = ?, kdf_params = ?, wrapped_vault_key = ? WHERE id = ?',
+      args: [
+        hashedPassword,
+        kdf_salt,
+        JSON.stringify(kdf_params),
+        JSON.stringify(wrapped_vault_key),
+        userId ?? 0
+      ]
+    })
+
+    res.status(HTTP_STATUS.OK).json({ message: 'Contraseña maestra actualizada.' })
+  } catch (error) {
+    next(error)
+  }
+}
+
+// ---------- Gestión de sesiones ----------
+
+// Lista las sesiones activas (sin exponer el token); marca la actual.
+export const sessionsList = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = req.user?.userId
+    const currentToken = req.cookies[SYSTEM.COOKIE_NAME]
+    const dbClient = await DatabaseService.getInstance().getClient()
+    const nowIso = new Date().toISOString()
+
+    const { rows } = await dbClient.execute({
+      sql: `SELECT id, token, user_agent, ip, fecha_creacion, fecha_expiracion
+              FROM Sesiones
+            WHERE usuario_id = ? AND activa = 1 AND fecha_expiracion > ?
+            ORDER BY fecha_creacion DESC`,
+      args: [userId ?? 0, nowIso]
+    })
+
+    const sessions = rows.map((r) => ({
+      id: Number(r.id),
+      user_agent: r.user_agent ? String(r.user_agent) : null,
+      ip: r.ip ? String(r.ip) : null,
+      fecha_creacion: r.fecha_creacion,
+      current: String(r.token) === String(currentToken)
+    }))
+
+    res.status(HTTP_STATUS.OK).json({ sessions })
+  } catch (error) {
+    next(error)
+  }
+}
+
+// Cierra una sesión por id (solo si pertenece al usuario).
+export const sessionRevoke = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = req.user?.userId
+    const sessionId = Number(req.params.id)
+    const dbClient = await DatabaseService.getInstance().getClient()
+
+    const result = await dbClient.execute({
+      sql: 'UPDATE Sesiones SET activa = 0 WHERE id = ? AND usuario_id = ?',
+      args: [sessionId, userId ?? 0]
+    })
+
+    if (result.rowsAffected === 0) {
+      res.status(HTTP_STATUS.NOT_FOUND).json({ message: 'Sesión no encontrada.' })
+      return
+    }
+
+    res.status(HTTP_STATUS.OK).json({ message: 'Sesión cerrada.' })
   } catch (error) {
     next(error)
   }
