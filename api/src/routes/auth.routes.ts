@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import rateLimit from 'express-rate-limit'
 import {
   register,
   login,
@@ -28,15 +29,25 @@ import {
 
 const router = Router()
 
-router.post('/register', validate(registerSchema), register)
-router.post('/prelogin', validate(preloginSchema), prelogin)
-router.post('/login', validate(loginSchema), login)
+// Límite estricto para endpoints sensibles a fuerza bruta (login, recuperación,
+// registro). Más ajustado que el límite global de /api. Por IP.
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: { message: 'Demasiados intentos. Espera unos minutos e intenta de nuevo.' },
+  standardHeaders: true,
+  legacyHeaders: false
+})
+
+router.post('/register', authLimiter, validate(registerSchema), register)
+router.post('/prelogin', authLimiter, validate(preloginSchema), prelogin)
+router.post('/login', authLimiter, validate(loginSchema), login)
 router.post('/logout', logout)
 router.get('/me', authMiddleware, getMe)
 
 // Recuperación de maestra (públicas, autorizadas por la llave de recuperación).
-router.post('/recovery/start', validate(recoveryStartSchema), recoveryStart)
-router.post('/recovery/reset', validate(recoveryResetSchema), recoveryReset)
+router.post('/recovery/start', authLimiter, validate(recoveryStartSchema), recoveryStart)
+router.post('/recovery/reset', authLimiter, validate(recoveryResetSchema), recoveryReset)
 
 // TOTP 2FA (requieren sesión válida).
 router.post('/totp/setup', authMiddleware, totpSetup)

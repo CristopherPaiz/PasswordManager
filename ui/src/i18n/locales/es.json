@@ -133,6 +133,12 @@
     "haveAccount": "¿Ya tienes una cuenta?",
     "signIn": "Inicia sesión",
     "genericError": "No se pudo crear la cuenta. Intenta de nuevo.",
+    "strength": {
+      "weak": "Débil — usa más caracteres y variedad.",
+      "fair": "Aceptable — podría ser más larga.",
+      "good": "Buena.",
+      "strong": "Fuerte."
+    },
     "errors": {
       "usernameShort": "El usuario debe tener al menos 3 caracteres.",
       "usernameLong": "El usuario no puede exceder 30 caracteres.",

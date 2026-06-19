@@ -12,6 +12,7 @@ import { useVaultStore } from "@store/vault.store";
 import { ROUTES, API_ENDPOINTS } from "@constants/app.constants";
 import { createRegisterSchema, RegisterForm } from "@validators/auth.schema";
 import { buildRegistration, RegistrationCrypto } from "@utils/vault";
+import { estimateStrength } from "@utils/password-strength";
 import { User } from "@apptypes";
 import { Card } from "@components/ui/Card";
 import { Input } from "@components/ui/Input";
@@ -46,11 +47,16 @@ export const Register = () => {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<RegisterForm>({
     resolver: zodResolver(schema),
     defaultValues: { username: "", email: "", password: "", confirmPassword: "" },
   });
+
+  const masterValue = watch("password");
+  const strength = estimateStrength(masterValue);
+  const strengthColors = ["bg-red-500", "bg-red-500", "bg-amber-500", "bg-lime-500", "bg-green-500"];
 
   const { mutateAsync: registerAccount } = useMutationQuery<{ message: string }, RegisterPayload>({
     endpoint: API_ENDPOINTS.AUTH.REGISTER,
@@ -218,6 +224,22 @@ export const Register = () => {
             error={errors.password?.message}
             {...register("password")}
           />
+
+          {masterValue && (
+            <div className="space-y-1">
+              <div className="flex gap-1">
+                {[0, 1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className={`h-1.5 flex-1 rounded-full transition-colors ${
+                      i < strength.score ? strengthColors[strength.score] : "bg-border-base"
+                    }`}
+                  />
+                ))}
+              </div>
+              <p className="text-xs text-text-muted">{t(strength.labelKey)}</p>
+            </div>
+          )}
 
           <Input
             label={t("register.confirmPassword")}

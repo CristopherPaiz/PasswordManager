@@ -18,3 +18,20 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Cabeceras de seguridad. La CSP es la defensa principal contra XSS: si alguien
+# inyecta JS, no puede robar la vaultKey de memoria si la política lo bloquea.
+#
+# Notas:
+# - 'wasm-unsafe-eval' es OBLIGATORIO: Argon2id (hash-wasm) compila WebAssembly.
+# - img-src data: lo necesita el QR del TOTP (data URL).
+# - publickey-credentials-get/create (self) para que funcionen las passkeys.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://password.cpaiz.es; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests"
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "no-referrer"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), publickey-credentials-get=(self), publickey-credentials-create=(self)"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"

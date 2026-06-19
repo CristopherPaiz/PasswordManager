@@ -6,6 +6,7 @@ import QRCode from 'qrcode'
 import { DatabaseService } from '@database/connection.js'
 import { HTTP_STATUS, MESSAGES, SYSTEM } from '@config/constants.js'
 import { AuthenticatedRequest } from '@apptypes/index.js'
+import { encryptSecret, decryptSecret } from '@utils/crypto.helper.js'
 
 // Tolera ±30s de desfase de reloj al verificar códigos TOTP.
 const TOTP_EPOCH_TOLERANCE = 30
@@ -166,7 +167,7 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
       }
       const result = await verifyTotp({
         token: String(totpToken),
-        secret: user.totp_secret,
+        secret: decryptSecret(user.totp_secret),
         epochTolerance: TOTP_EPOCH_TOLERANCE
       })
       if (!result.valid) {
@@ -510,10 +511,10 @@ export const totpSetup = async (
     })
     const qr = await QRCode.toDataURL(otpauth)
 
-    // Guarda el secreto provisional; se activa solo tras verificar un código.
+    // Guarda el secreto provisional (cifrado); se activa solo tras verificar.
     await dbClient.execute({
       sql: 'UPDATE Usuarios SET totp_secret = ?, totp_enabled = 0 WHERE id = ?',
-      args: [secret, userId ?? 0]
+      args: [encryptSecret(secret), userId ?? 0]
     })
 
     res.status(HTTP_STATUS.OK).json({ otpauth, qr, secret })
@@ -545,7 +546,7 @@ export const totpEnable = async (
 
     const result = await verifyTotp({
       token: String(token),
-      secret: String(rows[0].totp_secret),
+      secret: decryptSecret(String(rows[0].totp_secret)),
       epochTolerance: TOTP_EPOCH_TOLERANCE
     })
     if (!result.valid) {
@@ -587,7 +588,7 @@ export const totpDisable = async (
 
     const result = await verifyTotp({
       token: String(token),
-      secret: String(rows[0].totp_secret),
+      secret: decryptSecret(String(rows[0].totp_secret)),
       epochTolerance: TOTP_EPOCH_TOLERANCE
     })
     if (!result.valid) {
