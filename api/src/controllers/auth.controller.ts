@@ -6,7 +6,7 @@ import QRCode from 'qrcode'
 import { DatabaseService } from '@database/connection.js'
 import { HTTP_STATUS, MESSAGES, SYSTEM } from '@config/constants.js'
 import { AuthenticatedRequest } from '@apptypes/index.js'
-import { encryptSecret, decryptSecret } from '@utils/crypto.helper.js'
+import { encryptSecret, decryptSecret, hashToken } from '@utils/crypto.helper.js'
 
 // Tolera ±30s de desfase de reloj al verificar códigos TOTP.
 const TOTP_EPOCH_TOLERANCE = 30
@@ -203,7 +203,9 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
       sql: 'INSERT INTO Sesiones (usuario_id, token, fecha_expiracion, activa, user_agent, ip) VALUES (?, ?, ?, 1, ?, ?)',
       args: [
         user.id,
-        token,
+        // Guarda el hash del token, no el JWT en claro: una fuga de BD no entrega
+        // tokens usables. El middleware compara contra hashToken(cookie).
+        hashToken(token),
         expirationDate.toISOString(),
         req.headers['user-agent'] ?? null,
         req.ip ?? null
@@ -245,7 +247,7 @@ export const logout = async (req: Request, res: Response, next: NextFunction): P
       const dbClient = await DatabaseService.getInstance().getClient()
       await dbClient.execute({
         sql: 'UPDATE Sesiones SET activa = 0 WHERE token = ?',
-        args: [token]
+        args: [hashToken(token)]
       })
     }
 
@@ -424,7 +426,9 @@ export const changeMaster = async (
 
     const ok = await bcrypt.compare(current_password, String(rows[0].password))
     if (!ok) {
-      res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: 'Contraseña maestra actual incorrecta.' })
+      res
+        .status(HTTP_STATUS.UNAUTHORIZED)
+        .json({ message: 'Contraseña maestra actual incorrecta.' })
       return
     }
 
@@ -440,6 +444,14 @@ export const changeMaster = async (
         JSON.stringify(wrapped_vault_key),
         userId ?? 0
       ]
+    })
+
+    // Cambiar la maestra invalida las DEMÁS sesiones (por si alguna está
+    // comprometida); conserva solo la sesión actual desde la que se hizo el cambio.
+    const currentToken = req.cookies[SYSTEM.COOKIE_NAME]
+    await dbClient.execute({
+      sql: 'UPDATE Sesiones SET activa = 0 WHERE usuario_id = ? AND token != ?',
+      args: [userId ?? 0, currentToken ? hashToken(currentToken) : '']
     })
 
     res.status(HTTP_STATUS.OK).json({ message: 'Contraseña maestra actualizada.' })
@@ -459,6 +471,7 @@ export const sessionsList = async (
   try {
     const userId = req.user?.userId
     const currentToken = req.cookies[SYSTEM.COOKIE_NAME]
+    const currentTokenHash = currentToken ? hashToken(currentToken) : ''
     const dbClient = await DatabaseService.getInstance().getClient()
     const nowIso = new Date().toISOString()
 
@@ -475,7 +488,7 @@ export const sessionsList = async (
       user_agent: r.user_agent ? String(r.user_agent) : null,
       ip: r.ip ? String(r.ip) : null,
       fecha_creacion: r.fecha_creacion,
-      current: String(r.token) === String(currentToken)
+      current: String(r.token) === currentTokenHash
     }))
 
     res.status(HTTP_STATUS.OK).json({ sessions })

@@ -1,4 +1,4 @@
-import { Router } from 'express'
+import { Router, Request } from 'express'
 import rateLimit from 'express-rate-limit'
 import {
   register,
@@ -43,15 +43,46 @@ const authLimiter = rateLimit({
   legacyHeaders: false
 })
 
+// Límite POR CUENTA: el límite por IP se evade rotando IPs. Este se cuenta por
+// username, así un atacante distribuido no puede martillar UNA cuenta. No es un
+// "lockout" permanente (se reinicia con la ventana) → no permite DoS al dueño.
+const accountLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { message: 'Demasiados intentos para esta cuenta. Espera unos minutos.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  // La clave es el username (no la IP) → protege UNA cuenta de un ataque
+  // distribuido. Las peticiones sin username comparten un bucket y de todos
+  // modos las rechaza validate() justo después; la IP la cubren los otros límites.
+  keyGenerator: (req: Request): string => {
+    const raw = (req.body as { username?: unknown })?.username
+    const username = typeof raw === 'string' ? raw.trim().toLowerCase() : ''
+    return username ? `user:${username}` : 'anon:no-username'
+  }
+})
+
 router.post('/register', authLimiter, validate(registerSchema), register)
-router.post('/prelogin', authLimiter, validate(preloginSchema), prelogin)
-router.post('/login', authLimiter, validate(loginSchema), login)
+router.post('/prelogin', authLimiter, accountLimiter, validate(preloginSchema), prelogin)
+router.post('/login', authLimiter, accountLimiter, validate(loginSchema), login)
 router.post('/logout', logout)
 router.get('/me', authMiddleware, getMe)
 
 // Recuperación de maestra (públicas, autorizadas por la llave de recuperación).
-router.post('/recovery/start', authLimiter, validate(recoveryStartSchema), recoveryStart)
-router.post('/recovery/reset', authLimiter, validate(recoveryResetSchema), recoveryReset)
+router.post(
+  '/recovery/start',
+  authLimiter,
+  accountLimiter,
+  validate(recoveryStartSchema),
+  recoveryStart
+)
+router.post(
+  '/recovery/reset',
+  authLimiter,
+  accountLimiter,
+  validate(recoveryResetSchema),
+  recoveryReset
+)
 
 // TOTP 2FA (requieren sesión válida).
 router.post('/totp/setup', authMiddleware, totpSetup)

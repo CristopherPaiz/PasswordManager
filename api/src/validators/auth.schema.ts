@@ -7,12 +7,16 @@ const encryptedBlobSchema = z.object({
 })
 
 // Parámetros del KDF (Argon2id) para re-derivar la llave maestra en el cliente.
+// IMPORTANTE: el server impone un PISO mínimo. Toda la seguridad zero-knowledge
+// descansa en la fuerza del KDF; si la BD se filtra, params débiles harían el
+// vault rompible por fuerza bruta. Un cliente manipulado NO puede registrar con
+// Argon2 trivial (m=1, t=1). Mínimos alineados con OWASP (19 MiB / 2 pasadas).
 const kdfParamsSchema = z.object({
   algo: z.literal('argon2id'),
-  m: z.number().int().positive(), // memoria (KiB)
-  t: z.number().int().positive(), // iteraciones
-  p: z.number().int().positive(), // paralelismo
-  hashLen: z.number().int().positive()
+  m: z.number().int().min(19456, 'Parámetros KDF inseguros.'), // memoria (KiB) ≥ ~19 MiB
+  t: z.number().int().min(2, 'Parámetros KDF inseguros.'), // iteraciones ≥ 2
+  p: z.number().int().min(1).max(4), // paralelismo
+  hashLen: z.literal(32) // 32 bytes → AES-256
 })
 
 export const registerSchema = z.object({

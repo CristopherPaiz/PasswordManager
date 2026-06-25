@@ -9,9 +9,17 @@ import crypto from 'node:crypto'
 // rompen secretos creados antes de habilitar el cifrado (base32 no usa ':').
 
 const getKey = (): Buffer => {
-  const material = process.env.TOTP_ENC_KEY ?? process.env.JWT_SECRET_KEY ?? 'insecure-dev-key'
+  // Preferir una llave dedicada (TOTP_ENC_KEY); si no existe, caer a JWT_SECRET_KEY
+  // (siempre presente: lo valida env.validator). NO hay fallback a literal inseguro.
+  const material = process.env.TOTP_ENC_KEY ?? process.env.JWT_SECRET_KEY
+  if (!material) throw new Error('Falta TOTP_ENC_KEY/JWT_SECRET_KEY para cifrar secretos.')
   return crypto.createHash('sha256').update(String(material)).digest()
 }
+
+// Hash de un token de sesión para guardarlo en BD. Así una filtración de la BD
+// NO expone JWTs usables: comparamos el hash, no el token en claro.
+export const hashToken = (token: string): string =>
+  crypto.createHash('sha256').update(token).digest('hex')
 
 export const encryptSecret = (plain: string): string => {
   const iv = crypto.randomBytes(12)

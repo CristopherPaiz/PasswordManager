@@ -31,6 +31,7 @@ const initializeDatabase = async (): Promise<void> => {
         totp_enabled INTEGER DEFAULT 0,
         passkey_cred_id TEXT,
         wrapped_vault_key_passkey TEXT,
+        rol TEXT NOT NULL DEFAULT 'user',
         activo INTEGER DEFAULT 1,
         ultimo_login DATETIME,
         fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP

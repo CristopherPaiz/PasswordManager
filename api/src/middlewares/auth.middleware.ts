@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken'
 import { AuthenticatedRequest, JwtPayload } from '@apptypes/index.js'
 import { HTTP_STATUS, MESSAGES, SYSTEM } from '@config/constants.js'
 import { DatabaseService } from '@database/connection.js'
+import { hashToken } from '@utils/crypto.helper.js'
 
 export const authMiddleware = async (
   req: AuthenticatedRequest,
@@ -33,7 +34,7 @@ export const authMiddleware = async (
 
     const { rows: sessions } = await dbClient.execute({
       sql: 'SELECT id FROM Sesiones WHERE token = ? AND activa = 1 AND fecha_expiracion > ?',
-      args: [token, nowIso]
+      args: [hashToken(token), nowIso]
     })
 
     if (sessions.length === 0) {

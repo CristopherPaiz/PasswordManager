@@ -18,6 +18,7 @@ export const MESSAGES = {
     LOGIN_SUCCESS: 'Inicio de sesión exitoso.',
     LOGOUT_SUCCESS: 'Cierre de sesión exitoso.',
     UNAUTHORIZED: 'Acceso denegado. Se requiere autenticación.',
+    FORBIDDEN: 'No tienes permisos para acceder a este recurso.',
     TOKEN_EXPIRED: 'Sesión expirada. Por favor inicie sesión nuevamente.',
     INVALID_TOKEN: 'Token de acceso inválido.'
   },

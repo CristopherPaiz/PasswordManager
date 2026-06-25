@@ -9,7 +9,11 @@ import {
 } from '@controllers/vault.controller.js'
 import { authMiddleware } from '@middlewares/auth.middleware.js'
 import { validate } from '@middlewares/validate.middleware.js'
-import { vaultItemSchema, vaultItemUpdateSchema, vaultBulkSchema } from '@validators/vault.schema.js'
+import {
+  vaultItemSchema,
+  vaultItemUpdateSchema,
+  vaultBulkSchema
+} from '@validators/vault.schema.js'
 
 const router = Router()
 

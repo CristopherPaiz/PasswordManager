@@ -142,13 +142,7 @@ export const BackupCard = () => {
       <div className="space-y-3 rounded-xl border border-border-base bg-bg-base p-4">
         <p className="text-sm font-semibold text-text-base">{t("settings.backup.exportTitle")}</p>
         <p className="text-xs text-text-muted">{t("settings.backup.exportHint")}</p>
-        <Input
-          label={t("settings.backup.exportPw")}
-          type="password"
-          autoComplete="new-password"
-          value={exportPw}
-          onChange={(e) => setExportPw(e.target.value)}
-        />
+        <Input label={t("settings.backup.exportPw")} type="password" autoComplete="new-password" value={exportPw} onChange={(e) => setExportPw(e.target.value)} />
         <Button type="button" icon={Download} variant="secondary" isLoading={isExporting} onClick={handleExport}>
           {t("settings.backup.exportBtn")}
         </Button>
@@ -158,19 +152,8 @@ export const BackupCard = () => {
       <div className="space-y-3 rounded-xl border border-border-base bg-bg-base p-4">
         <p className="text-sm font-semibold text-text-base">{t("settings.backup.importTitle")}</p>
         <p className="text-xs text-text-muted">{t("settings.backup.importHint")}</p>
-        <Input
-          label={t("settings.backup.file")}
-          type="file"
-          accept=".json,.csv"
-          onChange={(e) => setImportFile(e.target.files?.[0] ?? null)}
-        />
-        <Input
-          label={t("settings.backup.importPw")}
-          type="password"
-          autoComplete="off"
-          value={importPw}
-          onChange={(e) => setImportPw(e.target.value)}
-        />
+        <Input label={t("settings.backup.file")} type="file" accept=".json,.csv" onChange={(e) => setImportFile(e.target.files?.[0] ?? null)} />
+        <Input label={t("settings.backup.importPw")} type="password" autoComplete="off" value={importPw} onChange={(e) => setImportPw(e.target.value)} />
         <Button type="button" icon={Upload} variant="secondary" isLoading={isImporting} onClick={handleImport}>
           {t("settings.backup.importBtn")}
         </Button>

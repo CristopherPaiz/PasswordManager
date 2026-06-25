@@ -65,7 +65,9 @@ app.use(
   })
 )
 
-app.use(express.json())
+// Límite de cuerpo: acota DoS por payloads gigantes. 10mb cubre import masivo
+// realista del baúl (cientos de items cifrados) sin abrir la puerta a abusos.
+app.use(express.json({ limit: '10mb' }))
 app.use(cookieParser())
 
 app.use('/api/auth', authRoutes)
@@ -81,9 +83,13 @@ app.get(['/health', '/ping', '/status'], (req, res) => {
   res.status(HTTP_STATUS.OK).json({ success: true, status: 'ok' })
 })
 
-app.get('/api/force-error', (req, res, next) => {
-  next(new Error('ESTE ES UN ERROR CRÍTICO SIMULADO PARA PROBAR EL MIDDLEWARE'))
-})
+// Ruta de prueba del middleware de errores. Solo fuera de producción: en prod
+// sería un endpoint público que ensucia ErrorLogs y ejercita el error path.
+if (process.env.NODE_ENV !== 'production') {
+  app.get('/api/force-error', (req, res, next) => {
+    next(new Error('ESTE ES UN ERROR CRÍTICO SIMULADO PARA PROBAR EL MIDDLEWARE'))
+  })
+}
 
 // 404 para cualquier ruta no registrada.
 app.use((req, res) => {
