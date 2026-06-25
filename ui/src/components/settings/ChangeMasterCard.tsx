@@ -7,6 +7,7 @@ import { useVaultStore } from "@store/vault.store";
 import { API_ENDPOINTS } from "@constants/app.constants";
 import { deriveLoginCredentials, buildMasterReset, MasterResetCrypto } from "@utils/vault";
 import { KdfParams } from "@utils/crypto";
+import { isMasterAcceptable } from "@utils/password-strength";
 import { Card, CardTitle } from "@components/ui/Card";
 import { Input } from "@components/ui/Input";
 import { Button } from "@components/ui/Button";
@@ -43,8 +44,12 @@ export const ChangeMasterCard = () => {
       toast.error(t("settings.master.needUnlock"));
       return;
     }
-    if (next.length < 10) {
+    if (next.length < 12) {
       toast.error(t("register.errors.passwordShort"));
+      return;
+    }
+    if (!isMasterAcceptable(next)) {
+      toast.error(t("register.errors.passwordWeak"));
       return;
     }
     if (next !== confirm) {

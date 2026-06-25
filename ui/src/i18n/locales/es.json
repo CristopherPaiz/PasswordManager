@@ -187,7 +187,8 @@
       "usernameLong": "El usuario no puede exceder 30 caracteres.",
       "usernameInvalid": "Solo se permiten letras, números y guion bajo.",
       "emailInvalid": "El correo no es válido.",
-      "passwordShort": "La contraseña maestra debe tener al menos 10 caracteres.",
+      "passwordShort": "La contraseña maestra debe tener al menos 12 caracteres.",
+      "passwordWeak": "Contraseña maestra muy débil. Usa una frase larga (4+ palabras) o mezcla mayúsculas, números y símbolos.",
       "confirmRequired": "Confirma tu contraseña maestra.",
       "passwordMismatch": "Las contraseñas no coinciden."
     },

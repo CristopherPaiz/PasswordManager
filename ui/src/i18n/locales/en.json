@@ -144,7 +144,8 @@
       "usernameLong": "Username cannot exceed 30 characters.",
       "usernameInvalid": "Only letters, numbers and underscore are allowed.",
       "emailInvalid": "Email is not valid.",
-      "passwordShort": "Master password must be at least 10 characters.",
+      "passwordShort": "Master password must be at least 12 characters.",
+      "passwordWeak": "Master password too weak. Use a long passphrase (4+ words) or mix uppercase, numbers and symbols.",
       "confirmRequired": "Confirm your master password.",
       "passwordMismatch": "Passwords do not match."
     },
