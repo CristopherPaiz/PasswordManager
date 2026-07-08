@@ -78,21 +78,37 @@ export interface SessionInfo {
 
 // ---------- Baúl (vault) ----------
 
+// Tipos de item soportados. `tipo` es lo ÚNICO del contenido que va en claro.
+export type VaultItemType = "password" | "card" | "note";
+
 // Contenido descifrado de un item (vive solo en memoria del navegador).
+// Organización (folder/tags/favorite) y datos de tarjeta viven DENTRO del blob
+// cifrado: el server no ve carpetas, etiquetas ni favoritos. Los campos nuevos
+// son opcionales para que los items viejos sigan descifrando sin migración.
 export interface VaultItemData {
   title: string;
   username: string;
   password: string;
   url: string;
   notes: string;
+  folder?: string;
+  tags?: string[];
+  favorite?: boolean;
+  // Tarjeta (tipo "card")
+  cardHolder?: string;
+  cardNumber?: string;
+  cardExpiry?: string;
+  cardCvv?: string;
 }
 
 // Fila tal cual la guarda/devuelve el server: cifrada, ilegible para el server.
+// `uid` es el AAD del cifrado GCM (null en items legacy pre-AAD).
 export interface VaultItemRow {
   id: number;
-  tipo: string;
+  tipo: VaultItemType;
   ciphertext: string;
   iv: string;
+  uid: string | null;
   fecha_creacion: string;
   fecha_modificacion: string;
 }

@@ -66,6 +66,14 @@
       "keyRequired": "La llave de recuperación es obligatoria.",
       "keyInvalid": "Llave de recuperación incorrecta.",
       "generic": "No se pudo restablecer. Verifica tus datos."
+    },
+    "newKey": {
+      "title": "Nueva llave de recuperación",
+      "warning": "Tu llave anterior quedó invalidada. Guarda esta NUEVA llave en un lugar seguro: es la única forma de recuperar tu baúl si olvidas la maestra.",
+      "copy": "Copiar llave",
+      "copied": "Llave copiada",
+      "confirm": "Ya guardé mi nueva llave de recuperación en un lugar seguro.",
+      "continue": "Continuar a iniciar sesión"
     }
   },
   "settings": {
@@ -238,7 +246,16 @@
       "username": "Usuario o correo",
       "password": "Contraseña",
       "url": "Sitio web (URL)",
-      "notes": "Notas"
+      "notes": "Notas",
+      "folder": "Carpeta",
+      "tags": "Etiquetas",
+      "tagsHint": "trabajo, personal, banco...",
+      "favorite": "Marcar como favorito",
+      "cardHolder": "Titular de la tarjeta",
+      "cardNumber": "Número de tarjeta",
+      "cardExpiry": "Vencimiento",
+      "cardExpiryHint": "MM/AA",
+      "cardCvv": "CVV"
     },
     "generator": {
       "generate": "Generar",
@@ -249,7 +266,26 @@
       "lowercase": "Minúsculas (a-z)",
       "numbers": "Números (0-9)",
       "symbols": "Símbolos (!@#)"
-    }
+    },
+    "types": {
+      "password": "Contraseña",
+      "card": "Tarjeta",
+      "note": "Nota"
+    },
+    "filters": {
+      "all": "Todos",
+      "password": "Contraseñas",
+      "card": "Tarjetas",
+      "note": "Notas",
+      "favorites": "Favoritos",
+      "folder": "Carpeta",
+      "allFolders": "Todas las carpetas"
+    },
+    "toggleFavorite": "Marcar como favorito",
+    "copyCardNumber": "Copiar número",
+    "cardNumberCopied": "Número de tarjeta copiado",
+    "copyNote": "Copiar nota",
+    "noteCopied": "Nota copiada"
   },
   "dashboard": {
     "profileInfo": "Información del Perfil",

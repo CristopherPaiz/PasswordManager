@@ -6,10 +6,29 @@ import QRCode from 'qrcode'
 import { DatabaseService } from '@database/connection.js'
 import { HTTP_STATUS, MESSAGES, SYSTEM } from '@config/constants.js'
 import { AuthenticatedRequest } from '@apptypes/index.js'
-import { encryptSecret, decryptSecret, hashToken } from '@utils/crypto.helper.js'
+import {
+  encryptSecret,
+  decryptSecret,
+  hashToken,
+  deterministicBytes,
+  isEncryptedSecret
+} from '@utils/crypto.helper.js'
+import { durationToMs } from '@utils/duration.helper.js'
 
 // Tolera ±30s de desfase de reloj al verificar códigos TOTP.
 const TOTP_EPOCH_TOLERANCE = 30
+
+// Hash bcrypt real (de un valor aleatorio de proceso) para ejecutar una
+// comparación "de mentira" cuando el usuario NO existe: sin esto, la respuesta
+// rápida (sin bcrypt) delata por timing qué cuentas existen.
+const DUMMY_BCRYPT_HASH = bcrypt.hashSync(
+  `dummy-${Date.now()}-${Math.random()}`,
+  SYSTEM.DEFAULT_SALT_ROUNDS
+)
+
+// Params KDF por defecto para el salt señuelo del prelogin (idénticos a los que
+// genera el cliente en un registro real, para que el señuelo sea indistinguible).
+const DECOY_KDF_PARAMS = { algo: 'argon2id', m: 65536, t: 3, p: 1, hashLen: 32 }
 
 interface DbUser {
   id: number
@@ -58,6 +77,18 @@ export const register = async (req: Request, res: Response, next: NextFunction):
       return
     }
 
+    // El email tiene UNIQUE en BD: verificar antes evita un 500 feo del driver
+    // y responde un 409 claro.
+    const { rows: existingEmails } = await dbClient.execute({
+      sql: 'SELECT id FROM Usuarios WHERE email = ?',
+      args: [email]
+    })
+
+    if (existingEmails.length > 0) {
+      res.status(HTTP_STATUS.CONFLICT).json({ message: 'El correo ya se encuentra registrado.' })
+      return
+    }
+
     const saltRounds = parseInt(process.env.SALT_ROUNDS ?? String(SYSTEM.DEFAULT_SALT_ROUNDS))
     // `password` aquí es el authHash derivado en el navegador, no la maestra.
     const hashedPassword = await bcrypt.hash(password, saltRounds)
@@ -98,7 +129,10 @@ export const register = async (req: Request, res: Response, next: NextFunction):
 }
 
 // Pre-login: entrega salt + params del KDF para que el cliente derive el authHash.
-// Los salts no son secretos. Si el usuario no existe, 404 genérico.
+// Los salts no son secretos. Anti-enumeración: si el usuario NO existe se
+// responde 200 con un salt señuelo determinista (estable por username), así la
+// respuesta es indistinguible de una cuenta real y el login fallará después
+// con el mismo "credenciales inválidas" de siempre.
 export const prelogin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { username } = req.body
@@ -110,7 +144,10 @@ export const prelogin = async (req: Request, res: Response, next: NextFunction):
     })
 
     if (rows.length === 0 || !rows[0].kdf_salt) {
-      res.status(HTTP_STATUS.NOT_FOUND).json({ message: MESSAGES.AUTH.INVALID_CREDENTIALS })
+      res.status(HTTP_STATUS.OK).json({
+        kdf_salt: deterministicBytes('prelogin-salt', String(username), 16).toString('base64'),
+        kdf_params: DECOY_KDF_PARAMS
+      })
       return
     }
 
@@ -140,6 +177,9 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
     })
 
     if (users.length === 0) {
+      // Comparación señuelo: iguala el tiempo de respuesta con el de una cuenta
+      // real (anti-enumeración por timing).
+      await bcrypt.compare(password, DUMMY_BCRYPT_HASH)
       res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: MESSAGES.AUTH.INVALID_CREDENTIALS })
       return
     }
@@ -147,6 +187,7 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
     const user = users[0] as unknown as DbUser
 
     if (!user.password) {
+      await bcrypt.compare(password, DUMMY_BCRYPT_HASH)
       res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: MESSAGES.AUTH.INVALID_CREDENTIALS })
       return
     }
@@ -165,14 +206,23 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
         res.status(HTTP_STATUS.OK).json({ totpRequired: true })
         return
       }
+      const plainSecret = decryptSecret(user.totp_secret)
       const result = await verifyTotp({
         token: String(totpToken),
-        secret: decryptSecret(user.totp_secret),
+        secret: plainSecret,
         epochTolerance: TOTP_EPOCH_TOLERANCE
       })
       if (!result.valid) {
         res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: 'Código de verificación inválido.' })
         return
+      }
+      // Auto-migración: secretos LEGACY guardados en texto plano se re-cifran
+      // en el primer login exitoso (así el fallback legacy puede retirarse pronto).
+      if (!isEncryptedSecret(user.totp_secret)) {
+        await dbClient.execute({
+          sql: 'UPDATE Usuarios SET totp_secret = ? WHERE id = ?',
+          args: [encryptSecret(plainSecret), user.id]
+        })
       }
     }
 
@@ -190,8 +240,10 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
       { expiresIn: expiresInConfig as SignOptions['expiresIn'] }
     )
 
-    const expirationDate = new Date()
-    expirationDate.setDate(expirationDate.getDate() + 7)
+    // Cookie, fila de Sesiones y JWT expiran EXACTAMENTE al mismo tiempo:
+    // si difieren quedan cookies vivas con tokens muertos (o al revés).
+    const sessionMs = durationToMs(expiresInConfig)
+    const expirationDate = new Date(Date.now() + sessionMs)
 
     // Limpia sesiones expiradas o cerradas para que la tabla no crezca sin límite.
     await dbClient.execute({
@@ -218,7 +270,7 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
       httpOnly: true,
       secure: isProduction,
       sameSite: isProduction ? 'none' : 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: sessionMs,
       path: '/'
     })
 
@@ -528,6 +580,8 @@ export const sessionRevoke = async (
 
 // Paso 1: entrega el blob de recovery para que el cliente desenvuelva la vaultKey.
 // El blob es inútil sin la llave de recuperación, así que exponerlo es seguro.
+// Anti-enumeración: si el usuario NO existe se responde un blob señuelo
+// determinista; al cliente le fallará el tag GCM igual que con una llave mala.
 export const recoveryStart = async (
   req: Request,
   res: Response,
@@ -543,7 +597,13 @@ export const recoveryStart = async (
     })
 
     if (rows.length === 0 || !rows[0].wrapped_vault_key_recovery) {
-      res.status(HTTP_STATUS.NOT_FOUND).json({ message: MESSAGES.AUTH.INVALID_CREDENTIALS })
+      res.status(HTTP_STATUS.OK).json({
+        wrapped_vault_key_recovery: {
+          iv: deterministicBytes('rec-iv', String(username), 12).toString('base64'),
+          // 48 bytes = 32 de "llave" + 16 de tag GCM, mismo tamaño que un blob real.
+          ct: deterministicBytes('rec-ct', String(username), 48).toString('base64')
+        }
+      })
       return
     }
 
@@ -556,13 +616,24 @@ export const recoveryStart = async (
 }
 
 // Paso 2: aplica la maestra nueva. Autorizado por recovery_auth (bcrypt vs hash).
+// La llave de recuperación usada queda QUEMADA: el cliente genera una nueva y
+// manda su blob + hash; una llave robada no sirve dos veces.
 export const recoveryReset = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { username, recovery_auth, password, kdf_salt, kdf_params, wrapped_vault_key } = req.body
+    const {
+      username,
+      recovery_auth,
+      password,
+      kdf_salt,
+      kdf_params,
+      wrapped_vault_key,
+      wrapped_vault_key_recovery,
+      new_recovery_auth
+    } = req.body
     const dbClient = await DatabaseService.getInstance().getClient()
 
     const { rows } = await dbClient.execute({
@@ -570,8 +641,11 @@ export const recoveryReset = async (
       args: [username]
     })
 
+    // Mismo error y mismo costo (compare señuelo) exista o no la cuenta:
+    // anti-enumeración por status y por timing.
     if (rows.length === 0 || !rows[0].recovery_hash) {
-      res.status(HTTP_STATUS.NOT_FOUND).json({ message: MESSAGES.AUTH.INVALID_CREDENTIALS })
+      await bcrypt.compare(recovery_auth, DUMMY_BCRYPT_HASH)
+      res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: 'Llave de recuperación incorrecta.' })
       return
     }
 
@@ -584,14 +658,20 @@ export const recoveryReset = async (
     const userId = Number(rows[0].id)
     const saltRounds = parseInt(process.env.SALT_ROUNDS ?? String(SYSTEM.DEFAULT_SALT_ROUNDS))
     const hashedPassword = await bcrypt.hash(password, saltRounds)
+    const newRecoveryHash = await bcrypt.hash(new_recovery_auth, saltRounds)
 
     await dbClient.execute({
-      sql: 'UPDATE Usuarios SET password = ?, kdf_salt = ?, kdf_params = ?, wrapped_vault_key = ? WHERE id = ?',
+      sql: `UPDATE Usuarios
+              SET password = ?, kdf_salt = ?, kdf_params = ?, wrapped_vault_key = ?,
+                  wrapped_vault_key_recovery = ?, recovery_hash = ?
+            WHERE id = ?`,
       args: [
         hashedPassword,
         kdf_salt,
         JSON.stringify(kdf_params),
         JSON.stringify(wrapped_vault_key),
+        JSON.stringify(wrapped_vault_key_recovery),
+        newRecoveryHash,
         userId
       ]
     })

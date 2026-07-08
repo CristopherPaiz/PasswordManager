@@ -41,7 +41,10 @@ const initializeDatabase = async (): Promise<void> => {
     // Baúl: el server solo ve blobs cifrados. `ciphertext` es el JSON del item
     // (título, usuario, contraseña, url, notas) cifrado con AES-256-GCM en el
     // navegador usando la vaultKey. `iv` es el nonce por item. `tipo` queda en
-    // claro solo para poder listar/filtrar sin descifrar (password|note|card...).
+    // claro solo para poder listar/filtrar sin descifrar (password|note|card).
+    // `uid`: id generado por el cliente, usado como AAD del GCM; liga el blob a
+    // su fila (el server no puede intercambiar ciphertexts entre items). Carpetas,
+    // etiquetas y favoritos viven DENTRO del blob: el server no ve esa metadata.
     await dbClient.execute(`
       CREATE TABLE IF NOT EXISTS VaultItems (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -49,6 +52,7 @@ const initializeDatabase = async (): Promise<void> => {
         tipo TEXT NOT NULL DEFAULT 'password',
         ciphertext TEXT NOT NULL,
         iv TEXT NOT NULL,
+        uid TEXT,
         fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
         fecha_modificacion DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY(usuario_id) REFERENCES Usuarios(id) ON DELETE CASCADE

@@ -128,18 +128,46 @@ export const openVaultKey = async (
 
 // ---------- cifrado/descifrado de items ----------
 
+// uid por item, generado en el CLIENTE. Va en claro al server y como AAD del
+// GCM: liga el blob a su fila (un server malicioso no puede intercambiar
+// ciphertexts entre items sin romper el tag). Items legacy tienen uid null y
+// se descifran sin AAD; adquieren uid al editarse.
+export const newVaultItemUid = (): string => crypto.randomUUID();
+
 export const encryptVaultData = async (
   vaultKey: CryptoKey,
   data: VaultItemData,
-): Promise<{ ciphertext: string; iv: string }> => {
-  const blob = await aesEncrypt(vaultKey, JSON.stringify(data));
-  return { ciphertext: blob.ct, iv: blob.iv };
+  uid: string,
+): Promise<{ ciphertext: string; iv: string; uid: string }> => {
+  const blob = await aesEncrypt(vaultKey, JSON.stringify(data), uid);
+  return { ciphertext: blob.ct, iv: blob.iv, uid };
 };
 
 export const decryptVaultData = async (
   vaultKey: CryptoKey,
-  row: Pick<VaultItemRow, "ciphertext" | "iv">,
+  row: Pick<VaultItemRow, "ciphertext" | "iv" | "uid">,
 ): Promise<VaultItemData> => {
-  const plaintext = await aesDecrypt(vaultKey, { iv: row.iv, ct: row.ciphertext });
+  const plaintext = await aesDecrypt(
+    vaultKey,
+    { iv: row.iv, ct: row.ciphertext },
+    row.uid ?? undefined,
+  );
   return JSON.parse(plaintext) as VaultItemData;
+};
+
+// Cripto de rotación de la llave de recuperación: durante un reset, la llave
+// usada se quema y se genera una NUEVA (blob + hash de autorización). El server
+// exige esto en recovery/reset.
+export const buildRecoveryRotation = async (
+  vaultKeyRaw: Uint8Array,
+): Promise<{
+  wrapped_vault_key_recovery: EncryptedBlob;
+  new_recovery_auth: string;
+  recoveryKey: string;
+}> => {
+  const recovery = generateRecoveryKey();
+  const recWrapKey = await deriveWrapKeyBytes(recovery.bytes);
+  const wrapped_vault_key_recovery = await wrapVaultKey(vaultKeyRaw, recWrapKey);
+  const new_recovery_auth = await deriveRecoveryAuth(recovery.bytes);
+  return { wrapped_vault_key_recovery, new_recovery_auth, recoveryKey: recovery.display };
 };

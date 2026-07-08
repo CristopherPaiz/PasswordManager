@@ -9,7 +9,12 @@ import {
   randomBytes,
   toBase64,
 } from "./crypto";
-import { VaultItemData } from "@apptypes";
+import { VaultItemData, VaultItemType } from "@apptypes";
+
+// Item de exportación: el contenido descifrado + su tipo (para restaurar
+// tarjetas y notas como lo que son). `tipo` opcional para poder importar
+// respaldos viejos (que solo traían contraseñas).
+export type VaultExportItem = VaultItemData & { tipo?: VaultItemType };
 
 // Archivo de respaldo cifrado: portable y abrible en cualquier instalación con
 // la contraseña de exportación. Los items van cifrados con AES-256-GCM usando
@@ -25,7 +30,7 @@ export interface VaultExportFile {
 const EMPTY_ITEM: VaultItemData = { title: "", username: "", password: "", url: "", notes: "" };
 
 export const buildExport = async (
-  items: VaultItemData[],
+  items: VaultExportItem[],
   exportPassword: string,
 ): Promise<VaultExportFile> => {
   const salt = toBase64(randomBytes(16));
@@ -38,13 +43,13 @@ export const buildExport = async (
 export const parseExport = async (
   file: VaultExportFile,
   password: string,
-): Promise<VaultItemData[]> => {
+): Promise<VaultExportItem[]> => {
   if (file.format !== "passwordmanager-vault") throw new Error("BAD_FORMAT");
   const keyBytes = await deriveMasterKey(password, file.salt, file.kdf);
   const aesKey = await importAesKey(keyBytes);
   // Si la contraseña es incorrecta, el tag GCM falla y lanza aquí.
   const json = await aesDecrypt(aesKey, file.data);
-  return JSON.parse(json) as VaultItemData[];
+  return JSON.parse(json) as VaultExportItem[];
 };
 
 // ---------- CSV (Chrome / Bitwarden / genérico) ----------

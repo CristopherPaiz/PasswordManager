@@ -110,19 +110,36 @@ export const deriveRecoveryAuth = async (recoveryBytes: Uint8Array): Promise<str
 export const importAesKey = (raw: Uint8Array): Promise<CryptoKey> =>
   crypto.subtle.importKey("raw", raw, { name: "AES-GCM" }, false, ["encrypt", "decrypt"]);
 
-export const aesEncrypt = async (key: CryptoKey, plaintext: string): Promise<EncryptedBlob> => {
+// `aad` (additional authenticated data) opcional: no se cifra pero queda ligada
+// al tag GCM. Se usa para atar cada blob a SU identidad (ej. el uid del item):
+// descifrar con otra aad — o sea, un blob movido de lugar — rompe el tag.
+const gcmParams = (iv: Uint8Array, aad?: string): AesGcmParams => ({
+  name: "AES-GCM",
+  iv,
+  ...(aad ? { additionalData: textEncoder.encode(aad) } : {}),
+});
+
+export const aesEncrypt = async (
+  key: CryptoKey,
+  plaintext: string,
+  aad?: string,
+): Promise<EncryptedBlob> => {
   const iv = randomBytes(12);
   const ctBuffer = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv },
+    gcmParams(iv, aad),
     key,
     textEncoder.encode(plaintext),
   );
   return { iv: toBase64(iv), ct: toBase64(new Uint8Array(ctBuffer)) };
 };
 
-export const aesDecrypt = async (key: CryptoKey, blob: EncryptedBlob): Promise<string> => {
+export const aesDecrypt = async (
+  key: CryptoKey,
+  blob: EncryptedBlob,
+  aad?: string,
+): Promise<string> => {
   const ptBuffer = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: fromBase64(blob.iv) },
+    gcmParams(fromBase64(blob.iv), aad),
     key,
     fromBase64(blob.ct),
   );

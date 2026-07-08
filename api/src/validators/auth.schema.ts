@@ -76,6 +76,7 @@ export const recoveryStartSchema = z.object({
 })
 
 // Recuperación: aplica una maestra nueva, autorizada por recovery_auth.
+// La llave usada se rota: el cliente manda el blob y hash de una llave NUEVA.
 export const recoveryResetSchema = z.object({
   username: z
     .string()
@@ -86,7 +87,9 @@ export const recoveryResetSchema = z.object({
   password: z.string().min(20, 'Credencial inválida.').max(200, 'Credencial inválida.'),
   kdf_salt: z.string().min(1).max(128),
   kdf_params: kdfParamsSchema,
-  wrapped_vault_key: encryptedBlobSchema
+  wrapped_vault_key: encryptedBlobSchema,
+  wrapped_vault_key_recovery: encryptedBlobSchema,
+  new_recovery_auth: z.string().min(1).max(200)
 })
 
 // TOTP: solo un código de 6 dígitos.

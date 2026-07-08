@@ -60,7 +60,7 @@ export const listVaultItems = async (
     const dbClient = await DatabaseService.getInstance().getClient()
 
     const { rows } = await dbClient.execute({
-      sql: `SELECT id, tipo, ciphertext, iv, fecha_creacion, fecha_modificacion
+      sql: `SELECT id, tipo, ciphertext, iv, uid, fecha_creacion, fecha_modificacion
               FROM VaultItems WHERE usuario_id = ? ORDER BY fecha_modificacion DESC`,
       args: [userId ?? 0]
     })
@@ -78,12 +78,12 @@ export const createVaultItem = async (
 ): Promise<void> => {
   try {
     const userId = req.user?.userId
-    const { tipo, ciphertext, iv } = req.body
+    const { tipo, ciphertext, iv, uid } = req.body
 
     const dbClient = await DatabaseService.getInstance().getClient()
     const result = await dbClient.execute({
-      sql: 'INSERT INTO VaultItems (usuario_id, tipo, ciphertext, iv) VALUES (?, ?, ?, ?)',
-      args: [userId ?? 0, tipo ?? 'password', ciphertext, iv]
+      sql: 'INSERT INTO VaultItems (usuario_id, tipo, ciphertext, iv, uid) VALUES (?, ?, ?, ?, ?)',
+      args: [userId ?? 0, tipo ?? 'password', ciphertext, iv, uid]
     })
 
     res.status(HTTP_STATUS.CREATED).json({
@@ -103,15 +103,17 @@ export const updateVaultItem = async (
   try {
     const userId = req.user?.userId
     const itemId = Number(req.params.id)
-    const { tipo, ciphertext, iv } = req.body
+    const { tipo, ciphertext, iv, uid } = req.body
 
     const dbClient = await DatabaseService.getInstance().getClient()
+    // uid con COALESCE: los items legacy (uid NULL) lo adquieren al editarse;
+    // un uid ya asignado nunca se pisa (el AAD del blob quedaría huérfano).
     const result = await dbClient.execute({
       sql: `UPDATE VaultItems
               SET ciphertext = ?, iv = ?, tipo = COALESCE(?, tipo),
-                  fecha_modificacion = CURRENT_TIMESTAMP
+                  uid = COALESCE(uid, ?), fecha_modificacion = CURRENT_TIMESTAMP
             WHERE id = ? AND usuario_id = ?`,
-      args: [ciphertext, iv, tipo ?? null, itemId, userId ?? 0]
+      args: [ciphertext, iv, tipo ?? null, uid ?? null, itemId, userId ?? 0]
     })
 
     if (result.rowsAffected === 0) {
@@ -159,12 +161,14 @@ export const bulkCreateVaultItems = async (
 ): Promise<void> => {
   try {
     const userId = req.user?.userId
-    const { items } = req.body as { items: { tipo?: string; ciphertext: string; iv: string }[] }
+    const { items } = req.body as {
+      items: { tipo?: string; ciphertext: string; iv: string; uid: string }[]
+    }
 
     const dbClient = await DatabaseService.getInstance().getClient()
     const statements = items.map((it) => ({
-      sql: 'INSERT INTO VaultItems (usuario_id, tipo, ciphertext, iv) VALUES (?, ?, ?, ?)',
-      args: [userId ?? 0, it.tipo ?? 'password', it.ciphertext, it.iv]
+      sql: 'INSERT INTO VaultItems (usuario_id, tipo, ciphertext, iv, uid) VALUES (?, ?, ?, ?, ?)',
+      args: [userId ?? 0, it.tipo ?? 'password', it.ciphertext, it.iv, it.uid]
     }))
 
     await dbClient.batch(statements)

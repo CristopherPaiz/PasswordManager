@@ -5,17 +5,18 @@ import { toast } from "sonner";
 import { useGetQuery, useMutationQuery } from "@hooks/queries/core.queries";
 import { useVaultStore } from "@store/vault.store";
 import { API_ENDPOINTS } from "@constants/app.constants";
-import { decryptVaultData, encryptVaultData } from "@utils/vault";
-import { buildExport, parseExport, parseCsv, VaultExportFile } from "@utils/backup";
-import { VaultItemData, VaultItemRow } from "@apptypes";
+import { decryptVaultData, encryptVaultData, newVaultItemUid } from "@utils/vault";
+import { buildExport, parseExport, parseCsv, VaultExportFile, VaultExportItem } from "@utils/backup";
+import { VaultItemRow, VaultItemType } from "@apptypes";
 import { Card, CardTitle } from "@components/ui/Card";
 import { Input } from "@components/ui/Input";
 import { Button } from "@components/ui/Button";
 
 interface EncItem {
-  tipo: string;
+  tipo: VaultItemType;
   ciphertext: string;
   iv: string;
+  uid: string;
 }
 
 export const BackupCard = () => {
@@ -51,7 +52,10 @@ export const BackupCard = () => {
     setIsExporting(true);
     try {
       const list = vaultList?.items ?? [];
-      const decrypted = await Promise.all(list.map((r) => decryptVaultData(vaultKey, r)));
+      // Cada item exportado lleva su tipo para restaurar tarjetas/notas como tales.
+      const decrypted: VaultExportItem[] = await Promise.all(
+        list.map(async (r) => ({ ...(await decryptVaultData(vaultKey, r)), tipo: r.tipo })),
+      );
       const file = await buildExport(decrypted, exportPw);
 
       const blob = new Blob([JSON.stringify(file, null, 2)], { type: "application/json" });
@@ -83,12 +87,12 @@ export const BackupCard = () => {
     setIsImporting(true);
     try {
       const text = await importFile.text();
-      let items: VaultItemData[];
+      let items: VaultExportItem[];
 
       if (importFile.name.toLowerCase().endsWith(".csv")) {
         items = parseCsv(text);
       } else {
-        const parsed = JSON.parse(text) as VaultExportFile | VaultItemData[];
+        const parsed = JSON.parse(text) as VaultExportFile | VaultExportItem[];
         if (Array.isArray(parsed)) {
           items = parsed;
         } else if (parsed.format === "passwordmanager-vault") {
@@ -112,10 +116,13 @@ export const BackupCard = () => {
       }
 
       // Re-cifra cada item con la vaultKey actual y los manda en lote.
+      // El tipo va fuera del blob (columna en claro); el uid nuevo es el AAD.
       const encrypted: EncItem[] = await Promise.all(
         items.map(async (it) => {
-          const { ciphertext, iv } = await encryptVaultData(vaultKey, it);
-          return { tipo: "password", ciphertext, iv };
+          const { tipo, ...data } = it;
+          const uid = newVaultItemUid();
+          const { ciphertext, iv } = await encryptVaultData(vaultKey, data, uid);
+          return { tipo: tipo ?? "password", ciphertext, iv, uid };
         }),
       );
 

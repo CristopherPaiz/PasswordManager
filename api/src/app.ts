@@ -5,6 +5,7 @@ import helmet from 'helmet'
 import compression from 'compression'
 import rateLimit from 'express-rate-limit'
 import { errorMiddleware } from '@middlewares/error.middleware.js'
+import { originCheckMiddleware } from '@middlewares/origin.middleware.js'
 import { HTTP_STATUS } from '@config/constants.js'
 import authRoutes from '@routes/auth.routes.js'
 import vaultRoutes from '@routes/vault.routes.js'
@@ -53,17 +54,20 @@ app.use(
   cors({
     origin: (origin, callback) => {
       // Permite peticiones sin Origin (curl, Postman, apps móviles) y las de la lista.
-      if (!origin || corsOrigins.includes(origin)) {
-        callback(null, true)
-        return
-      }
-      callback(new Error(`Origen no permitido por CORS: ${origin}`))
+      // Un Origin desconocido NO lanza error (eso terminaba en 500 y ensuciaba
+      // ErrorLogs): se niega el CORS (sin headers, el navegador no puede leer la
+      // respuesta) y las mutaciones las corta originCheckMiddleware con 403.
+      callback(null, !origin || corsOrigins.includes(origin))
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization']
   })
 )
+
+// Anti-CSRF: rechaza mutaciones cuyo Origin no esté en la allowlist (CORS solo
+// bloquea leer la respuesta, no que la petición ejecute con la cookie).
+app.use('/api', originCheckMiddleware(corsOrigins))
 
 // Límite de cuerpo: acota DoS por payloads gigantes. 10mb cubre import masivo
 // realista del baúl (cientos de items cifrados) sin abrir la puerta a abusos.

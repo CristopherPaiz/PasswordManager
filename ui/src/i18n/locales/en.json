@@ -66,6 +66,14 @@
       "keyRequired": "Recovery key is required.",
       "keyInvalid": "Incorrect recovery key.",
       "generic": "Could not reset. Check your details."
+    },
+    "newKey": {
+      "title": "New recovery key",
+      "warning": "Your previous key is no longer valid. Store this NEW key somewhere safe: it is the only way to recover your vault if you forget your master password.",
+      "copy": "Copy key",
+      "copied": "Key copied",
+      "confirm": "I have saved my new recovery key in a safe place.",
+      "continue": "Continue to sign in"
     }
   },
   "settings": {
@@ -195,7 +203,16 @@
       "username": "Username or email",
       "password": "Password",
       "url": "Website (URL)",
-      "notes": "Notes"
+      "notes": "Notes",
+      "folder": "Folder",
+      "tags": "Tags",
+      "tagsHint": "work, personal, bank...",
+      "favorite": "Mark as favorite",
+      "cardHolder": "Cardholder name",
+      "cardNumber": "Card number",
+      "cardExpiry": "Expiry",
+      "cardExpiryHint": "MM/YY",
+      "cardCvv": "CVV"
     },
     "generator": {
       "generate": "Generate",
@@ -206,7 +223,26 @@
       "lowercase": "Lowercase (a-z)",
       "numbers": "Numbers (0-9)",
       "symbols": "Symbols (!@#)"
-    }
+    },
+    "types": {
+      "password": "Password",
+      "card": "Card",
+      "note": "Note"
+    },
+    "filters": {
+      "all": "All",
+      "password": "Passwords",
+      "card": "Cards",
+      "note": "Notes",
+      "favorites": "Favorites",
+      "folder": "Folder",
+      "allFolders": "All folders"
+    },
+    "toggleFavorite": "Mark as favorite",
+    "copyCardNumber": "Copy number",
+    "cardNumberCopied": "Card number copied",
+    "copyNote": "Copy note",
+    "noteCopied": "Note copied"
   },
   "dashboard": {
     "profileInfo": "Profile Information",

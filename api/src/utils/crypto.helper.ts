@@ -21,6 +21,26 @@ const getKey = (): Buffer => {
 export const hashToken = (token: string): string =>
   crypto.createHash('sha256').update(token).digest('hex')
 
+// Bytes deterministas por (label, input) vía HMAC-SHA256 expandido por contador.
+// Sirven para fabricar respuestas señuelo estables (salt/blob falsos) cuando un
+// usuario NO existe: el atacante recibe siempre lo mismo para ese username y no
+// puede distinguir cuentas reales de inexistentes (anti-enumeración).
+export const deterministicBytes = (label: string, input: string, length: number): Buffer => {
+  const key = String(process.env.JWT_SECRET_KEY ?? '')
+  const blocks: Buffer[] = []
+  let total = 0
+  for (let i = 0; total < length; i++) {
+    const block = crypto.createHmac('sha256', key).update(`${label}:${i}:${input}`).digest()
+    blocks.push(block)
+    total += block.length
+  }
+  return Buffer.concat(blocks).subarray(0, length)
+}
+
+// ¿El valor guardado ya está cifrado con el formato "iv:ct:tag"? Los secretos
+// LEGACY en texto plano (base32, sin ':') devuelven false y deben re-cifrarse.
+export const isEncryptedSecret = (stored: string): boolean => stored.split(':').length === 3
+
 export const encryptSecret = (plain: string): string => {
   const iv = crypto.randomBytes(12)
   const cipher = crypto.createCipheriv('aes-256-gcm', getKey(), iv)
