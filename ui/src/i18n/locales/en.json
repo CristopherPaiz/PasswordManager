@@ -127,6 +127,49 @@
       "title": "Start page",
       "description": "When you sign in, open this page directly.",
       "label": "Open at"
+    },
+    "master": {
+      "title": "Change master password",
+      "description": "Change your master password without losing the vault. The internal key is re-wrapped; contents stay the same.",
+      "current": "Current master password",
+      "new": "New master password",
+      "confirm": "Confirm new password",
+      "submit": "Change master password",
+      "success": "Master password updated.",
+      "needUnlock": "Unlock the vault first (go to My vault and enter your master password).",
+      "error": "Could not change the master password."
+    },
+    "backup": {
+      "title": "Backup (export / import)",
+      "description": "Your vault lives only on the server. Export a copy you control, or import from another manager.",
+      "needUnlock": "Unlock the vault first to export or import.",
+      "exportTitle": "Export encrypted copy",
+      "exportHint": "Generates an encrypted .json file with the password you choose. Keep it somewhere safe.",
+      "exportPw": "Password for the file",
+      "exportPwShort": "Use at least 6 characters for the file.",
+      "exportBtn": "Export",
+      "exported": "Exported {{count}} items.",
+      "exportError": "Could not export.",
+      "importTitle": "Import",
+      "importHint": "Accepts your encrypted backup (.json) or a Chrome/Bitwarden CSV. Items are added to the vault.",
+      "file": "File (.json or .csv)",
+      "importPw": "File password (if it is an encrypted backup)",
+      "importPwNeeded": "This backup is encrypted: enter its password.",
+      "importBtn": "Import",
+      "imported": "Imported {{count}} items.",
+      "importError": "Could not import. Check the file or the password.",
+      "badFile": "Unrecognized file.",
+      "pickFile": "Select a file first.",
+      "nothing": "The file has no items."
+    },
+    "sessions": {
+      "title": "Active sessions",
+      "description": "Devices where your session is open. Close any you do not recognize.",
+      "none": "No active sessions.",
+      "current": "This session",
+      "unknown": "Unknown device",
+      "revoke": "Sign out",
+      "revoked": "Session closed."
     }
   },
   "register": {
@@ -242,7 +285,13 @@
     "copyCardNumber": "Copy number",
     "cardNumberCopied": "Card number copied",
     "copyNote": "Copy note",
-    "noteCopied": "Note copied"
+    "noteCopied": "Note copied",
+    "resultCount_one": "{{count}} result",
+    "resultCount_other": "{{count}} results",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "copyCvv": "Copy CVV",
+    "cvvCopied": "CVV copied"
   },
   "dashboard": {
     "profileInfo": "Profile Information",

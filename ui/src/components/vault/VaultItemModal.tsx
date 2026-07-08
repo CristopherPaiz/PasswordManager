@@ -6,11 +6,13 @@ import { useMutationQuery } from "@hooks/queries/core.queries";
 import { API_ENDPOINTS } from "@constants/app.constants";
 import { encryptVaultData, newVaultItemUid } from "@utils/vault";
 import { generatePassword, DEFAULT_PASSWORD_OPTIONS, PasswordOptions } from "@utils/password-generator";
+import { detectCardBrand, formatCardNumber } from "@utils/card-brand";
 import { VaultItem, VaultItemData, VaultItemType } from "@apptypes";
 import { Modal } from "@components/ui/Modal";
 import { Input } from "@components/ui/Input";
 import { Textarea } from "@components/ui/Textarea";
 import { Button } from "@components/ui/Button";
+import { StrengthMeter } from "@components/ui/StrengthMeter";
 
 interface VaultItemModalProps {
   isOpen: boolean;
@@ -174,8 +176,10 @@ export const VaultItemModal = ({ isOpen, onClose, vaultKey, item, folders, onDel
                 value={form.password}
                 autoComplete="off"
                 spellCheck={false}
+                className="[&_input]:font-mono"
                 onChange={(e) => setField("password", e.target.value)}
               />
+              <StrengthMeter password={form.password} />
               <div className="flex flex-wrap items-center gap-2">
                 <Button type="button" size="sm" variant="secondary" icon={RefreshCw} onClick={handleGenerate}>
                   {t("vault.generator.generate")}
@@ -238,14 +242,24 @@ export const VaultItemModal = ({ isOpen, onClose, vaultKey, item, folders, onDel
               autoComplete="off"
               onChange={(e) => setField("cardHolder", e.target.value)}
             />
-            <Input
-              label={t("vault.fields.cardNumber")}
-              value={form.cardNumber ?? ""}
-              autoComplete="off"
-              inputMode="numeric"
-              spellCheck={false}
-              onChange={(e) => setField("cardNumber", e.target.value)}
-            />
+            <div className="relative">
+              <Input
+                label={t("vault.fields.cardNumber")}
+                value={form.cardNumber ?? ""}
+                autoComplete="off"
+                inputMode="numeric"
+                spellCheck={false}
+                className="[&_input]:font-mono [&_input]:pr-24"
+                // Reformatea a grupos legibles conforme se escribe.
+                onChange={(e) => setField("cardNumber", formatCardNumber(e.target.value))}
+              />
+              {(form.cardNumber ?? "").replace(/\D/g, "").length >= 2 &&
+                detectCardBrand(form.cardNumber ?? "").label && (
+                  <span className="pointer-events-none absolute right-3 top-9 rounded-md bg-bg-base px-2 py-1 text-xs font-semibold text-text-muted">
+                    {detectCardBrand(form.cardNumber ?? "").label}
+                  </span>
+                )}
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <Input
                 label={t("vault.fields.cardExpiry")}

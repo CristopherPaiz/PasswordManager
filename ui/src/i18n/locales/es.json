@@ -285,7 +285,13 @@
     "copyCardNumber": "Copiar número",
     "cardNumberCopied": "Número de tarjeta copiado",
     "copyNote": "Copiar nota",
-    "noteCopied": "Nota copiada"
+    "noteCopied": "Nota copiada",
+    "resultCount_one": "{{count}} resultado",
+    "resultCount_other": "{{count}} resultados",
+    "showPassword": "Mostrar contraseña",
+    "hidePassword": "Ocultar contraseña",
+    "copyCvv": "Copiar CVV",
+    "cvvCopied": "CVV copiado"
   },
   "dashboard": {
     "profileInfo": "Información del Perfil",
