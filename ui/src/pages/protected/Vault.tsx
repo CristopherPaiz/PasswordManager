@@ -6,6 +6,7 @@ import { useGetQuery, useMutationQuery } from "@hooks/queries/core.queries";
 import { useVaultStore } from "@store/vault.store";
 import { API_ENDPOINTS } from "@constants/app.constants";
 import { decryptVaultData, encryptVaultData, newVaultItemUid } from "@utils/vault";
+import { matchesSearch } from "@utils/search";
 import { VaultItem, VaultItemRow, VaultItemType } from "@apptypes";
 import { Card } from "@components/ui/Card";
 import { Button } from "@components/ui/Button";
@@ -119,23 +120,28 @@ export const Vault = () => {
   }, [items]);
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
     return items.filter((it) => {
       if (typeFilter !== "all" && it.tipo !== typeFilter) return false;
       if (onlyFavorites && !it.data.favorite) return false;
       if (folderFilter && it.data.folder !== folderFilter) return false;
-      if (!q) return true;
+      // Búsqueda fuzzy sobre TODOS los campos (insensible a mayúsculas y
+      // tildes; "dbito" encuentra "débito"). Incluye el nombre del tipo
+      // traducido para poder buscar "tarjeta" o "nota".
       const haystack = [
         it.data.title,
         it.data.username,
         it.data.url,
+        it.data.notes,
         it.data.folder ?? "",
         it.data.cardHolder ?? "",
+        it.data.cardNumber ?? "",
+        it.data.cardExpiry ?? "",
+        t(`vault.types.${it.tipo}`),
         ...(it.data.tags ?? []),
       ];
-      return haystack.some((f) => f.toLowerCase().includes(q));
+      return matchesSearch(query, haystack);
     });
-  }, [items, query, typeFilter, onlyFavorites, folderFilter]);
+  }, [items, query, typeFilter, onlyFavorites, folderFilter, t]);
 
   if (!isUnlocked || !vaultKey) return <UnlockVault />;
 
