@@ -10,10 +10,14 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
     const generatedId = useId();
     const textareaId = id ?? generatedId;
 
+    const border = error
+      ? "border-signal-danger focus:border-signal-danger focus:ring-2 focus:ring-signal-danger/20"
+      : "border-border-base hover:border-border-strong focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20";
+
     return (
-      <div className="space-y-2">
+      <div className={`space-y-1.5 ${className}`}>
         {label && (
-          <label htmlFor={textareaId} className="block text-sm font-semibold text-text-base">
+          <label htmlFor={textareaId} className="block text-caption font-medium text-text-muted">
             {label}
           </label>
         )}
@@ -21,10 +25,10 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           id={textareaId}
           ref={ref}
           rows={rows}
-          className={`w-full px-4 py-3 bg-bg-base border ${error ? "border-red-500 focus:ring-red-500" : "border-border-base focus:ring-primary-500"} text-text-base rounded-xl focus:ring-2 focus:border-transparent outline-none transition-all resize-y ${className}`}
+          className={`w-full px-3 py-2 bg-bg-base border rounded-input text-body text-text-base placeholder:text-text-muted outline-none transition-colors duration-100 resize-y ${border}`}
           {...props}
         />
-        {error && <span className="text-xs text-red-500 font-medium">{error}</span>}
+        {error && <span className="text-caption text-signal-danger">{error}</span>}
       </div>
     );
   },

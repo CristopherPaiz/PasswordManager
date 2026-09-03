@@ -34,10 +34,10 @@ beforeAll(async () => {
 }, 60000);
 
 const sampleItem: VaultItemData = {
-  title: "GitHub",
-  username: "choper",
-  password: "p4ssw0rd-con-símbolos-#$%",
-  url: "https://github.com",
+  title: "Sitio De Prueba",
+  username: "usuario-de-prueba",
+  password: "valor-de-prueba-#$%-simbolos",
+  url: "https://ejemplo.invalid",
   notes: "línea 1\nlínea 2",
   folder: "Trabajo",
   tags: ["dev", "código"],
@@ -65,7 +65,10 @@ describe("buildRegistration", () => {
       account.crypto.kdf_salt,
       account.crypto.kdf_params,
     );
-    const { raw } = await openVaultKey(account.crypto.wrapped_vault_key, wrapKeyBytes);
+    const { raw } = await openVaultKey(
+      account.crypto.wrapped_vault_key,
+      wrapKeyBytes,
+    );
     expect(raw).toEqual(account.vaultKeyRaw);
   });
 
@@ -93,7 +96,10 @@ describe("buildRegistration", () => {
     // El server guarda bcrypt(recovery_auth). Aunque lo tuviera en claro, no
     // le sirve como wrapKey: es una derivación de dominio distinto.
     await expect(
-      openVaultKey(account.crypto.wrapped_vault_key_recovery, fromBase64(account.crypto.recovery_auth)),
+      openVaultKey(
+        account.crypto.wrapped_vault_key_recovery,
+        fromBase64(account.crypto.recovery_auth),
+      ),
     ).rejects.toThrow();
   });
 });
@@ -115,14 +121,19 @@ describe("login", () => {
       account.crypto.kdf_params,
     );
     expect(authHash).not.toBe(account.crypto.password);
-    await expect(openVaultKey(account.crypto.wrapped_vault_key, wrapKeyBytes)).rejects.toThrow();
+    await expect(
+      openVaultKey(account.crypto.wrapped_vault_key, wrapKeyBytes),
+    ).rejects.toThrow();
   });
 });
 
 describe("recuperación y reset de la maestra", () => {
   it("una llave de recuperación incorrecta no abre la vaultKey", async () => {
     await expect(
-      recoverVaultKeyRaw(account.crypto.wrapped_vault_key_recovery, "AAAA-AAAA-AAAA-AAAA-AAAA-AAAA-AAAA-AAAA"),
+      recoverVaultKeyRaw(
+        account.crypto.wrapped_vault_key_recovery,
+        "AAAA-AAAA-AAAA-AAAA-AAAA-AAAA-AAAA-AAAA",
+      ),
     ).rejects.toThrow();
   });
 
@@ -137,7 +148,11 @@ describe("recuperación y reset de la maestra", () => {
 
     // Un item guardado con la maestra vieja.
     const uid = newVaultItemUid();
-    const guardado = await encryptVaultData(cuenta.vaultCryptoKey, sampleItem, uid);
+    const guardado = await encryptVaultData(
+      cuenta.vaultCryptoKey,
+      sampleItem,
+      uid,
+    );
 
     // Reset.
     const vaultKeyRaw = await recoverVaultKeyRaw(
@@ -154,11 +169,16 @@ describe("recuperación y reset de la maestra", () => {
     );
     expect(authHash).toBe(nueva.password);
 
-    const { key, raw } = await openVaultKey(nueva.wrapped_vault_key, wrapKeyBytes);
+    const { key, raw } = await openVaultKey(
+      nueva.wrapped_vault_key,
+      wrapKeyBytes,
+    );
     expect(raw).toEqual(cuenta.vaultKeyRaw); // la vaultKey NO cambió
 
     // El item viejo sigue descifrando: no hubo que re-cifrar el baúl.
-    expect(await decryptVaultData(key, { ...guardado, uid })).toEqual(sampleItem);
+    expect(await decryptVaultData(key, { ...guardado, uid })).toEqual(
+      sampleItem,
+    );
   }, 60000);
 
   it("tras el reset, la maestra VIEJA ya no sirve", async () => {
@@ -175,7 +195,9 @@ describe("recuperación y reset de la maestra", () => {
       nueva.kdf_params,
     );
     expect(authHash).not.toBe(nueva.password);
-    await expect(openVaultKey(nueva.wrapped_vault_key, wrapKeyBytes)).rejects.toThrow();
+    await expect(
+      openVaultKey(nueva.wrapped_vault_key, wrapKeyBytes),
+    ).rejects.toThrow();
   }, 60000);
 });
 
@@ -188,11 +210,18 @@ describe("rotación de la llave de recuperación", () => {
   it("la llave nueva abre la misma vaultKey y la vieja ya no", async () => {
     const rotacion = await buildRecoveryRotation(account.vaultKeyRaw);
 
-    expect(await recoverVaultKeyRaw(rotacion.wrapped_vault_key_recovery, rotacion.recoveryKey))
-      .toEqual(account.vaultKeyRaw);
+    expect(
+      await recoverVaultKeyRaw(
+        rotacion.wrapped_vault_key_recovery,
+        rotacion.recoveryKey,
+      ),
+    ).toEqual(account.vaultKeyRaw);
 
     await expect(
-      recoverVaultKeyRaw(rotacion.wrapped_vault_key_recovery, account.recoveryKey),
+      recoverVaultKeyRaw(
+        rotacion.wrapped_vault_key_recovery,
+        account.recoveryKey,
+      ),
     ).rejects.toThrow();
   });
 
@@ -211,8 +240,14 @@ describe("rotación de la llave de recuperación", () => {
 describe("cifrado de items", () => {
   it("hace round-trip conservando todos los campos", async () => {
     const uid = newVaultItemUid();
-    const fila = await encryptVaultData(account.vaultCryptoKey, sampleItem, uid);
-    expect(await decryptVaultData(account.vaultCryptoKey, { ...fila, uid })).toEqual(sampleItem);
+    const fila = await encryptVaultData(
+      account.vaultCryptoKey,
+      sampleItem,
+      uid,
+    );
+    expect(
+      await decryptVaultData(account.vaultCryptoKey, { ...fila, uid }),
+    ).toEqual(sampleItem);
   });
 
   it("hace round-trip de un item tipo tarjeta", async () => {
@@ -222,35 +257,51 @@ describe("cifrado de items", () => {
       password: "",
       url: "",
       notes: "",
-      cardHolder: "CRISTOPHER PAIZ",
+      cardHolder: "TITULAR DE PRUEBA",
       cardNumber: "4111111111111111",
       cardExpiry: "12/30",
       cardCvv: "123",
     };
     const uid = newVaultItemUid();
     const fila = await encryptVaultData(account.vaultCryptoKey, tarjeta, uid);
-    expect(await decryptVaultData(account.vaultCryptoKey, { ...fila, uid })).toEqual(tarjeta);
+    expect(
+      await decryptVaultData(account.vaultCryptoKey, { ...fila, uid }),
+    ).toEqual(tarjeta);
   });
 
   it("el ciphertext no filtra el contenido en claro", async () => {
     const uid = newVaultItemUid();
-    const fila = await encryptVaultData(account.vaultCryptoKey, sampleItem, uid);
-    expect(fila.ciphertext).not.toContain("GitHub");
-    expect(fila.ciphertext).not.toContain("choper");
+    const fila = await encryptVaultData(
+      account.vaultCryptoKey,
+      sampleItem,
+      uid,
+    );
+    expect(fila.ciphertext).not.toContain("Sitio De Prueba");
+    expect(fila.ciphertext).not.toContain("usuario-de-prueba");
   });
 
   it("no se descifra con la vaultKey de otra cuenta", async () => {
     const otra = await buildRegistration("otra-maestra-999999");
     const uid = newVaultItemUid();
-    const fila = await encryptVaultData(account.vaultCryptoKey, sampleItem, uid);
-    await expect(decryptVaultData(otra.vaultCryptoKey, { ...fila, uid })).rejects.toThrow();
+    const fila = await encryptVaultData(
+      account.vaultCryptoKey,
+      sampleItem,
+      uid,
+    );
+    await expect(
+      decryptVaultData(otra.vaultCryptoKey, { ...fila, uid }),
+    ).rejects.toThrow();
   }, 60000);
 
   describe("uid como AAD: el server no puede reordenar el baúl", () => {
     it("descifrar con el uid de otro item falla", async () => {
       const uidA = newVaultItemUid();
       const uidB = newVaultItemUid();
-      const fila = await encryptVaultData(account.vaultCryptoKey, sampleItem, uidA);
+      const fila = await encryptVaultData(
+        account.vaultCryptoKey,
+        sampleItem,
+        uidA,
+      );
       await expect(
         decryptVaultData(account.vaultCryptoKey, { ...fila, uid: uidB }),
       ).rejects.toThrow();
@@ -265,7 +316,11 @@ describe("cifrado de items", () => {
     it("intercambiar ciphertexts entre dos filas rompe ambas", async () => {
       const uidA = newVaultItemUid();
       const uidB = newVaultItemUid();
-      const filaA = await encryptVaultData(account.vaultCryptoKey, sampleItem, uidA);
+      const filaA = await encryptVaultData(
+        account.vaultCryptoKey,
+        sampleItem,
+        uidA,
+      );
       const filaB = await encryptVaultData(
         account.vaultCryptoKey,
         { ...sampleItem, title: "Banco" },
@@ -275,22 +330,34 @@ describe("cifrado de items", () => {
       const swapA = { ciphertext: filaB.ciphertext, iv: filaB.iv, uid: uidA };
       const swapB = { ciphertext: filaA.ciphertext, iv: filaA.iv, uid: uidB };
 
-      await expect(decryptVaultData(account.vaultCryptoKey, swapA)).rejects.toThrow();
-      await expect(decryptVaultData(account.vaultCryptoKey, swapB)).rejects.toThrow();
+      await expect(
+        decryptVaultData(account.vaultCryptoKey, swapA),
+      ).rejects.toThrow();
+      await expect(
+        decryptVaultData(account.vaultCryptoKey, swapB),
+      ).rejects.toThrow();
     });
 
     it("un item legacy (uid null) se descifra sin AAD", async () => {
       // Los items previos al AAD se cifraron sin ella. Deben seguir abriendo,
       // porque adquieren uid solo al editarse (migración perezosa).
       const { aesEncrypt } = await import("./crypto");
-      const blob = await aesEncrypt(account.vaultCryptoKey, JSON.stringify(sampleItem));
+      const blob = await aesEncrypt(
+        account.vaultCryptoKey,
+        JSON.stringify(sampleItem),
+      );
       const legacy = { ciphertext: blob.ct, iv: blob.iv, uid: null };
-      expect(await decryptVaultData(account.vaultCryptoKey, legacy)).toEqual(sampleItem);
+      expect(await decryptVaultData(account.vaultCryptoKey, legacy)).toEqual(
+        sampleItem,
+      );
     });
 
     it("un item legacy NO se descifra si el server le inventa un uid", async () => {
       const { aesEncrypt } = await import("./crypto");
-      const blob = await aesEncrypt(account.vaultCryptoKey, JSON.stringify(sampleItem));
+      const blob = await aesEncrypt(
+        account.vaultCryptoKey,
+        JSON.stringify(sampleItem),
+      );
       await expect(
         decryptVaultData(account.vaultCryptoKey, {
           ciphertext: blob.ct,
@@ -327,14 +394,19 @@ describe("openVaultKey", () => {
       account.crypto.kdf_salt,
       account.crypto.kdf_params,
     );
-    const { key, raw } = await openVaultKey(account.crypto.wrapped_vault_key, wrapKeyBytes);
+    const { key, raw } = await openVaultKey(
+      account.crypto.wrapped_vault_key,
+      wrapKeyBytes,
+    );
 
     // La CryptoKey devuelta debe ser equivalente a importar los bytes crudos:
     // lo que cifra una, lo descifra la otra.
     const uid = newVaultItemUid();
     const fila = await encryptVaultData(key, sampleItem, uid);
     const desdeRaw = await importAesKey(raw);
-    expect(await decryptVaultData(desdeRaw, { ...fila, uid })).toEqual(sampleItem);
+    expect(await decryptVaultData(desdeRaw, { ...fila, uid })).toEqual(
+      sampleItem,
+    );
   });
 
   it("la CryptoKey no es extraíble (no se puede exportar la vaultKey)", async () => {

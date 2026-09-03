@@ -1,5 +1,22 @@
 @import "tailwindcss";
 
+/* El tema se alterna con la clase `.dark` en <html> (ver RootLayout).
+   Tailwind v4 liga `dark:` a prefers-color-scheme por defecto, así que sin
+   esta línea las utilidades `dark:*` seguirían al SISTEMA operativo mientras
+   los tokens siguen al botón: el usuario alterna y los badges no cambian. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---------------------------------------------------------------------------
+   Sistema de diseño: Linear (github.com/ricocc/brands-design-md, brands/linear.app)
+   Voz: "midnight precision instrument". Un gestor de contraseñas debe leerse
+   como instrumento de precisión, no como app amigable.
+
+   Linear solo publica tema OSCURO. El claro se deriva invirtiendo su rampa
+   neutra de 10 pasos (void→paper), que es un continuo y no una selección
+   arbitraria. Solo DOS valores no existen en el set original y van marcados
+   con DERIVADO más abajo.
+   --------------------------------------------------------------------------- */
+
 @theme {
   --font-sans: "Inter", system-ui, sans-serif;
 
@@ -8,43 +25,93 @@
 
   --color-bg-base: var(--bg-base);
   --color-bg-surface: var(--bg-surface);
+  --color-bg-elevated: var(--bg-elevated);
 
   --color-text-base: var(--text-base);
   --color-text-muted: var(--text-muted);
 
   --color-border-base: var(--border-base);
+  --color-border-strong: var(--border-strong);
+
+  /* Colores de señal de Linear. Mismos en ambos temas: comunican estado, no
+     superficie. Listos para StrengthMeter y Badge. */
+  --color-signal-danger: #eb5757;  /* coral-red  */
+  --color-signal-success: #27a644; /* pulse-green */
+  --color-signal-info: #02b8cc;    /* signal-teal */
+  --color-signal-accent: #e4f222;  /* acid-lime  */
+
+  /* Radios SEMÁNTICOS de Linear: el componente decide, no el ojo.
+     Esto es lo que quita la inconsistencia de "¿qué radio va aquí?". */
+  --radius-badge: 4px;
+  --radius-input: 6px;
+  --radius-button: 6px;
+  --radius-card: 12px;
+
+  /* Rampa primary faltante. Badge, Avatar, Navbar, Dashboard y Vault usaban
+     primary-50/100/400/800/900 SIN que estuvieran definidos: esas clases no
+     generaban nada y los chips salian sin fondo ni borde. Se derivan por
+     color-mix del iris-violet de Linear contra su paper/void, asi que no se
+     inventa ningun hex nuevo. */
+  --color-primary-50: color-mix(in oklab, #6366f1 10%, #ffffff);
+  --color-primary-100: color-mix(in oklab, #6366f1 20%, #ffffff);
+  --color-primary-400: color-mix(in oklab, #6366f1 70%, #ffffff);
+  --color-primary-800: color-mix(in oklab, #6366f1 45%, #08090a);
+  --color-primary-900: color-mix(in oklab, #6366f1 30%, #08090a);
+
+  /* Escala tipografica de Linear para UI densa. Su DESIGN.md viene del sitio
+     de marketing (13 -> 15 -> 20 -> 24 -> 32...), asi que solo tomamos los dos
+     tamanos de interfaz reales; los saltos grandes son para hero, no para app. */
+  --text-caption: 13px;
+  --text-caption--line-height: 1.2;
+  --text-body: 15px;
+  --text-body--line-height: 1.6;
+  --text-body--letter-spacing: -0.165px;
+  --text-title: 20px;
+  --text-title--line-height: 1.33;
+  --text-title--letter-spacing: -0.24px;
+  --text-subheading: 24px;
+  --text-subheading--line-height: 1.33;
+  --text-subheading--letter-spacing: -0.288px;
 }
 
+/* Tema claro — rampa de Linear invertida. */
 :root {
-  --primary-500: #3b82f6;
-  --primary-600: #2563eb;
+  --primary-500: #6366f1; /* iris-violet */
+  --primary-600: #4f46e5; /* DERIVADO: Linear no trae un índigo más oscuro */
 
-  --bg-base: #f9fafb;
-  --bg-surface: #ffffff;
+  --bg-base: #f7f8f9;     /* DERIVADO: no hay paso entre bone y paper */
+  --bg-surface: #ffffff;  /* paper */
+  --bg-elevated: #ffffff; /* paper — se separa por borde, no por tono */
 
-  --text-base: #111827;
-  --text-muted: #4b5563;
+  --text-base: #08090a;   /* void */
+  --text-muted: #62666d;  /* ash */
 
-  --border-base: #e5e7eb;
+  --border-base: #e5e5e6;   /* bone */
+  --border-strong: #d0d6e0; /* mist */
 
-  --scrollbar-thumb: #cbd5e1;
-  --scrollbar-thumb-hover: #94a3b8;
+  --scrollbar-thumb: #d0d6e0;       /* mist */
+  --scrollbar-thumb-hover: #8a8f98; /* fog  */
 }
 
+/* Tema oscuro — rampa de Linear tal cual, sin derivar nada.
+   Cuatro niveles de profundidad: página < card < modal < borde.
+   Los inputs usan bg-base DENTRO de las cards, que es el look "inset" de Linear. */
 .dark {
-  --primary-500: #3b82f6;
-  --primary-600: #60a5fa;
+  --primary-500: #6366f1; /* iris-violet */
+  --primary-600: #8b5cf6; /* lavender — más claro para hover sobre oscuro */
 
-  --bg-base: #111827;
-  --bg-surface: #1f2937;
+  --bg-base: #08090a;     /* void     */
+  --bg-surface: #0f1011;  /* carbon   */
+  --bg-elevated: #161718; /* obsidian */
 
-  --text-base: #f9fafb;
-  --text-muted: #9ca3af;
+  --text-base: #ffffff;  /* paper */
+  --text-muted: #8a8f98; /* fog   */
 
-  --border-base: #374151;
+  --border-base: #23252a;   /* graphite */
+  --border-strong: #383b3f; /* smoke    */
 
-  --scrollbar-thumb: #374151;
-  --scrollbar-thumb-hover: #4b5563;
+  --scrollbar-thumb: #23252a;       /* graphite */
+  --scrollbar-thumb-hover: #383b3f; /* smoke    */
 }
 
 body {

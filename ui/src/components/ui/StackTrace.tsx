@@ -11,7 +11,7 @@ const StackLine = ({ line }: { line: string }) => {
 
   // Líneas que no son frame (tipo/mensaje del error) → resaltadas en rojo.
   if (!match) {
-    return <div className="text-red-600 dark:text-red-400">{line || " "}</div>;
+    return <div className="text-signal-danger">{line || " "}</div>;
   }
 
   const [, at, fn, file, ln, col, close] = match;
@@ -27,9 +27,9 @@ const StackLine = ({ line }: { line: string }) => {
       )}
       <span className="text-text-base">{file}</span>
       <span className="text-text-muted">:</span>
-      <span className="text-amber-600 dark:text-amber-400">{ln}</span>
+      <span className="text-signal-accent">{ln}</span>
       <span className="text-text-muted">:</span>
-      <span className="text-amber-600 dark:text-amber-400">{col}</span>
+      <span className="text-signal-accent">{col}</span>
       {close && <span className="text-text-muted">{close}</span>}
     </div>
   );
@@ -41,7 +41,7 @@ export const StackTrace = ({ stack, className = "" }: StackTraceProps) => {
   const lines = stack.split("\n");
 
   return (
-    <pre className={`text-xs bg-bg-base border border-border-base rounded-xl p-3 overflow-x-auto whitespace-pre font-mono leading-relaxed ${className}`}>
+    <pre className={`text-caption bg-bg-base border border-border-base rounded-input p-3 overflow-x-auto whitespace-pre font-mono leading-relaxed ${className}`}>
       {lines.map((line, index) => (
         <StackLine key={index} line={line} />
       ))}

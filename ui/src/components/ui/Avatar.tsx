@@ -1,9 +1,9 @@
 type AvatarSize = "sm" | "md" | "lg";
 
 const SIZES: Record<AvatarSize, string> = {
-  sm: "w-8 h-8 text-xs",
-  md: "w-10 h-10 text-sm",
-  lg: "w-14 h-14 text-lg",
+  sm: "w-6 h-6 text-caption",
+  md: "w-8 h-8 text-caption",
+  lg: "w-12 h-12 text-body",
 };
 
 interface AvatarProps {
@@ -31,7 +31,7 @@ export const Avatar = ({ src, name, size = "md", className = "" }: AvatarProps) 
   }
 
   return (
-    <div className={`${base} bg-primary-50 dark:bg-primary-900/20 text-primary-500 font-semibold border border-primary-100 dark:border-primary-800`}>
+    <div className={`${base} bg-bg-elevated text-text-muted font-medium border border-border-base`}>
       {getInitials(name)}
     </div>
   );

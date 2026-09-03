@@ -6,13 +6,13 @@ interface StrengthMeterProps {
   className?: string;
 }
 
-const BAR_COLORS = ["bg-red-500", "bg-red-500", "bg-amber-500", "bg-lime-500", "bg-green-500"];
+const BAR_COLORS = ["bg-signal-danger", "bg-signal-danger", "bg-signal-accent", "bg-signal-info", "bg-signal-success"];
 const TEXT_COLORS = [
-  "text-red-600 dark:text-red-400",
-  "text-red-600 dark:text-red-400",
-  "text-amber-600 dark:text-amber-400",
-  "text-lime-600 dark:text-lime-400",
-  "text-green-600 dark:text-green-400",
+  "text-signal-danger",
+  "text-signal-danger",
+  "text-signal-accent",
+  "text-signal-info",
+  "text-signal-success",
 ];
 
 // Barra de 4 segmentos + etiqueta. Reutiliza el estimador de `password-strength`.
@@ -29,13 +29,13 @@ export const StrengthMeter = ({ password, className = "" }: StrengthMeterProps) 
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
-            className={`h-1.5 flex-1 rounded-full transition-colors ${
+            className={`h-0.5 flex-1 rounded-full transition-colors ${
               i < score ? BAR_COLORS[score] : "bg-border-base"
             }`}
           />
         ))}
       </div>
-      <p className={`text-xs font-medium ${TEXT_COLORS[score]}`}>{t(labelKey)}</p>
+      <p className={`text-caption font-medium ${TEXT_COLORS[score]}`}>{t(labelKey)}</p>
     </div>
   );
 };

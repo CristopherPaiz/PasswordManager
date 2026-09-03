@@ -108,7 +108,7 @@ export const Modal = ({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-[2px] animate-in fade-in duration-200"
       onMouseDown={(e) => {
         pointerDownOnBackdrop.current = e.target === e.currentTarget;
       }}
@@ -125,17 +125,17 @@ export const Modal = ({
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? titleId : undefined}
-        className={`w-full ${SIZE_CLASSES[size]} max-h-[90dvh] flex flex-col bg-bg-surface border border-border-base rounded-2xl shadow-2xl outline-none animate-in zoom-in-95 fade-in duration-200`}
+        className={`w-full ${SIZE_CLASSES[size]} max-h-[90dvh] flex flex-col bg-bg-surface border border-border-base rounded-card outline-none animate-in zoom-in-95 fade-in duration-200`}
       >
         {title && (
-          <div className="flex items-center justify-between gap-4 px-6 py-4 border-b border-border-base shrink-0">
-            <h2 id={titleId} className="text-lg font-bold text-text-base">
+          <div className="flex items-center justify-between gap-4 px-4 py-3 border-b border-border-base shrink-0">
+            <h2 id={titleId} className="text-body font-medium text-text-base">
               {title}
             </h2>
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 -mr-1.5 text-text-muted hover:text-text-base hover:bg-bg-base rounded-lg transition-colors cursor-pointer"
+              className="p-1.5 -mr-1.5 text-text-muted hover:text-text-base hover:bg-bg-base rounded-input transition-colors cursor-pointer"
               aria-label={t("common.close")}
             >
               <X className="w-5 h-5" />
@@ -145,9 +145,9 @@ export const Modal = ({
 
         {/* overscroll-contain corta el "scroll chaining": al llegar al final del
             modal el gesto NO se propaga al fondo. */}
-        <div className="px-6 py-5 overflow-y-auto overscroll-contain text-text-muted">{children}</div>
+        <div className="px-4 py-4 overflow-y-auto overscroll-contain text-body text-text-muted">{children}</div>
 
-        {footer && <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border-base shrink-0">{footer}</div>}
+        {footer && <div className="flex items-center justify-end gap-3 px-4 py-3 border-t border-border-base shrink-0">{footer}</div>}
       </div>
     </div>,
     document.body,

@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { VaultExportFile, VaultExportItem, buildExport, parseCsv, parseExport } from "./backup";
+import {
+  VaultExportFile,
+  VaultExportItem,
+  buildExport,
+  parseCsv,
+  parseExport,
+} from "./backup";
 import { fromBase64, toBase64 } from "./crypto";
 
 /**
@@ -13,10 +19,10 @@ import { fromBase64, toBase64 } from "./crypto";
 const items: VaultExportItem[] = [
   {
     tipo: "password",
-    title: "GitHub",
-    username: "choper",
-    password: "p4ssw0rd-#$%",
-    url: "https://github.com",
+    title: "Sitio De Prueba",
+    username: "usuario-de-prueba",
+    password: "valor-de-prueba-#$%-simbolos",
+    url: "https://ejemplo.invalid",
     notes: "línea 1\nlínea 2",
     tags: ["dev"],
     favorite: true,
@@ -28,7 +34,7 @@ const items: VaultExportItem[] = [
     password: "",
     url: "",
     notes: "",
-    cardHolder: "CRISTOPHER PAIZ",
+    cardHolder: "TITULAR DE PRUEBA",
     cardNumber: "4111111111111111",
     cardExpiry: "12/30",
     cardCvv: "123",
@@ -54,8 +60,8 @@ describe("respaldo cifrado", () => {
   it("el archivo no contiene ningún dato en claro", async () => {
     const file = await buildExport(items, EXPORT_PASSWORD);
     const json = JSON.stringify(file);
-    expect(json).not.toContain("GitHub");
-    expect(json).not.toContain("choper");
+    expect(json).not.toContain("Sitio De Prueba");
+    expect(json).not.toContain("usuario-de-prueba");
     expect(json).not.toContain("4111111111111111");
   }, 60000);
 
@@ -66,7 +72,9 @@ describe("respaldo cifrado", () => {
 
   it("rechaza un archivo de otro formato antes de derivar la llave", async () => {
     const ajeno = { format: "otra-cosa" } as unknown as VaultExportFile;
-    await expect(parseExport(ajeno, EXPORT_PASSWORD)).rejects.toThrow("BAD_FORMAT");
+    await expect(parseExport(ajeno, EXPORT_PASSWORD)).rejects.toThrow(
+      "BAD_FORMAT",
+    );
   });
 
   it("falla si el archivo fue manipulado (integridad del tag GCM)", async () => {
@@ -98,15 +106,16 @@ describe("respaldo cifrado", () => {
 
 describe("parseCsv", () => {
   it("mapea el formato de Chrome", () => {
-    const csv = ["name,url,username,password", "GitHub,https://github.com,choper,secreto"].join(
-      "\n",
-    );
+    const csv = [
+      "name,url,username,password",
+      "Sitio De Prueba,https://ejemplo.invalid,usuario-de-prueba,valor-de-prueba",
+    ].join("\n");
     expect(parseCsv(csv)).toEqual([
       {
-        title: "GitHub",
-        username: "choper",
-        password: "secreto",
-        url: "https://github.com",
+        title: "Sitio De Prueba",
+        username: "usuario-de-prueba",
+        password: "valor-de-prueba",
+        url: "https://ejemplo.invalid",
         notes: "",
       },
     ]);
@@ -115,58 +124,64 @@ describe("parseCsv", () => {
   it("mapea el formato de Bitwarden (login_*)", () => {
     const csv = [
       "folder,favorite,type,name,notes,login_uri,login_username,login_password",
-      "Trabajo,1,login,GitHub,mis notas,https://github.com,choper,secreto",
+      "Trabajo,1,login,Sitio De Prueba,mis notas,https://ejemplo.invalid,usuario-de-prueba,valor-de-prueba",
     ].join("\n");
     expect(parseCsv(csv)[0]).toMatchObject({
-      title: "GitHub",
-      username: "choper",
-      password: "secreto",
-      url: "https://github.com",
+      title: "Sitio De Prueba",
+      username: "usuario-de-prueba",
+      password: "valor-de-prueba",
+      url: "https://ejemplo.invalid",
       notes: "mis notas",
     });
   });
 
   it("acepta encabezados en español", () => {
-    const csv = "nombre,sitio,usuario,contraseña,notas\nBanco,https://b.com,juan,1234,nota";
+    const csv =
+      "nombre,sitio,usuario,contraseña,notas\nBanco,https://ejemplo.invalid,usuario-b,valor-b,nota";
     expect(parseCsv(csv)[0]).toMatchObject({
       title: "Banco",
-      username: "juan",
-      password: "1234",
-      url: "https://b.com",
+      username: "usuario-b",
+      password: "valor-b",
+      url: "https://ejemplo.invalid",
       notes: "nota",
     });
   });
 
   it("cae a email cuando no hay columna username", () => {
-    const csv = "name,email,password\nSitio,juan@ejemplo.com,1234";
-    expect(parseCsv(csv)[0].username).toBe("juan@ejemplo.com");
+    const csv = "name,email,password\nSitio,usuario-b@ejemplo.invalid,valor-b";
+    expect(parseCsv(csv)[0].username).toBe("usuario-b@ejemplo.invalid");
   });
 
   it("normaliza encabezados con mayúsculas y espacios", () => {
-    const csv = " Name , URL , Username , Password \nGitHub,https://github.com,choper,secreto";
-    expect(parseCsv(csv)[0].title).toBe("GitHub");
+    const csv =
+      " Name , URL , Username , Password \nSitio De Prueba,https://ejemplo.invalid,usuario-de-prueba,valor-de-prueba";
+    expect(parseCsv(csv)[0].title).toBe("Sitio De Prueba");
   });
 
   it("respeta comas dentro de campos entrecomillados", () => {
-    const csv = 'name,url,username,password\n"Banco, S.A.",https://b.com,juan,1234';
+    const csv =
+      'name,url,username,password\n"Banco, S.A.",https://ejemplo.invalid,usuario-b,valor-b';
     expect(parseCsv(csv)[0].title).toBe("Banco, S.A.");
   });
 
   it("respeta saltos de línea dentro de campos entrecomillados", () => {
-    const csv = 'name,notes,username,password\nSitio,"nota\ncon salto",juan,1234';
+    const csv =
+      'name,notes,username,password\nSitio,"nota\ncon salto",usuario-b,valor-b';
     expect(parseCsv(csv)).toHaveLength(1);
     expect(parseCsv(csv)[0].notes).toBe("nota\ncon salto");
   });
 
   it("desescapa las comillas dobles ('' -> ')", () => {
-    const csv = 'name,url,username,password\n"Dice ""hola""",https://b.com,juan,1234';
+    const csv =
+      'name,url,username,password\n"Dice ""hola""",https://ejemplo.invalid,usuario-b,valor-b';
     expect(parseCsv(csv)[0].title).toBe('Dice "hola"');
   });
 
   it("soporta saltos CRLF", () => {
-    const csv = "name,url,username,password\r\nGitHub,https://github.com,choper,secreto\r\n";
+    const csv =
+      "name,url,username,password\r\nSitio De Prueba,https://ejemplo.invalid,usuario-de-prueba,valor-de-prueba\r\n";
     expect(parseCsv(csv)).toHaveLength(1);
-    expect(parseCsv(csv)[0].title).toBe("GitHub");
+    expect(parseCsv(csv)[0].title).toBe("Sitio De Prueba");
   });
 
   it("lee la última fila aunque no termine en salto de línea", () => {
@@ -175,7 +190,8 @@ describe("parseCsv", () => {
   });
 
   it("ignora filas completamente vacías", () => {
-    const csv = "name,url,username,password\nGitHub,,choper,secreto\n\n,,,\n";
+    const csv =
+      "name,url,username,password\nSitio De Prueba,,usuario-de-prueba,valor-de-prueba\n\n,,,\n";
     expect(parseCsv(csv)).toHaveLength(1);
   });
 
@@ -185,11 +201,11 @@ describe("parseCsv", () => {
   });
 
   it("rellena con cadena vacía las columnas que falten", () => {
-    const csv = "name,password\nSitio,1234";
+    const csv = "name,password\nSitio,valor-b";
     expect(parseCsv(csv)[0]).toEqual({
       title: "Sitio",
       username: "",
-      password: "1234",
+      password: "valor-b",
       url: "",
       notes: "",
     });

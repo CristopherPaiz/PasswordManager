@@ -31,7 +31,8 @@ const FAST_KDF: KdfParams = { algo: "argon2id", m: 8, t: 1, p: 1, hashLen: 32 };
 const ZERO_SALT = toBase64(new Uint8Array(16));
 
 // masterKey de juguete, reusada por los tests de HKDF.
-const testMasterKey = () => deriveMasterKey("correct horse battery staple", ZERO_SALT, FAST_KDF);
+const testMasterKey = () =>
+  deriveMasterKey("correct horse battery staple", ZERO_SALT, FAST_KDF);
 
 describe("base64", () => {
   it("hace round-trip de bytes arbitrarios, incluidos 0x00 y 0xFF", () => {
@@ -77,36 +78,49 @@ describe("llave de recuperación (base32)", () => {
   });
 
   it("genera llaves distintas en cada invocación", () => {
-    expect(generateRecoveryKey().display).not.toBe(generateRecoveryKey().display);
+    expect(generateRecoveryKey().display).not.toBe(
+      generateRecoveryKey().display,
+    );
   });
 });
 
 describe("deriveMasterKey (Argon2id)", () => {
   it("es determinista: misma maestra + mismo salt = mismos bytes", async () => {
-    const a = await deriveMasterKey("hunter2", ZERO_SALT, FAST_KDF);
-    const b = await deriveMasterKey("hunter2", ZERO_SALT, FAST_KDF);
+    const a = await deriveMasterKey("entrada-de-prueba-a", ZERO_SALT, FAST_KDF);
+    const b = await deriveMasterKey("entrada-de-prueba-a", ZERO_SALT, FAST_KDF);
     expect(a).toEqual(b);
   });
 
   it("cambia con el salt (dos cuentas con la misma maestra no colisionan)", async () => {
-    const a = await deriveMasterKey("hunter2", ZERO_SALT, FAST_KDF);
-    const b = await deriveMasterKey("hunter2", toBase64(randomBytes(16)), FAST_KDF);
+    const a = await deriveMasterKey("entrada-de-prueba-a", ZERO_SALT, FAST_KDF);
+    const b = await deriveMasterKey(
+      "entrada-de-prueba-a",
+      toBase64(randomBytes(16)),
+      FAST_KDF,
+    );
     expect(a).not.toEqual(b);
   });
 
   it("cambia con la contraseña", async () => {
-    const a = await deriveMasterKey("hunter2", ZERO_SALT, FAST_KDF);
-    const b = await deriveMasterKey("hunter3", ZERO_SALT, FAST_KDF);
+    const a = await deriveMasterKey("entrada-de-prueba-a", ZERO_SALT, FAST_KDF);
+    const b = await deriveMasterKey("entrada-de-prueba-b", ZERO_SALT, FAST_KDF);
     expect(a).not.toEqual(b);
   });
 
   it("respeta hashLen", async () => {
-    const k = await deriveMasterKey("hunter2", ZERO_SALT, { ...FAST_KDF, hashLen: 64 });
+    const k = await deriveMasterKey("entrada-de-prueba-a", ZERO_SALT, {
+      ...FAST_KDF,
+      hashLen: 64,
+    });
     expect(k).toHaveLength(64);
   });
 
   it("los parámetros de producción producen 32 bytes y cumplen el piso OWASP", async () => {
-    const k = await deriveMasterKey("hunter2", ZERO_SALT, DEFAULT_KDF_PARAMS);
+    const k = await deriveMasterKey(
+      "entrada-de-prueba-a",
+      ZERO_SALT,
+      DEFAULT_KDF_PARAMS,
+    );
     expect(k).toHaveLength(32);
     expect(DEFAULT_KDF_PARAMS.m).toBeGreaterThanOrEqual(19456); // 19 MiB
     expect(DEFAULT_KDF_PARAMS.t).toBeGreaterThanOrEqual(2);
@@ -119,7 +133,11 @@ describe("deriveMasterKey (Argon2id)", () => {
    * Romperlo a propósito exige un plan de migración, no editar el vector.
    */
   it("vector conocido: la derivación no ha cambiado", async () => {
-    const k = await deriveMasterKey("correct horse battery staple", ZERO_SALT, FAST_KDF);
+    const k = await deriveMasterKey(
+      "correct horse battery staple",
+      ZERO_SALT,
+      FAST_KDF,
+    );
     expect(toBase64(k)).toBe("yuD2H5PR1k40noDgIpVNKqoS7GJ4ncWdetRratfGGQU=");
   });
 });
@@ -132,7 +150,9 @@ describe("HKDF: separación de dominios", () => {
    */
   it("authHash y wrapKey NUNCA coinciden para la misma masterKey", async () => {
     const mk = await testMasterKey();
-    expect(await deriveAuthHash(mk)).not.toBe(toBase64(await deriveWrapKeyBytes(mk)));
+    expect(await deriveAuthHash(mk)).not.toBe(
+      toBase64(await deriveWrapKeyBytes(mk)),
+    );
   });
 
   it("el authHash tampoco filtra la masterKey", async () => {
@@ -147,7 +167,9 @@ describe("HKDF: separación de dominios", () => {
    */
   it("recoveryAuth y la wrapKey de recuperación NUNCA coinciden", async () => {
     const rec = randomBytes(20);
-    expect(await deriveRecoveryAuth(rec)).not.toBe(toBase64(await deriveWrapKeyBytes(rec)));
+    expect(await deriveRecoveryAuth(rec)).not.toBe(
+      toBase64(await deriveWrapKeyBytes(rec)),
+    );
   });
 
   it("son deterministas", async () => {
@@ -166,7 +188,9 @@ describe("HKDF: separación de dominios", () => {
     // bcrypt ignora todo lo que pase de 72 bytes. 32 bytes en base64 = 44
     // chars: entra con margen. Si alguien subiera hashLen, esto avisa.
     const mk = await testMasterKey();
-    expect(new TextEncoder().encode(await deriveAuthHash(mk)).length).toBeLessThan(72);
+    expect(
+      new TextEncoder().encode(await deriveAuthHash(mk)).length,
+    ).toBeLessThan(72);
   });
 
   /**
@@ -177,13 +201,17 @@ describe("HKDF: separación de dominios", () => {
    */
   it("vectores conocidos: las etiquetas HKDF no han cambiado", async () => {
     const mk = await testMasterKey();
-    expect(await deriveAuthHash(mk)).toBe("KkjgMYfCd7BbGgU24hmarDJwcS98uDL31wJxz09WBoo=");
+    expect(await deriveAuthHash(mk)).toBe(
+      "KkjgMYfCd7BbGgU24hmarDJwcS98uDL31wJxz09WBoo=",
+    );
     expect(toBase64(await deriveWrapKeyBytes(mk))).toBe(
       "uxLg5BZ+k73Mhuq66oyLMEvPL3IqNf7jS9EvYUasO1c=",
     );
 
     const rec = new Uint8Array(20).fill(7);
-    expect(await deriveRecoveryAuth(rec)).toBe("N2Ri9RROdUkoLDnIb8evOHHh6IighcE/z5fCwwwYTIo=");
+    expect(await deriveRecoveryAuth(rec)).toBe(
+      "N2Ri9RROdUkoLDnIb8evOHHh6IighcE/z5fCwwwYTIo=",
+    );
     expect(toBase64(await deriveWrapKeyBytes(rec))).toBe(
       "DqxV9lOti/oUQdefgNyOIkFGim/DTx1nyaQSHxJqv/w=",
     );
@@ -213,7 +241,8 @@ describe("AES-256-GCM", () => {
   it("genera un IV distinto en cada cifrado", async () => {
     const k = await key();
     const ivs = new Set<string>();
-    for (let i = 0; i < 100; i++) ivs.add((await aesEncrypt(k, "mismo texto")).iv);
+    for (let i = 0; i < 100; i++)
+      ivs.add((await aesEncrypt(k, "mismo texto")).iv);
     expect(ivs.size).toBe(100);
   });
 
@@ -239,7 +268,9 @@ describe("AES-256-GCM", () => {
     const blob = await aesEncrypt(k, "saldo: 100");
     const bytes = fromBase64(blob.ct);
     bytes[0] ^= 0xff;
-    await expect(aesDecrypt(k, { ...blob, ct: toBase64(bytes) })).rejects.toThrow();
+    await expect(
+      aesDecrypt(k, { ...blob, ct: toBase64(bytes) }),
+    ).rejects.toThrow();
   });
 
   it("falla si el IV fue manipulado", async () => {
@@ -247,15 +278,17 @@ describe("AES-256-GCM", () => {
     const blob = await aesEncrypt(k, "saldo: 100");
     const iv = fromBase64(blob.iv);
     iv[0] ^= 0xff;
-    await expect(aesDecrypt(k, { ...blob, iv: toBase64(iv) })).rejects.toThrow();
+    await expect(
+      aesDecrypt(k, { ...blob, iv: toBase64(iv) }),
+    ).rejects.toThrow();
   });
 
   describe("AAD", () => {
     it("descifra cuando la AAD coincide", async () => {
       const k = await key();
-      expect(await aesDecrypt(k, await aesEncrypt(k, "secreto", "item-1"), "item-1")).toBe(
-        "secreto",
-      );
+      expect(
+        await aesDecrypt(k, await aesEncrypt(k, "secreto", "item-1"), "item-1"),
+      ).toBe("secreto");
     });
 
     it("falla con una AAD distinta", async () => {
@@ -288,7 +321,9 @@ describe("vaultKey: generación y envoltura", () => {
   it("hace round-trip wrap -> unwrap", async () => {
     const vaultKey = generateVaultKey();
     const wrapKey = randomBytes(32);
-    expect(await unwrapVaultKey(await wrapVaultKey(vaultKey, wrapKey), wrapKey)).toEqual(vaultKey);
+    expect(
+      await unwrapVaultKey(await wrapVaultKey(vaultKey, wrapKey), wrapKey),
+    ).toEqual(vaultKey);
   });
 
   it("no se abre con la wrapKey equivocada", async () => {
@@ -303,7 +338,9 @@ describe("vaultKey: generación y envoltura", () => {
     const b = await wrapVaultKey(vaultKey, wrapKey);
     expect(a.ct).not.toBe(b.ct);
     // ...pero ambos abren a la misma llave.
-    expect(await unwrapVaultKey(a, wrapKey)).toEqual(await unwrapVaultKey(b, wrapKey));
+    expect(await unwrapVaultKey(a, wrapKey)).toEqual(
+      await unwrapVaultKey(b, wrapKey),
+    );
   });
 
   it("el blob envuelto no contiene la vaultKey en claro", async () => {

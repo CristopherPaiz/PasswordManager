@@ -58,13 +58,13 @@ export const Navbar = () => {
     <nav className="bg-bg-surface/75 backdrop-blur-lg border-b border-border-base sticky top-0 z-50 transition-colors shadow-sm">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-8">
-          <Link to={ROUTES.HOME} onClick={closeMenu} className="text-xl font-bold text-primary-500">
+          <Link to={ROUTES.HOME} onClick={closeMenu} className="text-body font-semibold text-text-base tracking-tight">
             {appName}
           </Link>
 
           <div className="hidden md:flex items-center gap-6">
             {NAVIGATION.PUBLIC.map((item) => (
-              <Link key={item.path} to={item.path} className="flex items-center gap-2 text-text-muted hover:text-primary-500 font-medium transition-colors">
+              <Link key={item.path} to={item.path} className="flex items-center gap-2 text-caption font-medium text-text-muted hover:text-text-base transition-colors">
                 {item.icon && <item.icon className="w-4 h-4" />}
                 {t(item.labelKey)}
               </Link>
@@ -72,7 +72,7 @@ export const Navbar = () => {
 
             {user &&
               NAVIGATION.PRIVATE.map((item) => (
-                <Link key={item.path} to={item.path} className="flex items-center gap-2 text-text-muted hover:text-primary-500 font-medium transition-colors">
+                <Link key={item.path} to={item.path} className="flex items-center gap-2 text-caption font-medium text-text-muted hover:text-text-base transition-colors">
                   {item.icon && <item.icon className="w-4 h-4" />}
                   {t(item.labelKey)}
                 </Link>
@@ -83,7 +83,7 @@ export const Navbar = () => {
         <div className="hidden md:flex items-center gap-4">
           <button
             onClick={toggleLanguage}
-            className="flex items-center gap-1.5 p-2 text-text-muted hover:bg-bg-base rounded-lg border border-border-base transition-colors cursor-pointer text-sm font-semibold uppercase"
+            className="inline-flex items-center gap-1.5 h-7 px-2 text-caption font-medium uppercase text-text-muted border border-border-base rounded-button hover:bg-bg-elevated hover:text-text-base transition-colors cursor-pointer"
             aria-label={t("nav.language")}
             title={t("nav.language")}
           >
@@ -93,7 +93,7 @@ export const Navbar = () => {
 
           <button
             onClick={toggleTheme}
-            className="p-2 text-text-muted hover:bg-bg-base rounded-lg border border-border-base transition-colors cursor-pointer flex items-center justify-center text-xl"
+            className="inline-flex items-center justify-center w-7 h-7 text-caption text-text-muted border border-border-base rounded-button hover:bg-bg-elevated transition-colors cursor-pointer"
             aria-label={t("nav.themeToggle")}
             title={theme === THEMES.DARK ? t("nav.themeToLight") : t("nav.themeToDark")}
           >
@@ -110,7 +110,7 @@ export const Navbar = () => {
               {user ? (
                 <div className="flex items-center gap-4 border-l border-border-base pl-4 ml-2">
                   <div className="flex items-center gap-2 text-sm font-medium text-text-base">
-                    <div className="w-8 h-8 rounded-full bg-primary-50 dark:bg-primary-900/20 text-primary-500 flex items-center justify-center">
+                    <div className="w-7 h-7 rounded-full bg-bg-elevated border border-border-base text-text-muted flex items-center justify-center">
                       <UserIcon className="w-4 h-4" />
                     </div>
                     {user.username}
@@ -118,14 +118,14 @@ export const Navbar = () => {
                   <button
                     onClick={handleLogout}
                     disabled={isLoggingOut}
-                    className="flex items-center gap-2 text-sm px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 rounded-lg font-medium transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="inline-flex items-center gap-2 h-7 px-2.5 text-caption font-medium text-signal-danger border border-signal-danger/30 rounded-button hover:bg-signal-danger/10 hover:border-signal-danger/50 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     {isLoggingOut ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogOut className="w-4 h-4" />}
                     {t("nav.logout")}
                   </button>
                 </div>
               ) : (
-                <Link to={ROUTES.LOGIN} className="text-sm px-4 py-2 bg-primary-500 text-white hover:bg-primary-600 rounded-lg font-medium transition-colors">
+                <Link to={ROUTES.LOGIN} className="inline-flex items-center h-7 px-3 text-caption font-medium bg-primary-500 text-white rounded-button hover:bg-primary-600 transition-colors">
                   {t("nav.login")}
                 </Link>
               )}
@@ -134,16 +134,16 @@ export const Navbar = () => {
         </div>
 
         <div className="md:hidden flex items-center gap-2">
-          <button onClick={toggleLanguage} className="flex items-center gap-1 p-2 text-text-muted hover:bg-bg-base rounded-lg transition-colors text-sm font-semibold uppercase" aria-label={t("nav.language")}>
+          <button onClick={toggleLanguage} className="inline-flex items-center gap-1 h-7 px-2 text-caption font-medium uppercase text-text-muted rounded-button hover:bg-bg-elevated transition-colors cursor-pointer" aria-label={t("nav.language")}>
             <Languages className="w-5 h-5" />
             {currentLang}
           </button>
 
-          <button onClick={toggleTheme} className="p-2 text-text-muted hover:bg-bg-base rounded-lg transition-colors flex items-center justify-center text-xl">
+          <button onClick={toggleTheme} className="inline-flex items-center justify-center w-7 h-7 text-caption text-text-muted rounded-button hover:bg-bg-elevated transition-colors cursor-pointer">
             {theme === THEMES.DARK ? "☀️" : "🌙"}
           </button>
 
-          <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 text-text-muted hover:bg-bg-base rounded-lg transition-colors focus:outline-none" aria-label={t("nav.menu")}>
+          <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="inline-flex items-center justify-center w-7 h-7 text-text-muted rounded-button hover:bg-bg-elevated transition-colors focus:outline-none cursor-pointer" aria-label={t("nav.menu")}>
             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
@@ -156,7 +156,7 @@ export const Navbar = () => {
               key={item.path}
               to={item.path}
               onClick={closeMenu}
-              className="flex items-center gap-3 w-full p-3 text-text-muted hover:text-primary-500 hover:bg-bg-base rounded-xl font-medium transition-colors"
+              className="flex items-center gap-2.5 w-full h-9 px-2.5 text-body font-medium text-text-muted hover:text-text-base hover:bg-bg-elevated rounded-button transition-colors"
             >
               {item.icon && <item.icon className="w-5 h-5" />}
               {t(item.labelKey)}
@@ -169,7 +169,7 @@ export const Navbar = () => {
                 key={item.path}
                 to={item.path}
                 onClick={closeMenu}
-                className="flex items-center gap-3 w-full p-3 text-text-muted hover:text-primary-500 hover:bg-bg-base rounded-xl font-medium transition-colors"
+                className="flex items-center gap-2.5 w-full h-9 px-2.5 text-body font-medium text-text-muted hover:text-text-base hover:bg-bg-elevated rounded-button transition-colors"
               >
                 {item.icon && <item.icon className="w-5 h-5" />}
                 {t(item.labelKey)}
@@ -187,7 +187,7 @@ export const Navbar = () => {
                 {user ? (
                   <div className="flex flex-col gap-4">
                     <div className="flex items-center gap-3 p-3">
-                      <div className="w-10 h-10 rounded-full bg-primary-50 dark:bg-primary-900/20 text-primary-500 flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-full bg-bg-elevated border border-border-base text-text-muted flex items-center justify-center">
                         <UserIcon className="w-5 h-5" />
                       </div>
                       <div className="flex flex-col">
@@ -198,14 +198,14 @@ export const Navbar = () => {
                     <button
                       onClick={handleLogout}
                       disabled={isLoggingOut}
-                      className="flex items-center justify-center gap-2 w-full py-3 bg-red-50 text-red-600 dark:bg-red-500/10 rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="inline-flex items-center justify-center gap-2 w-full h-9 text-body font-medium text-signal-danger border border-signal-danger/30 rounded-button hover:bg-signal-danger/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       {isLoggingOut ? <Loader2 className="w-5 h-5 animate-spin" /> : <LogOut className="w-5 h-5" />}
                       {t("nav.logoutFull")}
                     </button>
                   </div>
                 ) : (
-                  <Link to={ROUTES.LOGIN} onClick={closeMenu} className="block w-full py-3 bg-primary-500 text-white rounded-xl font-medium transition-colors text-center">
+                  <Link to={ROUTES.LOGIN} onClick={closeMenu} className="block w-full h-9 leading-9 bg-primary-500 text-white rounded-button text-body font-medium transition-colors text-center">
                     {t("nav.login")}
                   </Link>
                 )}

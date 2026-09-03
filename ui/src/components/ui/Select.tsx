@@ -20,9 +20,9 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     const selectId = id ?? generatedId;
 
     return (
-      <div className="space-y-2">
+      <div className={`space-y-1.5 ${className}`}>
         {label && (
-          <label htmlFor={selectId} className="block text-sm font-semibold text-text-base">
+          <label htmlFor={selectId} className="block text-caption font-medium text-text-muted">
             {label}
           </label>
         )}
@@ -30,7 +30,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           <select
             id={selectId}
             ref={ref}
-            className={`w-full appearance-none px-4 py-3 pr-10 bg-bg-base border ${error ? "border-red-500 focus:ring-red-500" : "border-border-base focus:ring-primary-500"} text-text-base rounded-xl focus:ring-2 focus:border-transparent outline-none transition-all cursor-pointer ${className}`}
+            className={`w-full h-9 appearance-none px-3 pr-9 bg-bg-base border rounded-input text-body text-text-base outline-none transition-colors duration-100 cursor-pointer ${error ? "border-signal-danger focus:border-signal-danger focus:ring-2 focus:ring-signal-danger/20" : "border-border-base hover:border-border-strong focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"}`}
             {...props}
           >
             {placeholder && (
@@ -46,9 +46,9 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
                 ))
               : children}
           </select>
-          <ChevronDown className="w-5 h-5 text-text-muted absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <ChevronDown className="w-4 h-4 text-text-muted absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
         </div>
-        {error && <span className="text-xs text-red-500 font-medium">{error}</span>}
+        {error && <span className="text-caption text-signal-danger">{error}</span>}
       </div>
     );
   },

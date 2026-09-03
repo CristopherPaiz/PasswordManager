@@ -36,13 +36,13 @@ export const SearchBar = ({ onSearch, delay = 400, defaultValue = "", placeholde
 
   return (
     <div className="relative w-full">
-      <Search className="w-5 h-5 text-text-muted absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+      <Search className="w-4 h-4 text-text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
       <input
         type="search"
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder={placeholder ?? t("search.placeholder")}
-        className={`w-full pl-11 pr-10 py-3 bg-bg-base border border-border-base text-text-base rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all [&::-webkit-search-cancel-button]:hidden ${className}`}
+        className={`w-full h-9 pl-9 pr-9 bg-bg-base border border-border-base rounded-input text-body text-text-base placeholder:text-text-muted outline-none transition-colors duration-100 hover:border-border-strong focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 [&::-webkit-search-cancel-button]:hidden ${className}`}
         {...props}
       />
       {value && (
