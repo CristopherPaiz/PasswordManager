@@ -6,7 +6,13 @@ interface StrengthMeterProps {
   className?: string;
 }
 
-const BAR_COLORS = ["bg-signal-danger", "bg-signal-danger", "bg-signal-accent", "bg-signal-info", "bg-signal-success"];
+const BAR_COLORS = [
+  "bg-signal-danger",
+  "bg-signal-danger",
+  "bg-signal-accent",
+  "bg-signal-info",
+  "bg-signal-success",
+];
 const TEXT_COLORS = [
   "text-signal-danger",
   "text-signal-danger",
@@ -17,7 +23,10 @@ const TEXT_COLORS = [
 
 // Barra de 4 segmentos + etiqueta. Reutiliza el estimador de `password-strength`.
 // No se muestra nada si el campo está vacío (evita ruido en formularios nuevos).
-export const StrengthMeter = ({ password, className = "" }: StrengthMeterProps) => {
+export const StrengthMeter = ({
+  password,
+  className = "",
+}: StrengthMeterProps) => {
   const { t } = useTranslation();
   if (!password) return null;
 
@@ -35,7 +44,9 @@ export const StrengthMeter = ({ password, className = "" }: StrengthMeterProps) 
           />
         ))}
       </div>
-      <p className={`text-caption font-medium ${TEXT_COLORS[score]}`}>{t(labelKey)}</p>
+      <p className={`text-caption font-medium ${TEXT_COLORS[score]}`}>
+        {t(labelKey)}
+      </p>
     </div>
   );
 };

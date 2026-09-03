@@ -10,17 +10,26 @@ import {
   CreditCard,
   StickyNote,
   Star,
-  Eye,
-  EyeOff,
   Search as SearchIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useGetQuery, useMutationQuery } from "@hooks/queries/core.queries";
 import { useVaultStore } from "@store/vault.store";
 import { API_ENDPOINTS } from "@constants/app.constants";
-import { decryptVaultData, encryptVaultData, newVaultItemUid } from "@utils/vault";
+import {
+  decryptVaultData,
+  encryptVaultData,
+  newVaultItemUid,
+} from "@utils/vault";
 import { matchesSearch } from "@utils/search";
-import { detectCardBrand, cardLast4 } from "@utils/card-brand";
+import {
+  detectCardBrand,
+  formatCardNumber,
+  maskCardNumber,
+  onlyDigits,
+} from "@utils/card-brand";
+import { CardVisual } from "@components/vault/CardVisual";
+import { SecretRow } from "@components/vault/SecretRow";
 import { VaultItem, VaultItemRow, VaultItemType } from "@apptypes";
 import { Card } from "@components/ui/Card";
 import { Button } from "@components/ui/Button";
@@ -45,7 +54,10 @@ const TYPE_TABS: { value: TypeFilter; icon?: typeof KeyRound }[] = [
 ];
 
 // Identidad visual por tipo: icono + color del chip (claro y oscuro).
-const TYPE_STYLES: Record<VaultItemType, { icon: typeof KeyRound; chip: string }> = {
+const TYPE_STYLES: Record<
+  VaultItemType,
+  { icon: typeof KeyRound; chip: string }
+> = {
   password: { icon: KeyRound, chip: "bg-signal-info/10 text-signal-info" },
   card: { icon: CreditCard, chip: "bg-primary-500/10 text-primary-500" },
   note: { icon: StickyNote, chip: "bg-signal-accent/10 text-signal-accent" },
@@ -74,21 +86,26 @@ export const Vault = () => {
   const [deleteTarget, setDeleteTarget] = useState<VaultItem | null>(null);
   // Feedback de copiado (muestra ✓ por ~1.5s) y contraseñas reveladas por item.
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
-  const [revealed, setRevealed] = useState<Set<number>>(new Set());
 
   const { data, isLoading } = useGetQuery<VaultListResponse>({
     endpoint: API_ENDPOINTS.VAULT.LIST,
     enabled: isUnlocked,
   });
 
-  const { mutateAsync: deleteItem, isPending: isDeleting } = useMutationQuery<{ message: string }, void>({
+  const { mutateAsync: deleteItem, isPending: isDeleting } = useMutationQuery<
+    { message: string },
+    void
+  >({
     endpoint: () => API_ENDPOINTS.VAULT.ITEM(deleteTarget?.id ?? 0),
     method: "delete",
     invalidateQueryKey: [API_ENDPOINTS.VAULT.LIST],
     messageSuccess: t("vault.deleted"),
   });
 
-  const { mutateAsync: updateFavorite } = useMutationQuery<{ message: string }, FavoritePayload>({
+  const { mutateAsync: updateFavorite } = useMutationQuery<
+    { message: string },
+    FavoritePayload
+  >({
     endpoint: (v) => API_ENDPOINTS.VAULT.ITEM(v.id),
     method: "put",
     invalidateQueryKey: [API_ENDPOINTS.VAULT.LIST],
@@ -177,21 +194,19 @@ export const Vault = () => {
     setTimeout(() => navigator.clipboard.writeText("").catch(() => {}), 30000);
   };
 
-  const toggleReveal = (id: number) =>
-    setRevealed((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-
   // Re-cifra el item con `favorite` invertido (el flag vive DENTRO del blob).
   const toggleFavorite = async (item: VaultItem) => {
     try {
       const uid = item.uid ?? newVaultItemUid();
       const newData = { ...item.data, favorite: !item.data.favorite };
       const { ciphertext, iv } = await encryptVaultData(vaultKey, newData, uid);
-      await updateFavorite({ id: item.id, tipo: item.tipo, ciphertext, iv, uid });
+      await updateFavorite({
+        id: item.id,
+        tipo: item.tipo,
+        ciphertext,
+        iv,
+        uid,
+      });
     } catch {
       toast.error(t("vault.saveError"));
     }
@@ -213,7 +228,9 @@ export const Vault = () => {
     <div className="mx-auto w-full max-w-5xl space-y-6 px-4 py-6 min-w-0">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-subheading font-medium text-text-base">{t("vault.title")}</h1>
+          <h1 className="text-subheading font-medium text-text-base">
+            {t("vault.title")}
+          </h1>
           <p className="text-body text-text-muted">{t("vault.subtitle")}</p>
         </div>
         <Button icon={Plus} onClick={openNew} className="shrink-0">
@@ -221,7 +238,10 @@ export const Vault = () => {
         </Button>
       </div>
 
-      <SearchBar onSearch={setQuery} placeholder={t("vault.searchPlaceholder")} />
+      <SearchBar
+        onSearch={setQuery}
+        placeholder={t("vault.searchPlaceholder")}
+      />
 
       {/* Filtros: tipo, favoritos y carpeta. Scroll horizontal en móvil. */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -253,7 +273,9 @@ export const Vault = () => {
                 : "border-border-base text-text-muted hover:text-text-base"
             }`}
           >
-            <Star className={`h-3.5 w-3.5 ${onlyFavorites ? "fill-current" : ""}`} />
+            <Star
+              className={`h-3.5 w-3.5 ${onlyFavorites ? "fill-current" : ""}`}
+            />
             {t("vault.filters.favorites")}
           </button>
         </div>
@@ -288,9 +310,15 @@ export const Vault = () => {
       ) : filtered.length === 0 ? (
         <Card className="flex flex-col items-center gap-4 py-12 text-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-card bg-primary-500/10 text-primary-500">
-            {items.length === 0 ? <KeyRound className="h-7 w-7" /> : <SearchIcon className="h-7 w-7" />}
+            {items.length === 0 ? (
+              <KeyRound className="h-7 w-7" />
+            ) : (
+              <SearchIcon className="h-7 w-7" />
+            )}
           </div>
-          <p className="text-text-muted">{items.length === 0 ? t("vault.empty") : t("vault.noResults")}</p>
+          <p className="text-text-muted">
+            {items.length === 0 ? t("vault.empty") : t("vault.noResults")}
+          </p>
           {items.length === 0 && (
             <Button icon={Plus} onClick={openNew}>
               {t("vault.add")}
@@ -301,7 +329,6 @@ export const Vault = () => {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {filtered.map((item) => {
             const { icon: TypeIcon, chip } = TYPE_STYLES[item.tipo];
-            const isRevealed = revealed.has(item.id);
             const brand = detectCardBrand(item.data.cardNumber ?? "");
             return (
               <div
@@ -310,13 +337,19 @@ export const Vault = () => {
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex min-w-0 flex-1 items-start gap-3">
-                    <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-card ${chip}`}>
+                    <div
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-card ${chip}`}
+                    >
                       <TypeIcon className="h-5 w-5" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h3 className="truncate font-semibold text-text-base">{item.data.title}</h3>
+                      <h3 className="truncate font-semibold text-text-base">
+                        {item.data.title}
+                      </h3>
                       {item.tipo === "password" && item.data.username && (
-                        <p className="truncate text-body text-text-muted">{item.data.username}</p>
+                        <p className="truncate text-body text-text-muted">
+                          {item.data.username}
+                        </p>
                       )}
                       {item.tipo === "password" && item.data.url && (
                         <p className="mt-0.5 flex items-center gap-1 truncate text-caption text-text-muted">
@@ -325,7 +358,9 @@ export const Vault = () => {
                         </p>
                       )}
                       {item.tipo === "card" && item.data.cardHolder && (
-                        <p className="truncate text-body text-text-muted">{item.data.cardHolder}</p>
+                        <p className="truncate text-body text-text-muted">
+                          {item.data.cardHolder}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -337,7 +372,9 @@ export const Vault = () => {
                       aria-label={t("vault.toggleFavorite")}
                       aria-pressed={Boolean(item.data.favorite)}
                     >
-                      <Star className={`h-4 w-4 ${item.data.favorite ? "fill-signal-accent text-signal-accent" : ""}`} />
+                      <Star
+                        className={`h-4 w-4 ${item.data.favorite ? "fill-signal-accent text-signal-accent" : ""}`}
+                      />
                     </button>
                     <button
                       type="button"
@@ -350,48 +387,62 @@ export const Vault = () => {
                   </div>
                 </div>
 
-                {/* Contraseña: fila revelable (monospace) + copiar con feedback. */}
                 {item.tipo === "password" && item.data.password && (
-                  <div className="mt-3 flex items-center gap-1 rounded-input bg-bg-base px-3 py-2">
-                    <code className="min-w-0 flex-1 truncate font-mono text-body text-text-base">
-                      {isRevealed ? item.data.password : "•".repeat(Math.min(item.data.password.length, 16))}
-                    </code>
-                    <button
-                      type="button"
-                      onClick={() => toggleReveal(item.id)}
-                      className="shrink-0 rounded-button p-1.5 text-text-muted hover:text-text-base transition-colors cursor-pointer"
-                      aria-label={isRevealed ? t("vault.hidePassword") : t("vault.showPassword")}
-                    >
-                      {isRevealed ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => copy(item.data.password, t("vault.passwordCopied"), `${item.id}:pw`)}
-                      className="shrink-0 rounded-button p-1.5 text-text-muted hover:text-text-base transition-colors cursor-pointer"
-                      aria-label={t("vault.copyPassword")}
-                    >
-                      {copiedKey === `${item.id}:pw` ? (
-                        <Check className="h-4 w-4 text-signal-success" />
-                      ) : (
-                        <Copy className="h-4 w-4" />
-                      )}
-                    </button>
+                  <div className="mt-3">
+                    <SecretRow
+                      label={t("vault.fields.password")}
+                      value={item.data.password}
+                      copyLabel={t("vault.copyPassword")}
+                      copiedMessage={t("vault.passwordCopied")}
+                      onCopy={(value, message) =>
+                        copy(value, message, `${item.id}:pw`)
+                      }
+                    />
                   </div>
                 )}
 
-                {/* Tarjeta: mini-visual con el gradiente de la marca. */}
+                {/* Tarjeta: el MISMO visual que la vista previa del modal, más
+                    los tres datos sensibles como filas revelables e independientes.
+                    El PIN nunca se muestra sin que el usuario lo pida. */}
                 {item.tipo === "card" && (
-                  <div className={`mt-3 rounded-card bg-gradient-to-br ${brand.gradient} p-4 text-white`}>
-                    <div className="flex items-center justify-between">
-                      <CreditCard className="h-5 w-5 opacity-80" />
-                      {brand.label && <span className="text-caption font-semibold opacity-90">{brand.label}</span>}
-                    </div>
-                    <p className="mt-3 font-mono text-body tracking-widest">
-                      •••• {cardLast4(item.data.cardNumber ?? "")}
-                    </p>
-                    <div className="mt-2 flex items-center justify-between text-caption opacity-90">
-                      <span className="truncate">{item.data.cardHolder || "—"}</span>
-                      {item.data.cardExpiry && <span className="shrink-0">{item.data.cardExpiry}</span>}
+                  <div className="mt-3 space-y-2">
+                    <CardVisual
+                      brand={brand}
+                      number={item.data.cardNumber}
+                      holder={item.data.cardHolder}
+                      expiry={item.data.cardExpiry}
+                      issuer={item.data.cardIssuer}
+                    />
+                    <SecretRow
+                      label={t("vault.card.number")}
+                      value={onlyDigits(item.data.cardNumber ?? "")}
+                      masked={maskCardNumber(item.data.cardNumber ?? "")}
+                      formatted={formatCardNumber(item.data.cardNumber ?? "")}
+                      copyLabel={t("vault.copyCardNumber")}
+                      copiedMessage={t("vault.cardNumberCopied")}
+                      onCopy={(value, message) =>
+                        copy(value, message, `${item.id}:card`)
+                      }
+                    />
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      <SecretRow
+                        label={t("vault.fields.cardCvv")}
+                        value={item.data.cardCvv ?? ""}
+                        copyLabel={t("vault.copyCvv")}
+                        copiedMessage={t("vault.cvvCopied")}
+                        onCopy={(value, message) =>
+                          copy(value, message, `${item.id}:cvv`)
+                        }
+                      />
+                      <SecretRow
+                        label={t("vault.fields.cardPin")}
+                        value={item.data.cardPin ?? ""}
+                        copyLabel={t("vault.copyPin")}
+                        copiedMessage={t("vault.pinCopied")}
+                        onCopy={(value, message) =>
+                          copy(value, message, `${item.id}:pin`)
+                        }
+                      />
                     </div>
                   </div>
                 )}
@@ -428,33 +479,32 @@ export const Vault = () => {
                       size="sm"
                       variant="ghost"
                       icon={copiedKey === `${item.id}:user` ? Check : Copy}
-                      onClick={() => copy(item.data.username, t("vault.usernameCopied"), `${item.id}:user`)}
+                      onClick={() =>
+                        copy(
+                          item.data.username,
+                          t("vault.usernameCopied"),
+                          `${item.id}:user`,
+                        )
+                      }
                     >
                       {t("vault.copyUsername")}
                     </Button>
                   )}
-                  {item.tipo === "card" && (
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="secondary"
-                      icon={copiedKey === `${item.id}:card` ? Check : Copy}
-                      onClick={() =>
-                        copy((item.data.cardNumber ?? "").replace(/\s/g, ""), t("vault.cardNumberCopied"), `${item.id}:card`)
-                      }
-                    >
-                      {t("vault.copyCardNumber")}
-                    </Button>
-                  )}
-                  {item.tipo === "card" && item.data.cardCvv && (
+                  {item.tipo === "card" && item.data.cardHolder && (
                     <Button
                       type="button"
                       size="sm"
                       variant="ghost"
-                      icon={copiedKey === `${item.id}:cvv` ? Check : Copy}
-                      onClick={() => copy(item.data.cardCvv ?? "", t("vault.cvvCopied"), `${item.id}:cvv`)}
+                      icon={copiedKey === `${item.id}:holder` ? Check : Copy}
+                      onClick={() =>
+                        copy(
+                          item.data.cardHolder ?? "",
+                          t("vault.holderCopied"),
+                          `${item.id}:holder`,
+                        )
+                      }
                     >
-                      {t("vault.copyCvv")}
+                      {t("vault.copyHolder")}
                     </Button>
                   )}
                   {item.tipo === "note" && item.data.notes && (
@@ -463,7 +513,13 @@ export const Vault = () => {
                       size="sm"
                       variant="ghost"
                       icon={copiedKey === `${item.id}:note` ? Check : Copy}
-                      onClick={() => copy(item.data.notes, t("vault.noteCopied"), `${item.id}:note`)}
+                      onClick={() =>
+                        copy(
+                          item.data.notes,
+                          t("vault.noteCopied"),
+                          `${item.id}:note`,
+                        )
+                      }
                     >
                       {t("vault.copyNote")}
                     </Button>
@@ -491,17 +547,28 @@ export const Vault = () => {
         size="sm"
         footer={
           <>
-            <Button type="button" variant="ghost" onClick={() => setDeleteTarget(null)}>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setDeleteTarget(null)}
+            >
               {t("vault.cancel")}
             </Button>
-            <Button type="button" variant="danger" isLoading={isDeleting} onClick={confirmDelete}>
+            <Button
+              type="button"
+              variant="danger"
+              isLoading={isDeleting}
+              onClick={confirmDelete}
+            >
               {t("vault.delete")}
             </Button>
           </>
         }
       >
         <p className="text-text-muted">
-          {t("vault.deleteConfirmText", { title: deleteTarget?.data.title ?? "" })}
+          {t("vault.deleteConfirmText", {
+            title: deleteTarget?.data.title ?? "",
+          })}
         </p>
       </Modal>
     </div>

@@ -5,7 +5,11 @@ import { toast } from "sonner";
 import { useGetQuery, useMutationQuery } from "@hooks/queries/core.queries";
 import { useVaultStore } from "@store/vault.store";
 import { API_ENDPOINTS } from "@constants/app.constants";
-import { deriveLoginCredentials, buildMasterReset, MasterResetCrypto } from "@utils/vault";
+import {
+  deriveLoginCredentials,
+  buildMasterReset,
+  MasterResetCrypto,
+} from "@utils/vault";
 import { KdfParams } from "@utils/crypto";
 import { isMasterAcceptable } from "@utils/password-strength";
 import { Card, CardTitle } from "@components/ui/Card";
@@ -30,9 +34,14 @@ export const ChangeMasterCard = () => {
   const [confirm, setConfirm] = useState("");
   const [isWorking, setIsWorking] = useState(false);
 
-  const { data: keys } = useGetQuery<VaultKeysResponse>({ endpoint: API_ENDPOINTS.VAULT.KEYS });
+  const { data: keys } = useGetQuery<VaultKeysResponse>({
+    endpoint: API_ENDPOINTS.VAULT.KEYS,
+  });
 
-  const { mutateAsync: changeMaster } = useMutationQuery<{ message: string }, ChangeMasterPayload>({
+  const { mutateAsync: changeMaster } = useMutationQuery<
+    { message: string },
+    ChangeMasterPayload
+  >({
     endpoint: API_ENDPOINTS.AUTH.MASTER,
     method: "put",
     messageSuccess: t("settings.master.success"),
@@ -59,7 +68,11 @@ export const ChangeMasterCard = () => {
     setIsWorking(true);
     try {
       // Verifica la maestra actual (authHash) y re-envuelve la vaultKey con la nueva.
-      const { authHash } = await deriveLoginCredentials(current, keys.kdf_salt, keys.kdf_params);
+      const { authHash } = await deriveLoginCredentials(
+        current,
+        keys.kdf_salt,
+        keys.kdf_params,
+      );
       const crypto = await buildMasterReset(next, vaultKeyRaw);
       await changeMaster({ current_password: authHash, ...crypto });
       setCurrent("");
@@ -78,7 +91,9 @@ export const ChangeMasterCard = () => {
         <KeyRound className="h-5 w-5 text-primary-500" />
         <CardTitle className="mb-0">{t("settings.master.title")}</CardTitle>
       </div>
-      <p className="text-body text-text-muted">{t("settings.master.description")}</p>
+      <p className="text-body text-text-muted">
+        {t("settings.master.description")}
+      </p>
 
       {!vaultKeyRaw ? (
         <p className="rounded-input bg-bg-base p-3 text-body text-text-muted">

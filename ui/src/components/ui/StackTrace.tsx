@@ -41,7 +41,9 @@ export const StackTrace = ({ stack, className = "" }: StackTraceProps) => {
   const lines = stack.split("\n");
 
   return (
-    <pre className={`text-caption bg-bg-base border border-border-base rounded-input p-3 overflow-x-auto whitespace-pre font-mono leading-relaxed ${className}`}>
+    <pre
+      className={`text-caption bg-bg-base border border-border-base rounded-input p-3 overflow-x-auto whitespace-pre font-mono leading-relaxed ${className}`}
+    >
       {lines.map((line, index) => (
         <StackLine key={index} line={line} />
       ))}

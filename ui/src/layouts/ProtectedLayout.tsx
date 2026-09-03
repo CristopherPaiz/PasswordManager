@@ -14,7 +14,9 @@ export const ProtectedLayout = () => {
   if (isLoading) {
     return (
       <div className="flex h-[60dvh] w-full items-center justify-center">
-        <span className="text-title font-medium text-text-muted">{t("common.verifying")}</span>
+        <span className="text-title font-medium text-text-muted">
+          {t("common.verifying")}
+        </span>
       </div>
     );
   }

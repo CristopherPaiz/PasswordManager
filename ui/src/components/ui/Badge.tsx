@@ -23,13 +23,24 @@ interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   dot?: boolean;
 }
 
-export const Badge = ({ variant = "neutral", dot = true, className = "", children, ...props }: BadgeProps) => {
+export const Badge = ({
+  variant = "neutral",
+  dot = true,
+  className = "",
+  children,
+  ...props
+}: BadgeProps) => {
   return (
     <span
       className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-badge text-caption font-medium bg-bg-elevated text-text-base border border-border-base ${className}`}
       {...props}
     >
-      {dot && <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${DOTS[variant]}`} aria-hidden="true" />}
+      {dot && (
+        <span
+          className={`w-1.5 h-1.5 rounded-full shrink-0 ${DOTS[variant]}`}
+          aria-hidden="true"
+        />
+      )}
       {children}
     </span>
   );

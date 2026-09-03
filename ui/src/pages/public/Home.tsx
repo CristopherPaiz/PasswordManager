@@ -11,9 +11,12 @@ export const Home = () => {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60dvh] gap-6 text-center animate-in fade-in duration-500">
       <h1 className="text-heading md:text-5xl lg:text-6xl font-semibold text-text-base tracking-tight transition-all">
-        {t("home.welcome")} <span className="text-primary-500">{t("home.brand")}</span>
+        {t("home.welcome")}{" "}
+        <span className="text-primary-500">{t("home.brand")}</span>
       </h1>
-      <p className="text-body md:text-lg text-text-muted max-w-2xl px-4 md:px-0">{t("home.subtitle")}</p>
+      <p className="text-body md:text-lg text-text-muted max-w-2xl px-4 md:px-0">
+        {t("home.subtitle")}
+      </p>
 
       <div className="mt-8 w-full px-4 sm:px-0 sm:w-auto flex flex-col sm:flex-row gap-4 justify-center">
         {data?.user ? (
@@ -21,7 +24,12 @@ export const Home = () => {
             {t("home.goToDashboard")}
           </LinkButton>
         ) : (
-          <LinkButton to={ROUTES.LOGIN} variant="secondary" size="lg" icon={LogIn}>
+          <LinkButton
+            to={ROUTES.LOGIN}
+            variant="secondary"
+            size="lg"
+            icon={LogIn}
+          >
             {t("home.login")}
           </LinkButton>
         )}

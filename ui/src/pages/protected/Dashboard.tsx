@@ -1,6 +1,13 @@
 import { useState, useMemo, ChangeEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { CloudUpload, UserCheck, BadgeCheck, Fingerprint, Image as ImageIcon, Layers } from "lucide-react";
+import {
+  CloudUpload,
+  UserCheck,
+  BadgeCheck,
+  Fingerprint,
+  Image as ImageIcon,
+  Layers,
+} from "lucide-react";
 import { useAuthQuery } from "@hooks/queries/auth.queries";
 import { useMutationQuery } from "@hooks/queries/core.queries";
 import { API_ENDPOINTS, FORM_FIELDS } from "@constants/app.constants";
@@ -52,25 +59,44 @@ export const Dashboard = () => {
   );
   const [tablePage, setTablePage] = useState(1);
   const totalPages = Math.ceil(demoRows.length / PAGE_SIZE);
-  const pagedRows = demoRows.slice((tablePage - 1) * PAGE_SIZE, tablePage * PAGE_SIZE);
+  const pagedRows = demoRows.slice(
+    (tablePage - 1) * PAGE_SIZE,
+    tablePage * PAGE_SIZE,
+  );
 
   const columns: Column<DemoRow>[] = [
-    { key: "id", header: "ID", className: "w-16", render: (row) => `#${row.id}` },
+    {
+      key: "id",
+      header: "ID",
+      className: "w-16",
+      render: (row) => `#${row.id}`,
+    },
     { key: "name", header: t("dashboard.table.name") },
     {
       key: "role",
       header: t("dashboard.table.role"),
-      render: (row) => <Badge variant={row.role === "admin" ? "primary" : "neutral"}>{row.role}</Badge>,
+      render: (row) => (
+        <Badge variant={row.role === "admin" ? "primary" : "neutral"}>
+          {row.role}
+        </Badge>
+      ),
     },
     {
       key: "status",
       header: t("dashboard.table.status"),
       align: "right",
-      render: (row) => <Badge variant={row.status === "active" ? "success" : "danger"}>{t(`dashboard.table.${row.status}`)}</Badge>,
+      render: (row) => (
+        <Badge variant={row.status === "active" ? "success" : "danger"}>
+          {t(`dashboard.table.${row.status}`)}
+        </Badge>
+      ),
     },
   ];
 
-  const { mutateAsync: uploadImage, isPending: isUploading } = useMutationQuery<UploadResponse, FormData>({
+  const { mutateAsync: uploadImage, isPending: isUploading } = useMutationQuery<
+    UploadResponse,
+    FormData
+  >({
     endpoint: API_ENDPOINTS.UPLOAD.TEST,
     messageSuccess: t("dashboard.uploadSuccess"),
   });
@@ -121,7 +147,9 @@ export const Dashboard = () => {
             <>
               <Avatar name={fullName || user?.username} size="lg" />
               <div>
-                <p className="text-title font-medium text-text-base">{fullName || user?.username}</p>
+                <p className="text-title font-medium text-text-base">
+                  {fullName || user?.username}
+                </p>
                 <p className="text-body text-text-muted">@{user?.username}</p>
               </div>
             </>
@@ -134,8 +162,16 @@ export const Dashboard = () => {
               <Fingerprint className="w-6 h-6" />
             </div>
             <div className="flex flex-col">
-              <span className="text-caption font-semibold text-text-base opacity-70">{t("dashboard.userId")}</span>
-              {isLoadingUser ? <Skeleton className="h-5 w-16 mt-1" /> : <span className="font-mono text-body text-text-base">#{user?.id}</span>}
+              <span className="text-caption font-semibold text-text-base opacity-70">
+                {t("dashboard.userId")}
+              </span>
+              {isLoadingUser ? (
+                <Skeleton className="h-5 w-16 mt-1" />
+              ) : (
+                <span className="font-mono text-body text-text-base">
+                  #{user?.id}
+                </span>
+              )}
             </div>
           </div>
 
@@ -144,8 +180,16 @@ export const Dashboard = () => {
               <UserCheck className="w-6 h-6" />
             </div>
             <div className="flex flex-col">
-              <span className="text-caption font-semibold text-text-base opacity-70">{t("dashboard.username")}</span>
-              {isLoadingUser ? <Skeleton className="h-6 w-32 mt-1" /> : <span className="text-title font-medium text-text-base">{user?.username}</span>}
+              <span className="text-caption font-semibold text-text-base opacity-70">
+                {t("dashboard.username")}
+              </span>
+              {isLoadingUser ? (
+                <Skeleton className="h-6 w-32 mt-1" />
+              ) : (
+                <span className="text-title font-medium text-text-base">
+                  {user?.username}
+                </span>
+              )}
             </div>
           </div>
 
@@ -154,12 +198,25 @@ export const Dashboard = () => {
               <BadgeCheck className="w-6 h-6" />
             </div>
             <div className="flex flex-col">
-              <span className="text-caption font-semibold text-text-base opacity-70">{t("dashboard.fullName")}</span>
-              {isLoadingUser ? <Skeleton className="h-6 w-40 mt-1" /> : <span className="text-title font-medium text-text-base">{fullName || t("dashboard.na")}</span>}
+              <span className="text-caption font-semibold text-text-base opacity-70">
+                {t("dashboard.fullName")}
+              </span>
+              {isLoadingUser ? (
+                <Skeleton className="h-6 w-40 mt-1" />
+              ) : (
+                <span className="text-title font-medium text-text-base">
+                  {fullName || t("dashboard.na")}
+                </span>
+              )}
             </div>
           </div>
 
-          <Button onClick={() => setIsModalOpen(true)} variant="secondary" icon={Layers} className="w-full">
+          <Button
+            onClick={() => setIsModalOpen(true)}
+            variant="secondary"
+            icon={Layers}
+            className="w-full"
+          >
             {t("dashboard.demoButton")}
           </Button>
         </div>
@@ -169,7 +226,13 @@ export const Dashboard = () => {
         <CardTitle>{t("dashboard.uploadImage")}</CardTitle>
 
         <div className="space-y-6">
-          <Input type="file" accept="image/*" onChange={handleFileChange} disabled={isUploading} label={t("dashboard.selectImage")} />
+          <Input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            disabled={isUploading}
+            label={t("dashboard.selectImage")}
+          />
 
           {previewUrl && (
             <div className="animate-in fade-in zoom-in duration-300">
@@ -177,7 +240,11 @@ export const Dashboard = () => {
                 <ImageIcon className="w-4 h-4 text-text-muted" />
                 {t("dashboard.preview")}
               </p>
-              <img src={previewUrl} alt="Preview" className="w-full max-h-72 object-cover rounded-card border-2 border-dashed border-border-base" />
+              <img
+                src={previewUrl}
+                alt="Preview"
+                className="w-full max-h-72 object-cover rounded-card border-2 border-dashed border-border-base"
+              />
             </div>
           )}
 
@@ -187,14 +254,29 @@ export const Dashboard = () => {
                 <BadgeCheck className="w-5 h-5" />
                 {t("dashboard.uploadSuccessTitle")}
               </p>
-              <img src={uploadedImageUrl} alt="Uploaded result" className="w-full max-h-72 object-cover rounded-card mb-3" />
-              <a href={uploadedImageUrl} target="_blank" rel="noreferrer" className="text-body font-medium text-primary-500 hover:text-primary-600 transition-colors inline-flex items-center gap-1.5">
+              <img
+                src={uploadedImageUrl}
+                alt="Uploaded result"
+                className="w-full max-h-72 object-cover rounded-card mb-3"
+              />
+              <a
+                href={uploadedImageUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="text-body font-medium text-primary-500 hover:text-primary-600 transition-colors inline-flex items-center gap-1.5"
+              >
                 {t("dashboard.openOriginal")} &rarr;
               </a>
             </div>
           )}
 
-          <Button onClick={handleUpload} disabled={!selectedFile || isUploading} isLoading={isUploading} icon={CloudUpload} className="w-full">
+          <Button
+            onClick={handleUpload}
+            disabled={!selectedFile || isUploading}
+            isLoading={isUploading}
+            icon={CloudUpload}
+            className="w-full"
+          >
             {t("dashboard.confirmUpload")}
           </Button>
         </div>

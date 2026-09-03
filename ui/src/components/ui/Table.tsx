@@ -38,7 +38,15 @@ interface TableProps<T> {
   pagination?: TablePagination;
 }
 
-export const Table = <T,>({ columns, data, rowKey, isLoading = false, skeletonRows = 5, emptyMessage, pagination }: TableProps<T>) => {
+export const Table = <T,>({
+  columns,
+  data,
+  rowKey,
+  isLoading = false,
+  skeletonRows = 5,
+  emptyMessage,
+  pagination,
+}: TableProps<T>) => {
   const { t } = useTranslation();
 
   return (
@@ -48,7 +56,10 @@ export const Table = <T,>({ columns, data, rowKey, isLoading = false, skeletonRo
           <thead>
             <tr className="border-b border-border-base bg-bg-base">
               {columns.map((col) => (
-                <th key={col.key} className={`px-3 py-2 text-caption font-medium uppercase tracking-wide text-text-muted ${ALIGN[col.align ?? "left"]} ${col.className ?? ""}`}>
+                <th
+                  key={col.key}
+                  className={`px-3 py-2 text-caption font-medium uppercase tracking-wide text-text-muted ${ALIGN[col.align ?? "left"]} ${col.className ?? ""}`}
+                >
                   {col.header}
                 </th>
               ))}
@@ -57,7 +68,10 @@ export const Table = <T,>({ columns, data, rowKey, isLoading = false, skeletonRo
           <tbody>
             {isLoading ? (
               Array.from({ length: skeletonRows }).map((_, rowIndex) => (
-                <tr key={`skeleton-${rowIndex}`} className="border-b border-border-base last:border-0">
+                <tr
+                  key={`skeleton-${rowIndex}`}
+                  className="border-b border-border-base last:border-0"
+                >
                   {columns.map((col) => (
                     <td key={col.key} className="px-3 py-2.5">
                       <Skeleton className="h-4 w-full max-w-[140px]" />
@@ -67,16 +81,29 @@ export const Table = <T,>({ columns, data, rowKey, isLoading = false, skeletonRo
               ))
             ) : data.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="px-3 py-12 text-center text-caption text-text-muted">
+                <td
+                  colSpan={columns.length}
+                  className="px-3 py-12 text-center text-caption text-text-muted"
+                >
                   {emptyMessage ?? t("table.empty")}
                 </td>
               </tr>
             ) : (
               data.map((row, index) => (
-                <tr key={rowKey(row, index)} className="border-b border-border-base last:border-0 hover:bg-bg-elevated transition-colors">
+                <tr
+                  key={rowKey(row, index)}
+                  className="border-b border-border-base last:border-0 hover:bg-bg-elevated transition-colors"
+                >
                   {columns.map((col) => (
-                    <td key={col.key} className={`px-3 py-2.5 text-text-base ${ALIGN[col.align ?? "left"]} ${col.className ?? ""}`}>
-                      {col.render ? col.render(row) : String((row as Record<string, unknown>)[col.key] ?? "")}
+                    <td
+                      key={col.key}
+                      className={`px-3 py-2.5 text-text-base ${ALIGN[col.align ?? "left"]} ${col.className ?? ""}`}
+                    >
+                      {col.render
+                        ? col.render(row)
+                        : String(
+                            (row as Record<string, unknown>)[col.key] ?? "",
+                          )}
                     </td>
                   ))}
                 </tr>
@@ -88,7 +115,12 @@ export const Table = <T,>({ columns, data, rowKey, isLoading = false, skeletonRo
 
       {pagination && pagination.totalPages > 1 && (
         <div className="flex items-center justify-between gap-4 px-3 py-2 border-t border-border-base">
-          <span className="text-caption text-text-muted">{t("table.page", { page: pagination.page, total: pagination.totalPages })}</span>
+          <span className="text-caption text-text-muted">
+            {t("table.page", {
+              page: pagination.page,
+              total: pagination.totalPages,
+            })}
+          </span>
           <div className="flex items-center gap-2">
             <button
               type="button"

@@ -94,11 +94,18 @@ export interface VaultItemData {
   folder?: string;
   tags?: string[];
   favorite?: boolean;
-  // Tarjeta (tipo "card")
+  // Tarjeta (tipo "card"). Todo esto viaja DENTRO del blob cifrado, así que
+  // agregar un campo NO requiere tocar la BD ni la API: los items viejos
+  // simplemente no lo traen y descifran igual.
   cardHolder?: string;
   cardNumber?: string;
   cardExpiry?: string;
   cardCvv?: string;
+  /** PIN de desbloqueo/cajero. Es el dato más sensible de la tarjeta: nunca se
+   *  muestra por defecto y no se copia sin acción explícita del usuario. */
+  cardPin?: string;
+  /** Banco emisor, para distinguir dos tarjetas de la misma marca. */
+  cardIssuer?: string;
 }
 
 // Fila tal cual la guarda/devuelve el server: cifrada, ilegible para el server.

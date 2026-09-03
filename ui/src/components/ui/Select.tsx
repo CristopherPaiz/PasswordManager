@@ -15,14 +15,29 @@ interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
 }
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
-  ({ label, error, options, placeholder, className = "", id, children, ...props }, ref) => {
+  (
+    {
+      label,
+      error,
+      options,
+      placeholder,
+      className = "",
+      id,
+      children,
+      ...props
+    },
+    ref,
+  ) => {
     const generatedId = useId();
     const selectId = id ?? generatedId;
 
     return (
       <div className={`space-y-1.5 ${className}`}>
         {label && (
-          <label htmlFor={selectId} className="block text-caption font-medium text-text-muted">
+          <label
+            htmlFor={selectId}
+            className="block text-caption font-medium text-text-muted"
+          >
             {label}
           </label>
         )}
@@ -48,7 +63,9 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           </select>
           <ChevronDown className="w-4 h-4 text-text-muted absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
         </div>
-        {error && <span className="text-caption text-signal-danger">{error}</span>}
+        {error && (
+          <span className="text-caption text-signal-danger">{error}</span>
+        )}
       </div>
     );
   },

@@ -250,7 +250,7 @@ describe("cifrado de items", () => {
     ).toEqual(sampleItem);
   });
 
-  it("hace round-trip de un item tipo tarjeta", async () => {
+  it("hace round-trip de un item tipo tarjeta, PIN y emisor incluidos", async () => {
     const tarjeta: VaultItemData = {
       title: "Visa",
       username: "",
@@ -261,12 +261,62 @@ describe("cifrado de items", () => {
       cardNumber: "4111111111111111",
       cardExpiry: "12/30",
       cardCvv: "123",
+      cardPin: "4821",
+      cardIssuer: "Banco de Prueba",
     };
     const uid = newVaultItemUid();
     const fila = await encryptVaultData(account.vaultCryptoKey, tarjeta, uid);
     expect(
       await decryptVaultData(account.vaultCryptoKey, { ...fila, uid }),
     ).toEqual(tarjeta);
+  });
+
+  /**
+   * El PIN es el dato mas sensible de una tarjeta. Va DENTRO del blob, asi que
+   * el server no lo ve nunca: el ciphertext cubre el JSON completo.
+   */
+  it("el PIN no aparece en claro en el ciphertext", async () => {
+    const tarjeta: VaultItemData = {
+      ...sampleItem,
+      title: "Tarjeta",
+      cardNumber: "4111111111111111",
+      cardCvv: "123",
+      cardPin: "4821",
+    };
+    const uid = newVaultItemUid();
+    const fila = await encryptVaultData(account.vaultCryptoKey, tarjeta, uid);
+    expect(fila.ciphertext).not.toContain("4821");
+    expect(fila.ciphertext).not.toContain("cardPin");
+    expect(fila.ciphertext).not.toContain("4111111111111111");
+  });
+
+  /**
+   * Agregar un campo al blob NO rompe los items guardados antes: `cardPin` y
+   * `cardIssuer` son opcionales, asi que una tarjeta vieja descifra igual y
+   * simplemente no los trae. Esto es lo que permite evolucionar el modelo sin
+   * migracion de base de datos.
+   */
+  it("una tarjeta guardada SIN pin sigue descifrando", async () => {
+    const vieja: VaultItemData = {
+      title: "Tarjeta vieja",
+      username: "",
+      password: "",
+      url: "",
+      notes: "",
+      cardHolder: "TITULAR DE PRUEBA",
+      cardNumber: "4111111111111111",
+      cardExpiry: "12/30",
+      cardCvv: "123",
+    };
+    const uid = newVaultItemUid();
+    const fila = await encryptVaultData(account.vaultCryptoKey, vieja, uid);
+    const descifrada = await decryptVaultData(account.vaultCryptoKey, {
+      ...fila,
+      uid,
+    });
+    expect(descifrada).toEqual(vieja);
+    expect(descifrada.cardPin).toBeUndefined();
+    expect(descifrada.cardIssuer).toBeUndefined();
   });
 
   it("el ciphertext no filtra el contenido en claro", async () => {

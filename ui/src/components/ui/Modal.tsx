@@ -58,7 +58,9 @@ export const Modal = ({
       const panel = panelRef.current;
       if (!panel) return;
 
-      const focusables = Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR));
+      const focusables = Array.from(
+        panel.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
+      );
       if (focusables.length === 0) {
         e.preventDefault();
         return;
@@ -113,7 +115,11 @@ export const Modal = ({
         pointerDownOnBackdrop.current = e.target === e.currentTarget;
       }}
       onMouseUp={(e) => {
-        if (closeOnBackdrop && pointerDownOnBackdrop.current && e.target === e.currentTarget) {
+        if (
+          closeOnBackdrop &&
+          pointerDownOnBackdrop.current &&
+          e.target === e.currentTarget
+        ) {
           onClose();
         }
         pointerDownOnBackdrop.current = false;
@@ -145,9 +151,15 @@ export const Modal = ({
 
         {/* overscroll-contain corta el "scroll chaining": al llegar al final del
             modal el gesto NO se propaga al fondo. */}
-        <div className="px-4 py-4 overflow-y-auto overscroll-contain text-body text-text-muted">{children}</div>
+        <div className="px-4 py-4 overflow-y-auto overscroll-contain text-body text-text-muted">
+          {children}
+        </div>
 
-        {footer && <div className="flex items-center justify-end gap-3 px-4 py-3 border-t border-border-base shrink-0">{footer}</div>}
+        {footer && (
+          <div className="flex items-center justify-end gap-3 px-4 py-3 border-t border-border-base shrink-0">
+            {footer}
+          </div>
+        )}
       </div>
     </div>,
     document.body,

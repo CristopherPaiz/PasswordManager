@@ -23,15 +23,28 @@ const getInitials = (name?: string | null): string => {
     .join("");
 };
 
-export const Avatar = ({ src, name, size = "md", className = "" }: AvatarProps) => {
+export const Avatar = ({
+  src,
+  name,
+  size = "md",
+  className = "",
+}: AvatarProps) => {
   const base = `${SIZES[size]} rounded-full flex items-center justify-center shrink-0 overflow-hidden ${className}`;
 
   if (src) {
-    return <img src={src} alt={name ?? "avatar"} className={`${base} object-cover`} />;
+    return (
+      <img
+        src={src}
+        alt={name ?? "avatar"}
+        className={`${base} object-cover`}
+      />
+    );
   }
 
   return (
-    <div className={`${base} bg-bg-elevated text-text-muted font-medium border border-border-base`}>
+    <div
+      className={`${base} bg-bg-elevated text-text-muted font-medium border border-border-base`}
+    >
       {getInitials(name)}
     </div>
   );

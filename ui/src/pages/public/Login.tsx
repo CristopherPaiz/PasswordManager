@@ -58,7 +58,10 @@ export const Login = () => {
     defaultValues: { username: "", password: "" },
   });
 
-  const { mutateAsync: prelogin } = useMutationQuery<PreloginResponse, { username: string }>({
+  const { mutateAsync: prelogin } = useMutationQuery<
+    PreloginResponse,
+    { username: string }
+  >({
     endpoint: API_ENDPOINTS.AUTH.PRELOGIN,
     showToast: false,
   });
@@ -80,7 +83,10 @@ export const Login = () => {
   // Desbloquea el baúl con la wrapKey ya derivada y navega.
   const finishLogin = async (res: LoginResponse, wrapKeyBytes: Uint8Array) => {
     if (res.wrapped_vault_key) {
-      const { key, raw } = await openVaultKey(res.wrapped_vault_key, wrapKeyBytes);
+      const { key, raw } = await openVaultKey(
+        res.wrapped_vault_key,
+        wrapKeyBytes,
+      );
       setVaultKey(key, raw);
     }
     setAuthenticatedHint(true);
@@ -96,7 +102,10 @@ export const Login = () => {
         params.kdf_salt,
         params.kdf_params,
       );
-      const res = await login({ username: values.username, password: authHash });
+      const res = await login({
+        username: values.username,
+        password: authHash,
+      });
 
       if (res.totpRequired) {
         // La cuenta tiene 2FA: guarda lo derivado y pide el código.
@@ -139,8 +148,12 @@ export const Login = () => {
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary-500/10">
               <ShieldCheck className="h-7 w-7 text-primary-500" />
             </div>
-            <h2 className="text-subheading font-medium text-text-base">{t("login.totpTitle")}</h2>
-            <p className="text-text-muted text-body">{t("login.totpSubtitle")}</p>
+            <h2 className="text-subheading font-medium text-text-base">
+              {t("login.totpTitle")}
+            </h2>
+            <p className="text-text-muted text-body">
+              {t("login.totpSubtitle")}
+            </p>
           </div>
           <form onSubmit={onSubmitTotp} className="space-y-5" noValidate>
             <Input
@@ -152,7 +165,9 @@ export const Login = () => {
               disabled={isWorking}
               error={totpError}
               value={totp}
-              onChange={(e) => setTotp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              onChange={(e) =>
+                setTotp(e.target.value.replace(/\D/g, "").slice(0, 6))
+              }
             />
             <Button
               type="submit"
@@ -174,11 +189,17 @@ export const Login = () => {
     <div className="flex items-center justify-center min-h-[70dvh] animate-in fade-in scale-in-95 duration-300">
       <Card className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h2 className="text-heading font-medium text-text-base">{t("login.title")}</h2>
+          <h2 className="text-heading font-medium text-text-base">
+            {t("login.title")}
+          </h2>
           <p className="text-text-muted mt-2">{t("login.subtitle")}</p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-5"
+          noValidate
+        >
           <Input
             label={t("login.username")}
             type="text"
@@ -203,7 +224,12 @@ export const Login = () => {
             {...register("password")}
           />
 
-          <Button type="submit" isLoading={isWorking} icon={LogIn} className="w-full mt-4">
+          <Button
+            type="submit"
+            isLoading={isWorking}
+            icon={LogIn}
+            className="w-full mt-4"
+          >
             {t("login.submit")}
           </Button>
         </form>
@@ -211,12 +237,18 @@ export const Login = () => {
         <div className="space-y-2 text-center text-body text-text-muted">
           <p>
             {t("login.noAccount")}{" "}
-            <Link to={ROUTES.REGISTER} className="font-semibold text-primary-500 hover:text-primary-600">
+            <Link
+              to={ROUTES.REGISTER}
+              className="font-semibold text-primary-500 hover:text-primary-600"
+            >
               {t("login.createAccount")}
             </Link>
           </p>
           <p>
-            <Link to={ROUTES.RECOVERY} className="text-primary-500 hover:text-primary-600">
+            <Link
+              to={ROUTES.RECOVERY}
+              className="text-primary-500 hover:text-primary-600"
+            >
               {t("login.forgotMaster")}
             </Link>
           </p>

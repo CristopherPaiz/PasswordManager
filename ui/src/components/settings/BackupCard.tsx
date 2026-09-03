@@ -5,8 +5,18 @@ import { toast } from "sonner";
 import { useGetQuery, useMutationQuery } from "@hooks/queries/core.queries";
 import { useVaultStore } from "@store/vault.store";
 import { API_ENDPOINTS } from "@constants/app.constants";
-import { decryptVaultData, encryptVaultData, newVaultItemUid } from "@utils/vault";
-import { buildExport, parseExport, parseCsv, VaultExportFile, VaultExportItem } from "@utils/backup";
+import {
+  decryptVaultData,
+  encryptVaultData,
+  newVaultItemUid,
+} from "@utils/vault";
+import {
+  buildExport,
+  parseExport,
+  parseCsv,
+  VaultExportFile,
+  VaultExportItem,
+} from "@utils/backup";
 import { VaultItemRow, VaultItemType } from "@apptypes";
 import { Card, CardTitle } from "@components/ui/Card";
 import { Input } from "@components/ui/Input";
@@ -34,7 +44,10 @@ export const BackupCard = () => {
     enabled: !!vaultKey,
   });
 
-  const { mutateAsync: bulkImport } = useMutationQuery<{ count: number }, { items: EncItem[] }>({
+  const { mutateAsync: bulkImport } = useMutationQuery<
+    { count: number },
+    { items: EncItem[] }
+  >({
     endpoint: API_ENDPOINTS.VAULT.BULK,
     invalidateQueryKey: [API_ENDPOINTS.VAULT.LIST],
     showToast: false,
@@ -54,11 +67,16 @@ export const BackupCard = () => {
       const list = vaultList?.items ?? [];
       // Cada item exportado lleva su tipo para restaurar tarjetas/notas como tales.
       const decrypted: VaultExportItem[] = await Promise.all(
-        list.map(async (r) => ({ ...(await decryptVaultData(vaultKey, r)), tipo: r.tipo })),
+        list.map(async (r) => ({
+          ...(await decryptVaultData(vaultKey, r)),
+          tipo: r.tipo,
+        })),
       );
       const file = await buildExport(decrypted, exportPw);
 
-      const blob = new Blob([JSON.stringify(file, null, 2)], { type: "application/json" });
+      const blob = new Blob([JSON.stringify(file, null, 2)], {
+        type: "application/json",
+      });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -121,7 +139,11 @@ export const BackupCard = () => {
         items.map(async (it) => {
           const { tipo, ...data } = it;
           const uid = newVaultItemUid();
-          const { ciphertext, iv } = await encryptVaultData(vaultKey, data, uid);
+          const { ciphertext, iv } = await encryptVaultData(
+            vaultKey,
+            data,
+            uid,
+          );
           return { tipo: tipo ?? "password", ciphertext, iv, uid };
         }),
       );
@@ -143,25 +165,64 @@ export const BackupCard = () => {
         <Archive className="h-5 w-5 text-primary-500" />
         <CardTitle className="mb-0">{t("settings.backup.title")}</CardTitle>
       </div>
-      <p className="text-body text-text-muted">{t("settings.backup.description")}</p>
+      <p className="text-body text-text-muted">
+        {t("settings.backup.description")}
+      </p>
 
       {/* Export */}
       <div className="space-y-3 rounded-input border border-border-base bg-bg-base p-4">
-        <p className="text-body font-semibold text-text-base">{t("settings.backup.exportTitle")}</p>
-        <p className="text-caption text-text-muted">{t("settings.backup.exportHint")}</p>
-        <Input label={t("settings.backup.exportPw")} type="password" autoComplete="new-password" value={exportPw} onChange={(e) => setExportPw(e.target.value)} />
-        <Button type="button" icon={Download} variant="secondary" isLoading={isExporting} onClick={handleExport}>
+        <p className="text-body font-semibold text-text-base">
+          {t("settings.backup.exportTitle")}
+        </p>
+        <p className="text-caption text-text-muted">
+          {t("settings.backup.exportHint")}
+        </p>
+        <Input
+          label={t("settings.backup.exportPw")}
+          type="password"
+          autoComplete="new-password"
+          value={exportPw}
+          onChange={(e) => setExportPw(e.target.value)}
+        />
+        <Button
+          type="button"
+          icon={Download}
+          variant="secondary"
+          isLoading={isExporting}
+          onClick={handleExport}
+        >
           {t("settings.backup.exportBtn")}
         </Button>
       </div>
 
       {/* Import */}
       <div className="space-y-3 rounded-input border border-border-base bg-bg-base p-4">
-        <p className="text-body font-semibold text-text-base">{t("settings.backup.importTitle")}</p>
-        <p className="text-caption text-text-muted">{t("settings.backup.importHint")}</p>
-        <Input label={t("settings.backup.file")} type="file" accept=".json,.csv" onChange={(e) => setImportFile(e.target.files?.[0] ?? null)} />
-        <Input label={t("settings.backup.importPw")} type="password" autoComplete="off" value={importPw} onChange={(e) => setImportPw(e.target.value)} />
-        <Button type="button" icon={Upload} variant="secondary" isLoading={isImporting} onClick={handleImport}>
+        <p className="text-body font-semibold text-text-base">
+          {t("settings.backup.importTitle")}
+        </p>
+        <p className="text-caption text-text-muted">
+          {t("settings.backup.importHint")}
+        </p>
+        <Input
+          label={t("settings.backup.file")}
+          type="file"
+          accept=".json,.csv"
+          onChange={(e) => setImportFile(e.target.files?.[0] ?? null)}
+        />
+        <Input
+          label={t("settings.backup.importPw")}
+          type="password"
+          autoComplete="off"
+          value={importPw}
+          onChange={(e) => setImportPw(e.target.value)}
+        />
+        <Button
+          type="button"
+          icon={Upload}
+          variant="secondary"
+          isLoading={isImporting}
+          onClick={handleImport}
+        >
           {t("settings.backup.importBtn")}
         </Button>
       </div>

@@ -1,14 +1,30 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ShieldCheck, ShieldOff, Clock, QrCode, Fingerprint, Compass, Trash2 } from "lucide-react";
+import {
+  ShieldCheck,
+  ShieldOff,
+  Clock,
+  QrCode,
+  Fingerprint,
+  Compass,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useGetQuery, useMutationQuery } from "@hooks/queries/core.queries";
 import { useAuthQuery } from "@hooks/queries/auth.queries";
 import { useVaultStore } from "@store/vault.store";
 import { useSettingsStore } from "@store/settings.store";
-import { API_ENDPOINTS, AUTO_LOCK_OPTIONS, NAVIGATION } from "@constants/app.constants";
+import {
+  API_ENDPOINTS,
+  AUTO_LOCK_OPTIONS,
+  NAVIGATION,
+} from "@constants/app.constants";
 import { wrapVaultKey, deriveWrapKeyBytes, EncryptedBlob } from "@utils/crypto";
-import { registerPasskey, isPasskeySupported, getDeviceLabel } from "@utils/webauthn";
+import {
+  registerPasskey,
+  isPasskeySupported,
+  getDeviceLabel,
+} from "@utils/webauthn";
 import { formatGuatemalaDate } from "@utils/datetime";
 import { PasskeyInfo } from "@apptypes";
 import { Card, CardTitle } from "@components/ui/Card";
@@ -41,14 +57,18 @@ export const Settings = () => {
   const vaultKeyRaw = useVaultStore((s) => s.vaultKeyRaw);
   const passkeySupported = isPasskeySupported();
 
-  const { autoLockMinutes, setAutoLockMinutes, startPage, setStartPage } = useSettingsStore();
+  const { autoLockMinutes, setAutoLockMinutes, startPage, setStartPage } =
+    useSettingsStore();
 
   const [setupData, setSetupData] = useState<TotpSetupResponse | null>(null);
   const [code, setCode] = useState("");
   const [disableCode, setDisableCode] = useState("");
   const [isPasskeyWorking, setIsPasskeyWorking] = useState(false);
 
-  const { mutateAsync: totpSetup, isPending: isSettingUp } = useMutationQuery<TotpSetupResponse, void>({
+  const { mutateAsync: totpSetup, isPending: isSettingUp } = useMutationQuery<
+    TotpSetupResponse,
+    void
+  >({
     endpoint: API_ENDPOINTS.AUTH.TOTP_SETUP,
     showToast: false,
   });
@@ -71,26 +91,35 @@ export const Settings = () => {
     messageSuccess: t("settings.totp.disabled"),
   });
 
-  const { data: passkeyData, isLoading: isLoadingPasskeys } = useGetQuery<{ passkeys: PasskeyInfo[] }>({
+  const { data: passkeyData, isLoading: isLoadingPasskeys } = useGetQuery<{
+    passkeys: PasskeyInfo[];
+  }>({
     endpoint: API_ENDPOINTS.AUTH.PASSKEY_LIST,
   });
   const passkeys = passkeyData?.passkeys ?? [];
 
-  const { mutateAsync: passkeyRegister } = useMutationQuery<{ message: string }, PasskeyRegisterPayload>({
+  const { mutateAsync: passkeyRegister } = useMutationQuery<
+    { message: string },
+    PasskeyRegisterPayload
+  >({
     endpoint: API_ENDPOINTS.AUTH.PASSKEY,
-    invalidateQueryKey: [API_ENDPOINTS.AUTH.PASSKEY_LIST, API_ENDPOINTS.AUTH.ME],
+    invalidateQueryKey: [
+      API_ENDPOINTS.AUTH.PASSKEY_LIST,
+      API_ENDPOINTS.AUTH.ME,
+    ],
     messageSuccess: t("settings.passkey.enabled"),
   });
 
-  const { mutateAsync: passkeyDelete, isPending: isDeletingPasskey } = useMutationQuery<
-    { message: string },
-    { id: number }
-  >({
-    endpoint: (vars) => API_ENDPOINTS.AUTH.PASSKEY_ITEM(vars.id),
-    method: "delete",
-    invalidateQueryKey: [API_ENDPOINTS.AUTH.PASSKEY_LIST, API_ENDPOINTS.AUTH.ME],
-    messageSuccess: t("settings.passkey.disabled"),
-  });
+  const { mutateAsync: passkeyDelete, isPending: isDeletingPasskey } =
+    useMutationQuery<{ message: string }, { id: number }>({
+      endpoint: (vars) => API_ENDPOINTS.AUTH.PASSKEY_ITEM(vars.id),
+      method: "delete",
+      invalidateQueryKey: [
+        API_ENDPOINTS.AUTH.PASSKEY_LIST,
+        API_ENDPOINTS.AUTH.ME,
+      ],
+      messageSuccess: t("settings.passkey.disabled"),
+    });
 
   const enablePasskey = async () => {
     if (!vaultKeyRaw) {
@@ -103,7 +132,11 @@ export const Settings = () => {
       const { credId, prfSecret } = await registerPasskey(username);
       const wrapKey = await deriveWrapKeyBytes(prfSecret);
       const wrapped = await wrapVaultKey(vaultKeyRaw, wrapKey);
-      await passkeyRegister({ cred_id: credId, wrapped_vault_key: wrapped, label: getDeviceLabel() });
+      await passkeyRegister({
+        cred_id: credId,
+        wrapped_vault_key: wrapped,
+        label: getDeviceLabel(),
+      });
     } catch (err) {
       const code = err instanceof Error ? err.message : "";
       const msg =
@@ -132,7 +165,9 @@ export const Settings = () => {
       setSetupData(data);
       setCode("");
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : t("settings.totp.setupError"));
+      toast.error(
+        error instanceof Error ? error.message : t("settings.totp.setupError"),
+      );
     }
   };
 
@@ -157,7 +192,9 @@ export const Settings = () => {
 
   return (
     <div className="mx-auto w-full max-w-2xl space-y-6 px-4 py-6 min-w-0">
-      <h1 className="text-subheading font-medium text-text-base">{t("settings.title")}</h1>
+      <h1 className="text-subheading font-medium text-text-base">
+        {t("settings.title")}
+      </h1>
 
       {/* --- 2FA --- */}
       <Card className="space-y-5">
@@ -169,18 +206,24 @@ export const Settings = () => {
             <Badge variant="neutral">{t("settings.totp.inactive")}</Badge>
           )}
         </div>
-        <p className="text-body text-text-muted">{t("settings.totp.description")}</p>
+        <p className="text-body text-text-muted">
+          {t("settings.totp.description")}
+        </p>
 
         {enabled ? (
           <div className="space-y-3 rounded-input border border-border-base bg-bg-base p-4">
-            <p className="text-body font-medium text-text-base">{t("settings.totp.disableHint")}</p>
+            <p className="text-body font-medium text-text-base">
+              {t("settings.totp.disableHint")}
+            </p>
             <Input
               label={t("settings.totp.code")}
               inputMode="numeric"
               maxLength={6}
               autoComplete="one-time-code"
               value={disableCode}
-              onChange={(e) => setDisableCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              onChange={(e) =>
+                setDisableCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+              }
             />
             <Button
               type="button"
@@ -195,14 +238,18 @@ export const Settings = () => {
           </div>
         ) : setupData ? (
           <div className="space-y-4 rounded-input border border-border-base bg-bg-base p-4">
-            <p className="text-body text-text-muted">{t("settings.totp.scan")}</p>
+            <p className="text-body text-text-muted">
+              {t("settings.totp.scan")}
+            </p>
             <img
               src={setupData.qr}
               alt={t("settings.totp.qrAlt")}
               className="mx-auto h-48 w-48 rounded-button bg-white p-2"
             />
             <div className="text-center">
-              <p className="text-caption text-text-muted">{t("settings.totp.manualKey")}</p>
+              <p className="text-caption text-text-muted">
+                {t("settings.totp.manualKey")}
+              </p>
               <p className="font-mono text-body break-all select-all text-text-base">
                 {setupData.secret}
               </p>
@@ -213,7 +260,9 @@ export const Settings = () => {
               maxLength={6}
               autoComplete="one-time-code"
               value={code}
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              onChange={(e) =>
+                setCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+              }
             />
             <div className="flex gap-2">
               <Button
@@ -225,13 +274,22 @@ export const Settings = () => {
               >
                 {t("settings.totp.confirm")}
               </Button>
-              <Button type="button" variant="ghost" onClick={() => setSetupData(null)}>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setSetupData(null)}
+              >
                 {t("settings.totp.cancel")}
               </Button>
             </div>
           </div>
         ) : (
-          <Button type="button" icon={QrCode} isLoading={isSettingUp} onClick={startSetup}>
+          <Button
+            type="button"
+            icon={QrCode}
+            isLoading={isSettingUp}
+            onClick={startSetup}
+          >
             {t("settings.totp.activate")}
           </Button>
         )}
@@ -247,7 +305,9 @@ export const Settings = () => {
             <Badge variant="neutral">{t("settings.passkey.inactive")}</Badge>
           )}
         </div>
-        <p className="text-body text-text-muted">{t("settings.passkey.description")}</p>
+        <p className="text-body text-text-muted">
+          {t("settings.passkey.description")}
+        </p>
 
         {!passkeySupported ? (
           <p className="rounded-input bg-bg-base p-3 text-body text-text-muted">
@@ -271,7 +331,9 @@ export const Settings = () => {
                       </p>
                       <p className="text-caption text-text-muted">
                         {t("settings.passkey.addedOn", {
-                          date: formatGuatemalaDate(pk.fecha_creacion.replace(" ", "T") + "Z"),
+                          date: formatGuatemalaDate(
+                            pk.fecha_creacion.replace(" ", "T") + "Z",
+                          ),
                         })}
                       </p>
                     </div>
@@ -288,7 +350,9 @@ export const Settings = () => {
                 ))}
               </ul>
             ) : (
-              <p className="text-body text-text-muted">{t("settings.passkey.none")}</p>
+              <p className="text-body text-text-muted">
+                {t("settings.passkey.none")}
+              </p>
             )}
 
             <div className="space-y-2">
@@ -302,9 +366,13 @@ export const Settings = () => {
                 {t("settings.passkey.addThisDevice")}
               </Button>
               {!vaultKeyRaw && (
-                <p className="text-caption text-text-muted">{t("settings.passkey.needUnlock")}</p>
+                <p className="text-caption text-text-muted">
+                  {t("settings.passkey.needUnlock")}
+                </p>
               )}
-              <p className="text-caption text-text-muted">{t("settings.passkey.help")}</p>
+              <p className="text-caption text-text-muted">
+                {t("settings.passkey.help")}
+              </p>
             </div>
           </>
         )}
@@ -316,7 +384,9 @@ export const Settings = () => {
           <Clock className="h-5 w-5 text-primary-500" />
           <CardTitle className="mb-0">{t("settings.autolock.title")}</CardTitle>
         </div>
-        <p className="text-body text-text-muted">{t("settings.autolock.description")}</p>
+        <p className="text-body text-text-muted">
+          {t("settings.autolock.description")}
+        </p>
         <Select
           label={t("settings.autolock.label")}
           value={autoLockMinutes}
@@ -332,9 +402,13 @@ export const Settings = () => {
       <Card className="space-y-4">
         <div className="flex items-center gap-2">
           <Compass className="h-5 w-5 text-primary-500" />
-          <CardTitle className="mb-0">{t("settings.startpage.title")}</CardTitle>
+          <CardTitle className="mb-0">
+            {t("settings.startpage.title")}
+          </CardTitle>
         </div>
-        <p className="text-body text-text-muted">{t("settings.startpage.description")}</p>
+        <p className="text-body text-text-muted">
+          {t("settings.startpage.description")}
+        </p>
         <Select
           label={t("settings.startpage.label")}
           value={startPage}

@@ -17,7 +17,10 @@ export const SessionsCard = () => {
   });
   const sessions = data?.sessions ?? [];
 
-  const { mutateAsync: revoke, isPending } = useMutationQuery<{ message: string }, { id: number }>({
+  const { mutateAsync: revoke, isPending } = useMutationQuery<
+    { message: string },
+    { id: number }
+  >({
     endpoint: (vars) => API_ENDPOINTS.AUTH.SESSION_ITEM(vars.id),
     method: "delete",
     invalidateQueryKey: [API_ENDPOINTS.AUTH.SESSIONS],
@@ -30,12 +33,16 @@ export const SessionsCard = () => {
         <Monitor className="h-5 w-5 text-primary-500" />
         <CardTitle className="mb-0">{t("settings.sessions.title")}</CardTitle>
       </div>
-      <p className="text-body text-text-muted">{t("settings.sessions.description")}</p>
+      <p className="text-body text-text-muted">
+        {t("settings.sessions.description")}
+      </p>
 
       {isLoading ? (
         <p className="text-body text-text-muted">{t("common.loading")}</p>
       ) : sessions.length === 0 ? (
-        <p className="text-body text-text-muted">{t("settings.sessions.none")}</p>
+        <p className="text-body text-text-muted">
+          {t("settings.sessions.none")}
+        </p>
       ) : (
         <ul className="space-y-2">
           {sessions.map((s) => (
@@ -45,8 +52,14 @@ export const SessionsCard = () => {
             >
               <div className="min-w-0">
                 <p className="flex items-center gap-2 text-body font-medium text-text-base">
-                  <span className="truncate">{s.user_agent ?? t("settings.sessions.unknown")}</span>
-                  {s.current && <Badge variant="success">{t("settings.sessions.current")}</Badge>}
+                  <span className="truncate">
+                    {s.user_agent ?? t("settings.sessions.unknown")}
+                  </span>
+                  {s.current && (
+                    <Badge variant="success">
+                      {t("settings.sessions.current")}
+                    </Badge>
+                  )}
                 </p>
                 <p className="text-caption text-text-muted">
                   {s.ip ? `${s.ip} · ` : ""}

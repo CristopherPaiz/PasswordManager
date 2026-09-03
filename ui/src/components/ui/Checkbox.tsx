@@ -10,7 +10,10 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
     const checkboxId = id ?? generatedId;
 
     return (
-      <label htmlFor={checkboxId} className="inline-flex items-center gap-2 cursor-pointer select-none">
+      <label
+        htmlFor={checkboxId}
+        className="inline-flex items-center gap-2 cursor-pointer select-none"
+      >
         <input
           id={checkboxId}
           ref={ref}

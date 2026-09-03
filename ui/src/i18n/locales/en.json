@@ -255,7 +255,13 @@
       "cardNumber": "Card number",
       "cardExpiry": "Expiry",
       "cardExpiryHint": "MM/YY",
-      "cardCvv": "CVV"
+      "cardCvv": "CVV",
+      "cardIssuer": "Issuing bank",
+      "cardIssuerHint": "Chase, Revolut...",
+      "cardPin": "Unlock PIN",
+      "cardPinHint": "4 to 12 digits",
+      "cardCvvHint": "3 digits on the back",
+      "cardCvvHintAmex": "4 digits on the front"
     },
     "generator": {
       "generate": "Generate",
@@ -291,7 +297,22 @@
     "showPassword": "Show password",
     "hidePassword": "Hide password",
     "copyCvv": "Copy CVV",
-    "cvvCopied": "CVV copied"
+    "cvvCopied": "CVV copied",
+    "card": {
+      "endingIn": "ending in {{last4}}",
+      "preview": "Preview",
+      "number": "Number",
+      "luhnWarning": "This number fails the checksum. Double-check the digits.",
+      "lengthWarning": "Unusual length for {{brand}}.",
+      "expiryWarning": "This card looks expired.",
+      "pinNotice": "The PIN is encrypted like everything else. It is never shown by default."
+    },
+    "copyPin": "Copy PIN",
+    "pinCopied": "PIN copied",
+    "copyHolder": "Copy cardholder",
+    "holderCopied": "Cardholder copied",
+    "showValue": "Show {{label}}",
+    "hideValue": "Hide {{label}}"
   },
   "dashboard": {
     "profileInfo": "Profile Information",

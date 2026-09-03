@@ -46,7 +46,8 @@ export const UnlockVault = () => {
     showToast: false,
   });
 
-  const canUsePasskey = isPasskeySupported() && (keys?.passkeys?.length ?? 0) > 0;
+  const canUsePasskey =
+    isPasskeySupported() && (keys?.passkeys?.length ?? 0) > 0;
 
   const handleUnlock = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,7 +61,10 @@ export const UnlockVault = () => {
         keys.kdf_params,
       );
       // Si la maestra es incorrecta, el tag GCM falla y lanza → contraseña mala.
-      const { key, raw } = await openVaultKey(keys.wrapped_vault_key, wrapKeyBytes);
+      const { key, raw } = await openVaultKey(
+        keys.wrapped_vault_key,
+        wrapKeyBytes,
+      );
       setVaultKey(key, raw);
       setMasterPassword("");
     } catch {
@@ -78,7 +82,9 @@ export const UnlockVault = () => {
     try {
       // El navegador elige la passkey disponible en este dispositivo; casamos
       // por cred_id para tomar la vaultKey envuelta correspondiente.
-      const { credId, prfSecret } = await getPasskeySecret(list.map((p) => p.cred_id));
+      const { credId, prfSecret } = await getPasskeySecret(
+        list.map((p) => p.cred_id),
+      );
       const match = list.find((p) => p.cred_id === credId);
       if (!match) throw new Error("PASSKEY_NO_MATCH");
       const wrapKey = await deriveWrapKeyBytes(prfSecret);
@@ -108,7 +114,9 @@ export const UnlockVault = () => {
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary-500/10">
             <Lock className="h-7 w-7 text-primary-500" />
           </div>
-          <h2 className="text-subheading font-medium text-text-base">{t("unlock.title")}</h2>
+          <h2 className="text-subheading font-medium text-text-base">
+            {t("unlock.title")}
+          </h2>
           <p className="text-text-muted text-body">{t("unlock.subtitle")}</p>
         </div>
 

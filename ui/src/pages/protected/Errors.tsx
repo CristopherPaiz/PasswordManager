@@ -14,14 +14,25 @@ import { StackTrace } from "@components/ui/StackTrace";
 
 const Field = ({ label, children }: { label: string; children: ReactNode }) => (
   <div>
-    <p className="text-caption font-semibold text-text-base opacity-70 mb-1">{label}</p>
+    <p className="text-caption font-semibold text-text-base opacity-70 mb-1">
+      {label}
+    </p>
     {children}
   </div>
 );
 
 export const Errors = () => {
   const { t } = useTranslation();
-  const { items, isLoading, page, pagination, hasPrev, hasNext, prevPage, nextPage } = usePaginatedQuery<ErrorLog>({
+  const {
+    items,
+    isLoading,
+    page,
+    pagination,
+    hasPrev,
+    hasNext,
+    prevPage,
+    nextPage,
+  } = usePaginatedQuery<ErrorLog>({
     endpoint: API_ENDPOINTS.ERRORS.LIST,
     limit: 10,
   });
@@ -49,18 +60,31 @@ export const Errors = () => {
   };
 
   const columns: Column<ErrorLog>[] = [
-    { key: "id", header: "ID", className: "w-16", render: (row) => `#${row.id}` },
+    {
+      key: "id",
+      header: "ID",
+      className: "w-16",
+      render: (row) => `#${row.id}`,
+    },
     {
       key: "error_message",
       header: t("errors.message"),
-      render: (row) => <span className="block max-w-xs truncate">{row.error_message}</span>,
+      render: (row) => (
+        <span className="block max-w-xs truncate">{row.error_message}</span>
+      ),
     },
-    { key: "fecha_guatemala", header: t("errors.date"), render: (row) => row.fecha_guatemala },
+    {
+      key: "fecha_guatemala",
+      header: t("errors.date"),
+      render: (row) => row.fecha_guatemala,
+    },
     {
       key: "resuelto",
       header: t("errors.status"),
       render: (row) => (
-        <Badge variant={row.resuelto ? "success" : "warning"}>{row.resuelto ? t("errors.resolved") : t("errors.unresolved")}</Badge>
+        <Badge variant={row.resuelto ? "success" : "warning"}>
+          {row.resuelto ? t("errors.resolved") : t("errors.unresolved")}
+        </Badge>
       ),
     },
     {
@@ -108,7 +132,12 @@ export const Errors = () => {
         size="lg"
         footer={
           selected ? (
-            <Button variant="secondary" size="sm" icon={Copy} onClick={() => handleCopy(selected)}>
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={Copy}
+              onClick={() => handleCopy(selected)}
+            >
               {t("errors.copy")}
             </Button>
           ) : undefined
@@ -119,24 +148,36 @@ export const Errors = () => {
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="neutral">#{selected.id}</Badge>
               <Badge variant="primary">{selected.method}</Badge>
-              <span className="font-mono text-text-base break-all">{selected.endpoint}</span>
+              <span className="font-mono text-text-base break-all">
+                {selected.endpoint}
+              </span>
             </div>
 
             <Field label={t("errors.fullMessage")}>
-              <p className="text-text-base break-words">{selected.error_message}</p>
+              <p className="text-text-base break-words">
+                {selected.error_message}
+              </p>
             </Field>
 
             <div className="grid sm:grid-cols-2 gap-4">
               <Field label={t("errors.dateGuatemala")}>
-                <p className="text-text-base font-mono">{selected.fecha_guatemala}</p>
+                <p className="text-text-base font-mono">
+                  {selected.fecha_guatemala}
+                </p>
               </Field>
               <Field label={t("errors.dateServer")}>
-                <p className="text-text-muted font-mono">{selected.fecha_creacion} UTC</p>
+                <p className="text-text-muted font-mono">
+                  {selected.fecha_creacion} UTC
+                </p>
               </Field>
             </div>
 
             <Field label={t("errors.stack")}>
-              {selected.stack_trace ? <StackTrace stack={selected.stack_trace} /> : <p className="text-text-muted">{t("errors.noStack")}</p>}
+              {selected.stack_trace ? (
+                <StackTrace stack={selected.stack_trace} />
+              ) : (
+                <p className="text-text-muted">{t("errors.noStack")}</p>
+              )}
             </Field>
           </div>
         )}

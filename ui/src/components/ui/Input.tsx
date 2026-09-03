@@ -31,7 +31,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       return (
         <div className={`space-y-1.5 ${className}`}>
           {label && (
-            <label htmlFor={inputId} className="block text-caption font-medium text-text-muted">
+            <label
+              htmlFor={inputId}
+              className="block text-caption font-medium text-text-muted"
+            >
               {label}
             </label>
           )}
@@ -42,7 +45,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             className="block w-full text-caption text-text-muted file:mr-3 file:h-8 file:px-3 file:rounded-button file:border file:border-border-base file:bg-bg-elevated file:text-caption file:font-medium file:text-text-base hover:file:border-border-strong transition-colors cursor-pointer"
             {...props}
           />
-          {error && <span className="text-caption text-signal-danger">{error}</span>}
+          {error && (
+            <span className="text-caption text-signal-danger">{error}</span>
+          )}
         </div>
       );
     }
@@ -50,7 +55,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className={`space-y-1.5 ${className}`}>
         {label && (
-          <label htmlFor={inputId} className="block text-caption font-medium text-text-muted">
+          <label
+            htmlFor={inputId}
+            className="block text-caption font-medium text-text-muted"
+          >
             {label}
           </label>
         )}
@@ -68,13 +76,21 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               onClick={() => setShowPassword((prev) => !prev)}
               tabIndex={-1}
               className="absolute inset-y-0 right-0 flex items-center pr-3 text-text-muted hover:text-text-base transition-colors cursor-pointer"
-              aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              aria-label={
+                showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+              }
             >
-              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              {showPassword ? (
+                <EyeOff className="w-4 h-4" />
+              ) : (
+                <Eye className="w-4 h-4" />
+              )}
             </button>
           )}
         </div>
-        {error && <span className="text-caption text-signal-danger">{error}</span>}
+        {error && (
+          <span className="text-caption text-signal-danger">{error}</span>
+        )}
       </div>
     );
   },

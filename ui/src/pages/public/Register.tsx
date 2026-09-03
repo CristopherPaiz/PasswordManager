@@ -51,14 +51,28 @@ export const Register = () => {
     formState: { errors },
   } = useForm<RegisterForm>({
     resolver: zodResolver(schema),
-    defaultValues: { username: "", email: "", password: "", confirmPassword: "" },
+    defaultValues: {
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
   });
 
   const masterValue = watch("password");
   const strength = estimateStrength(masterValue);
-  const strengthColors = ["bg-signal-danger", "bg-signal-danger", "bg-signal-accent", "bg-signal-info", "bg-signal-success"];
+  const strengthColors = [
+    "bg-signal-danger",
+    "bg-signal-danger",
+    "bg-signal-accent",
+    "bg-signal-info",
+    "bg-signal-success",
+  ];
 
-  const { mutateAsync: registerAccount } = useMutationQuery<{ message: string }, RegisterPayload>({
+  const { mutateAsync: registerAccount } = useMutationQuery<
+    { message: string },
+    RegisterPayload
+  >({
     endpoint: API_ENDPOINTS.AUTH.REGISTER,
     showToast: false,
   });
@@ -97,7 +111,9 @@ export const Register = () => {
       });
       setRecoveryKey(built.recoveryKey);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : t("register.genericError"));
+      toast.error(
+        error instanceof Error ? error.message : t("register.genericError"),
+      );
     } finally {
       setIsWorking(false);
     }
@@ -120,7 +136,9 @@ export const Register = () => {
       setAuthenticatedHint(true);
       navigate(ROUTES.VAULT);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : t("register.genericError"));
+      toast.error(
+        error instanceof Error ? error.message : t("register.genericError"),
+      );
     } finally {
       setIsWorking(false);
     }
@@ -134,8 +152,12 @@ export const Register = () => {
           <div className="flex items-start gap-3 rounded-input bg-signal-accent/10 p-4">
             <ShieldAlert className="w-6 h-6 shrink-0 text-signal-accent" />
             <div>
-              <h2 className="font-semibold text-text-base">{t("register.recovery.title")}</h2>
-              <p className="text-body text-text-muted mt-1">{t("register.recovery.warning")}</p>
+              <h2 className="font-semibold text-text-base">
+                {t("register.recovery.title")}
+              </h2>
+              <p className="text-body text-text-muted mt-1">
+                {t("register.recovery.warning")}
+              </p>
             </div>
           </div>
 
@@ -152,7 +174,9 @@ export const Register = () => {
             onClick={handleCopy}
             className="w-full"
           >
-            {copied ? t("register.recovery.copied") : t("register.recovery.copy")}
+            {copied
+              ? t("register.recovery.copied")
+              : t("register.recovery.copy")}
           </Button>
 
           <label className="flex items-start gap-3 cursor-pointer text-body text-text-base">
@@ -185,11 +209,17 @@ export const Register = () => {
     <div className="flex items-center justify-center min-h-[70dvh] animate-in fade-in scale-in-95 duration-300">
       <Card className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h2 className="text-heading font-medium text-text-base">{t("register.title")}</h2>
+          <h2 className="text-heading font-medium text-text-base">
+            {t("register.title")}
+          </h2>
           <p className="text-text-muted mt-2">{t("register.subtitle")}</p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-5"
+          noValidate
+        >
           <Input
             label={t("register.username")}
             type="text"
@@ -232,12 +262,16 @@ export const Register = () => {
                   <div
                     key={i}
                     className={`h-1.5 flex-1 rounded-full transition-colors ${
-                      i < strength.score ? strengthColors[strength.score] : "bg-border-base"
+                      i < strength.score
+                        ? strengthColors[strength.score]
+                        : "bg-border-base"
                     }`}
                   />
                 ))}
               </div>
-              <p className="text-caption text-text-muted">{t(strength.labelKey)}</p>
+              <p className="text-caption text-text-muted">
+                {t(strength.labelKey)}
+              </p>
             </div>
           )}
 
@@ -250,16 +284,26 @@ export const Register = () => {
             {...register("confirmPassword")}
           />
 
-          <p className="text-caption text-text-muted leading-relaxed">{t("register.masterHint")}</p>
+          <p className="text-caption text-text-muted leading-relaxed">
+            {t("register.masterHint")}
+          </p>
 
-          <Button type="submit" isLoading={isWorking} icon={UserPlus} className="w-full mt-2">
+          <Button
+            type="submit"
+            isLoading={isWorking}
+            icon={UserPlus}
+            className="w-full mt-2"
+          >
             {t("register.submit")}
           </Button>
         </form>
 
         <p className="text-center text-body text-text-muted">
           {t("register.haveAccount")}{" "}
-          <Link to={ROUTES.LOGIN} className="font-semibold text-primary-500 hover:text-primary-600">
+          <Link
+            to={ROUTES.LOGIN}
+            className="font-semibold text-primary-500 hover:text-primary-600"
+          >
             {t("register.signIn")}
           </Link>
         </p>

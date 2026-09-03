@@ -255,7 +255,13 @@
       "cardNumber": "Número de tarjeta",
       "cardExpiry": "Vencimiento",
       "cardExpiryHint": "MM/AA",
-      "cardCvv": "CVV"
+      "cardCvv": "CVV",
+      "cardIssuer": "Banco emisor",
+      "cardIssuerHint": "Banco Industrial, BAC...",
+      "cardPin": "PIN de desbloqueo",
+      "cardPinHint": "4 a 12 dígitos",
+      "cardCvvHint": "3 dígitos al reverso",
+      "cardCvvHintAmex": "4 dígitos al frente"
     },
     "generator": {
       "generate": "Generar",
@@ -291,7 +297,22 @@
     "showPassword": "Mostrar contraseña",
     "hidePassword": "Ocultar contraseña",
     "copyCvv": "Copiar CVV",
-    "cvvCopied": "CVV copiado"
+    "cvvCopied": "CVV copiado",
+    "card": {
+      "endingIn": "terminada en {{last4}}",
+      "preview": "Vista previa",
+      "number": "Número",
+      "luhnWarning": "El número no pasa la verificación. Revisa los dígitos.",
+      "lengthWarning": "Longitud inusual para {{brand}}.",
+      "expiryWarning": "La tarjeta parece vencida.",
+      "pinNotice": "El PIN se guarda cifrado igual que el resto. Nunca se muestra solo."
+    },
+    "copyPin": "Copiar PIN",
+    "pinCopied": "PIN copiado",
+    "copyHolder": "Copiar titular",
+    "holderCopied": "Titular copiado",
+    "showValue": "Mostrar {{label}}",
+    "hideValue": "Ocultar {{label}}"
   },
   "dashboard": {
     "profileInfo": "Información del Perfil",

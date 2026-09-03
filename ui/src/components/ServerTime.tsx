@@ -40,16 +40,25 @@ export const ServerTime = () => {
         <Clock className="w-5 h-5" />
       </div>
       <div className="min-w-0 space-y-1.5">
-        <p className="text-caption font-semibold text-text-base opacity-70">{t("serverTime.title")}</p>
+        <p className="text-caption font-semibold text-text-base opacity-70">
+          {t("serverTime.title")}
+        </p>
         <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-body">
           <span className="text-text-muted">
-            {t("serverTime.server")} <span className="opacity-70">({info.serverTimezone})</span>:
+            {t("serverTime.server")}{" "}
+            <span className="opacity-70">({info.serverTimezone})</span>:
           </span>
-          <span className="font-mono tabular-nums text-text-base">{serverZoneTime}</span>
+          <span className="font-mono tabular-nums text-text-base">
+            {serverZoneTime}
+          </span>
           <span className="text-text-muted">{t("serverTime.guatemala")}:</span>
-          <span className="font-mono tabular-nums text-text-base">{guatemalaTime}</span>
+          <span className="font-mono tabular-nums text-text-base">
+            {guatemalaTime}
+          </span>
         </div>
-        <p className="text-caption text-text-muted">{t("serverTime.drift", { seconds: driftSeconds })}</p>
+        <p className="text-caption text-text-muted">
+          {t("serverTime.drift", { seconds: driftSeconds })}
+        </p>
       </div>
     </div>
   );

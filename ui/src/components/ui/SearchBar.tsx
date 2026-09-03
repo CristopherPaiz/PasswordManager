@@ -2,7 +2,10 @@ import { InputHTMLAttributes, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Search, X } from "lucide-react";
 
-interface SearchBarProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "onChange" | "value" | "defaultValue"> {
+interface SearchBarProps extends Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  "onChange" | "value" | "defaultValue"
+> {
   // Se llama con el valor YA debounced (no en cada tecla).
   onSearch: (value: string) => void;
   delay?: number;
@@ -11,7 +14,14 @@ interface SearchBarProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "on
   className?: string;
 }
 
-export const SearchBar = ({ onSearch, delay = 400, defaultValue = "", placeholder, className = "", ...props }: SearchBarProps) => {
+export const SearchBar = ({
+  onSearch,
+  delay = 400,
+  defaultValue = "",
+  placeholder,
+  className = "",
+  ...props
+}: SearchBarProps) => {
   const { t } = useTranslation();
   const [value, setValue] = useState(defaultValue);
 
