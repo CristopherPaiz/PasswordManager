@@ -108,8 +108,8 @@ export const UnlockVault = () => {
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary-500/10">
             <Lock className="h-7 w-7 text-primary-500" />
           </div>
-          <h2 className="text-2xl font-bold text-text-base">{t("unlock.title")}</h2>
-          <p className="text-text-muted text-sm">{t("unlock.subtitle")}</p>
+          <h2 className="text-subheading font-medium text-text-base">{t("unlock.title")}</h2>
+          <p className="text-text-muted text-body">{t("unlock.subtitle")}</p>
         </div>
 
         {canUsePasskey && (
@@ -151,7 +151,7 @@ export const UnlockVault = () => {
         <button
           type="button"
           onClick={handleLogout}
-          className="mx-auto flex items-center gap-2 text-sm text-text-muted hover:text-text-base transition-colors cursor-pointer"
+          className="mx-auto flex items-center gap-2 text-body text-text-muted hover:text-text-base transition-colors cursor-pointer"
         >
           <LogOut className="h-4 w-4" />
           {t("nav.logoutFull")}

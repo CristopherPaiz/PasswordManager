@@ -56,7 +56,7 @@ export const Register = () => {
 
   const masterValue = watch("password");
   const strength = estimateStrength(masterValue);
-  const strengthColors = ["bg-red-500", "bg-red-500", "bg-amber-500", "bg-lime-500", "bg-green-500"];
+  const strengthColors = ["bg-signal-danger", "bg-signal-danger", "bg-signal-accent", "bg-signal-info", "bg-signal-success"];
 
   const { mutateAsync: registerAccount } = useMutationQuery<{ message: string }, RegisterPayload>({
     endpoint: API_ENDPOINTS.AUTH.REGISTER,
@@ -131,16 +131,16 @@ export const Register = () => {
     return (
       <div className="flex items-center justify-center min-h-[70dvh] animate-in fade-in duration-300">
         <Card className="w-full max-w-md space-y-6">
-          <div className="flex items-start gap-3 rounded-xl bg-amber-50 dark:bg-amber-500/10 p-4">
-            <ShieldAlert className="w-6 h-6 shrink-0 text-amber-600 dark:text-amber-400" />
+          <div className="flex items-start gap-3 rounded-input bg-signal-accent/10 p-4">
+            <ShieldAlert className="w-6 h-6 shrink-0 text-signal-accent" />
             <div>
-              <h2 className="font-bold text-text-base">{t("register.recovery.title")}</h2>
-              <p className="text-sm text-text-muted mt-1">{t("register.recovery.warning")}</p>
+              <h2 className="font-semibold text-text-base">{t("register.recovery.title")}</h2>
+              <p className="text-body text-text-muted mt-1">{t("register.recovery.warning")}</p>
             </div>
           </div>
 
-          <div className="rounded-xl border border-border-base bg-bg-base p-4">
-            <p className="font-mono text-center text-lg tracking-wider text-text-base break-all select-all">
+          <div className="rounded-input border border-border-base bg-bg-base p-4">
+            <p className="font-mono text-center text-title tracking-wider text-text-base break-all select-all">
               {recoveryKey}
             </p>
           </div>
@@ -155,7 +155,7 @@ export const Register = () => {
             {copied ? t("register.recovery.copied") : t("register.recovery.copy")}
           </Button>
 
-          <label className="flex items-start gap-3 cursor-pointer text-sm text-text-base">
+          <label className="flex items-start gap-3 cursor-pointer text-body text-text-base">
             <input
               type="checkbox"
               checked={savedConfirmed}
@@ -183,9 +183,9 @@ export const Register = () => {
   // ---- Paso 1: formulario ----
   return (
     <div className="flex items-center justify-center min-h-[70dvh] animate-in fade-in scale-in-95 duration-300">
-      <Card className="w-full max-w-md space-y-8 shadow-xl shadow-primary-500/5">
+      <Card className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-text-base">{t("register.title")}</h2>
+          <h2 className="text-heading font-medium text-text-base">{t("register.title")}</h2>
           <p className="text-text-muted mt-2">{t("register.subtitle")}</p>
         </div>
 
@@ -237,7 +237,7 @@ export const Register = () => {
                   />
                 ))}
               </div>
-              <p className="text-xs text-text-muted">{t(strength.labelKey)}</p>
+              <p className="text-caption text-text-muted">{t(strength.labelKey)}</p>
             </div>
           )}
 
@@ -250,14 +250,14 @@ export const Register = () => {
             {...register("confirmPassword")}
           />
 
-          <p className="text-xs text-text-muted leading-relaxed">{t("register.masterHint")}</p>
+          <p className="text-caption text-text-muted leading-relaxed">{t("register.masterHint")}</p>
 
           <Button type="submit" isLoading={isWorking} icon={UserPlus} className="w-full mt-2">
             {t("register.submit")}
           </Button>
         </form>
 
-        <p className="text-center text-sm text-text-muted">
+        <p className="text-center text-body text-text-muted">
           {t("register.haveAccount")}{" "}
           <Link to={ROUTES.LOGIN} className="font-semibold text-primary-500 hover:text-primary-600">
             {t("register.signIn")}

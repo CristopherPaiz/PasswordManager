@@ -143,12 +143,12 @@ export const BackupCard = () => {
         <Archive className="h-5 w-5 text-primary-500" />
         <CardTitle className="mb-0">{t("settings.backup.title")}</CardTitle>
       </div>
-      <p className="text-sm text-text-muted">{t("settings.backup.description")}</p>
+      <p className="text-body text-text-muted">{t("settings.backup.description")}</p>
 
       {/* Export */}
-      <div className="space-y-3 rounded-xl border border-border-base bg-bg-base p-4">
-        <p className="text-sm font-semibold text-text-base">{t("settings.backup.exportTitle")}</p>
-        <p className="text-xs text-text-muted">{t("settings.backup.exportHint")}</p>
+      <div className="space-y-3 rounded-input border border-border-base bg-bg-base p-4">
+        <p className="text-body font-semibold text-text-base">{t("settings.backup.exportTitle")}</p>
+        <p className="text-caption text-text-muted">{t("settings.backup.exportHint")}</p>
         <Input label={t("settings.backup.exportPw")} type="password" autoComplete="new-password" value={exportPw} onChange={(e) => setExportPw(e.target.value)} />
         <Button type="button" icon={Download} variant="secondary" isLoading={isExporting} onClick={handleExport}>
           {t("settings.backup.exportBtn")}
@@ -156,9 +156,9 @@ export const BackupCard = () => {
       </div>
 
       {/* Import */}
-      <div className="space-y-3 rounded-xl border border-border-base bg-bg-base p-4">
-        <p className="text-sm font-semibold text-text-base">{t("settings.backup.importTitle")}</p>
-        <p className="text-xs text-text-muted">{t("settings.backup.importHint")}</p>
+      <div className="space-y-3 rounded-input border border-border-base bg-bg-base p-4">
+        <p className="text-body font-semibold text-text-base">{t("settings.backup.importTitle")}</p>
+        <p className="text-caption text-text-muted">{t("settings.backup.importHint")}</p>
         <Input label={t("settings.backup.file")} type="file" accept=".json,.csv" onChange={(e) => setImportFile(e.target.files?.[0] ?? null)} />
         <Input label={t("settings.backup.importPw")} type="password" autoComplete="off" value={importPw} onChange={(e) => setImportPw(e.target.value)} />
         <Button type="button" icon={Upload} variant="secondary" isLoading={isImporting} onClick={handleImport}>

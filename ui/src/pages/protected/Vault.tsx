@@ -46,9 +46,9 @@ const TYPE_TABS: { value: TypeFilter; icon?: typeof KeyRound }[] = [
 
 // Identidad visual por tipo: icono + color del chip (claro y oscuro).
 const TYPE_STYLES: Record<VaultItemType, { icon: typeof KeyRound; chip: string }> = {
-  password: { icon: KeyRound, chip: "bg-blue-500/10 text-blue-600 dark:text-blue-400" },
-  card: { icon: CreditCard, chip: "bg-purple-500/10 text-purple-600 dark:text-purple-400" },
-  note: { icon: StickyNote, chip: "bg-amber-500/10 text-amber-600 dark:text-amber-400" },
+  password: { icon: KeyRound, chip: "bg-signal-info/10 text-signal-info" },
+  card: { icon: CreditCard, chip: "bg-primary-500/10 text-primary-500" },
+  note: { icon: StickyNote, chip: "bg-signal-accent/10 text-signal-accent" },
 };
 
 interface FavoritePayload {
@@ -213,8 +213,8 @@ export const Vault = () => {
     <div className="mx-auto w-full max-w-5xl space-y-6 px-4 py-6 min-w-0">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-text-base">{t("vault.title")}</h1>
-          <p className="text-sm text-text-muted">{t("vault.subtitle")}</p>
+          <h1 className="text-subheading font-medium text-text-base">{t("vault.title")}</h1>
+          <p className="text-body text-text-muted">{t("vault.subtitle")}</p>
         </div>
         <Button icon={Plus} onClick={openNew} className="shrink-0">
           {t("vault.add")}
@@ -232,7 +232,7 @@ export const Vault = () => {
               type="button"
               onClick={() => setTypeFilter(value)}
               aria-pressed={typeFilter === value}
-              className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer ${
+              className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-body font-medium transition-colors cursor-pointer ${
                 typeFilter === value
                   ? "border-primary-500 bg-primary-500/10 text-primary-600 dark:text-primary-400"
                   : "border-border-base text-text-muted hover:text-text-base"
@@ -247,9 +247,9 @@ export const Vault = () => {
             onClick={() => setOnlyFavorites((v) => !v)}
             aria-pressed={onlyFavorites}
             aria-label={t("vault.filters.favorites")}
-            className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors cursor-pointer ${
+            className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-body font-medium transition-colors cursor-pointer ${
               onlyFavorites
-                ? "border-amber-500 bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
+                ? "border-signal-accent bg-signal-accent/10 text-signal-accent"
                 : "border-border-base text-text-muted hover:text-text-base"
             }`}
           >
@@ -274,7 +274,7 @@ export const Vault = () => {
       </div>
 
       {!showSkeleton && items.length > 0 && (
-        <p className="text-sm text-text-muted" aria-live="polite">
+        <p className="text-body text-text-muted" aria-live="polite">
           {t("vault.resultCount", { count: filtered.length })}
         </p>
       )}
@@ -282,12 +282,12 @@ export const Vault = () => {
       {showSkeleton ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-40 w-full rounded-2xl" />
+            <Skeleton key={i} className="h-40 w-full rounded-card" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
         <Card className="flex flex-col items-center gap-4 py-12 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-500/10 text-primary-500">
+          <div className="flex h-14 w-14 items-center justify-center rounded-card bg-primary-500/10 text-primary-500">
             {items.length === 0 ? <KeyRound className="h-7 w-7" /> : <SearchIcon className="h-7 w-7" />}
           </div>
           <p className="text-text-muted">{items.length === 0 ? t("vault.empty") : t("vault.noResults")}</p>
@@ -306,26 +306,26 @@ export const Vault = () => {
             return (
               <div
                 key={item.id}
-                className="flex min-w-0 flex-col rounded-2xl border border-border-base bg-bg-surface p-4 shadow-sm transition-colors hover:border-primary-500/40"
+                className="flex min-w-0 flex-col rounded-card border border-border-base bg-bg-surface p-4 transition-colors hover:border-primary-500/40"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex min-w-0 flex-1 items-start gap-3">
-                    <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${chip}`}>
+                    <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-card ${chip}`}>
                       <TypeIcon className="h-5 w-5" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <h3 className="truncate font-semibold text-text-base">{item.data.title}</h3>
                       {item.tipo === "password" && item.data.username && (
-                        <p className="truncate text-sm text-text-muted">{item.data.username}</p>
+                        <p className="truncate text-body text-text-muted">{item.data.username}</p>
                       )}
                       {item.tipo === "password" && item.data.url && (
-                        <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-text-muted">
+                        <p className="mt-0.5 flex items-center gap-1 truncate text-caption text-text-muted">
                           <Globe className="h-3 w-3 shrink-0" />
                           <span className="truncate">{item.data.url}</span>
                         </p>
                       )}
                       {item.tipo === "card" && item.data.cardHolder && (
-                        <p className="truncate text-sm text-text-muted">{item.data.cardHolder}</p>
+                        <p className="truncate text-body text-text-muted">{item.data.cardHolder}</p>
                       )}
                     </div>
                   </div>
@@ -333,16 +333,16 @@ export const Vault = () => {
                     <button
                       type="button"
                       onClick={() => toggleFavorite(item)}
-                      className="rounded-lg p-2 text-text-muted hover:bg-bg-base transition-colors cursor-pointer"
+                      className="rounded-button p-2 text-text-muted hover:bg-bg-base transition-colors cursor-pointer"
                       aria-label={t("vault.toggleFavorite")}
                       aria-pressed={Boolean(item.data.favorite)}
                     >
-                      <Star className={`h-4 w-4 ${item.data.favorite ? "fill-amber-500 text-amber-500" : ""}`} />
+                      <Star className={`h-4 w-4 ${item.data.favorite ? "fill-signal-accent text-signal-accent" : ""}`} />
                     </button>
                     <button
                       type="button"
                       onClick={() => openEdit(item)}
-                      className="rounded-lg p-2 text-text-muted hover:bg-bg-base hover:text-text-base transition-colors cursor-pointer"
+                      className="rounded-button p-2 text-text-muted hover:bg-bg-base hover:text-text-base transition-colors cursor-pointer"
                       aria-label={t("vault.edit")}
                     >
                       <Pencil className="h-4 w-4" />
@@ -352,14 +352,14 @@ export const Vault = () => {
 
                 {/* Contraseña: fila revelable (monospace) + copiar con feedback. */}
                 {item.tipo === "password" && item.data.password && (
-                  <div className="mt-3 flex items-center gap-1 rounded-xl bg-bg-base px-3 py-2">
-                    <code className="min-w-0 flex-1 truncate font-mono text-sm text-text-base">
+                  <div className="mt-3 flex items-center gap-1 rounded-input bg-bg-base px-3 py-2">
+                    <code className="min-w-0 flex-1 truncate font-mono text-body text-text-base">
                       {isRevealed ? item.data.password : "•".repeat(Math.min(item.data.password.length, 16))}
                     </code>
                     <button
                       type="button"
                       onClick={() => toggleReveal(item.id)}
-                      className="shrink-0 rounded-lg p-1.5 text-text-muted hover:text-text-base transition-colors cursor-pointer"
+                      className="shrink-0 rounded-button p-1.5 text-text-muted hover:text-text-base transition-colors cursor-pointer"
                       aria-label={isRevealed ? t("vault.hidePassword") : t("vault.showPassword")}
                     >
                       {isRevealed ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -367,11 +367,11 @@ export const Vault = () => {
                     <button
                       type="button"
                       onClick={() => copy(item.data.password, t("vault.passwordCopied"), `${item.id}:pw`)}
-                      className="shrink-0 rounded-lg p-1.5 text-text-muted hover:text-text-base transition-colors cursor-pointer"
+                      className="shrink-0 rounded-button p-1.5 text-text-muted hover:text-text-base transition-colors cursor-pointer"
                       aria-label={t("vault.copyPassword")}
                     >
                       {copiedKey === `${item.id}:pw` ? (
-                        <Check className="h-4 w-4 text-green-500" />
+                        <Check className="h-4 w-4 text-signal-success" />
                       ) : (
                         <Copy className="h-4 w-4" />
                       )}
@@ -381,15 +381,15 @@ export const Vault = () => {
 
                 {/* Tarjeta: mini-visual con el gradiente de la marca. */}
                 {item.tipo === "card" && (
-                  <div className={`mt-3 rounded-xl bg-gradient-to-br ${brand.gradient} p-4 text-white shadow-sm`}>
+                  <div className={`mt-3 rounded-card bg-gradient-to-br ${brand.gradient} p-4 text-white`}>
                     <div className="flex items-center justify-between">
                       <CreditCard className="h-5 w-5 opacity-80" />
-                      {brand.label && <span className="text-xs font-semibold opacity-90">{brand.label}</span>}
+                      {brand.label && <span className="text-caption font-semibold opacity-90">{brand.label}</span>}
                     </div>
-                    <p className="mt-3 font-mono text-base tracking-widest">
+                    <p className="mt-3 font-mono text-body tracking-widest">
                       •••• {cardLast4(item.data.cardNumber ?? "")}
                     </p>
-                    <div className="mt-2 flex items-center justify-between text-xs opacity-90">
+                    <div className="mt-2 flex items-center justify-between text-caption opacity-90">
                       <span className="truncate">{item.data.cardHolder || "—"}</span>
                       {item.data.cardExpiry && <span className="shrink-0">{item.data.cardExpiry}</span>}
                     </div>
@@ -398,7 +398,7 @@ export const Vault = () => {
 
                 {/* Nota: vista previa. */}
                 {item.tipo === "note" && item.data.notes && (
-                  <p className="mt-3 whitespace-pre-wrap break-words rounded-xl bg-bg-base px-3 py-2 text-sm text-text-muted line-clamp-4">
+                  <p className="mt-3 whitespace-pre-wrap break-words rounded-input bg-bg-base px-3 py-2 text-body text-text-muted line-clamp-4">
                     {item.data.notes}
                   </p>
                 )}
@@ -406,14 +406,14 @@ export const Vault = () => {
                 {(item.data.folder || (item.data.tags?.length ?? 0) > 0) && (
                   <div className="mt-3 flex flex-wrap gap-1.5">
                     {item.data.folder && (
-                      <span className="rounded-full bg-primary-500/10 px-2 py-0.5 text-xs font-medium text-primary-600 dark:text-primary-400">
+                      <span className="rounded-full bg-primary-500/10 px-2 py-0.5 text-caption font-medium text-primary-600 dark:text-primary-400">
                         {item.data.folder}
                       </span>
                     )}
                     {item.data.tags?.map((tag) => (
                       <span
                         key={tag}
-                        className="rounded-full border border-border-base bg-bg-base px-2 py-0.5 text-xs text-text-muted"
+                        className="rounded-full border border-border-base bg-bg-base px-2 py-0.5 text-caption text-text-muted"
                       >
                         {tag}
                       </span>

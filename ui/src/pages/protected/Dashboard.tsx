@@ -121,41 +121,41 @@ export const Dashboard = () => {
             <>
               <Avatar name={fullName || user?.username} size="lg" />
               <div>
-                <p className="text-lg font-bold text-text-base">{fullName || user?.username}</p>
-                <p className="text-sm text-text-muted">@{user?.username}</p>
+                <p className="text-title font-medium text-text-base">{fullName || user?.username}</p>
+                <p className="text-body text-text-muted">@{user?.username}</p>
               </div>
             </>
           )}
         </div>
 
         <div className="space-y-5 text-text-muted">
-          <div className="flex items-center gap-4 p-4 bg-bg-base rounded-xl border border-border-base">
-            <div className="w-12 h-12 rounded-full bg-primary-50 dark:bg-primary-900/20 text-primary-500 flex items-center justify-center border border-primary-100 dark:border-primary-800">
+          <div className="flex items-center gap-4 p-4 bg-bg-base rounded-input border border-border-base">
+            <div className="w-12 h-12 rounded-full bg-primary-50 dark:bg-primary-500/10 text-primary-500 flex items-center justify-center border border-primary-100 dark:border-primary-800">
               <Fingerprint className="w-6 h-6" />
             </div>
             <div className="flex flex-col">
-              <span className="text-xs font-semibold text-text-base opacity-70">{t("dashboard.userId")}</span>
-              {isLoadingUser ? <Skeleton className="h-5 w-16 mt-1" /> : <span className="font-mono text-sm text-text-base">#{user?.id}</span>}
+              <span className="text-caption font-semibold text-text-base opacity-70">{t("dashboard.userId")}</span>
+              {isLoadingUser ? <Skeleton className="h-5 w-16 mt-1" /> : <span className="font-mono text-body text-text-base">#{user?.id}</span>}
             </div>
           </div>
 
-          <div className="flex items-center gap-4 p-4 bg-bg-base rounded-xl border border-border-base">
-            <div className="w-12 h-12 rounded-full bg-primary-50 dark:bg-primary-900/20 text-primary-500 flex items-center justify-center border border-primary-100 dark:border-primary-800">
+          <div className="flex items-center gap-4 p-4 bg-bg-base rounded-input border border-border-base">
+            <div className="w-12 h-12 rounded-full bg-primary-50 dark:bg-primary-500/10 text-primary-500 flex items-center justify-center border border-primary-100 dark:border-primary-800">
               <UserCheck className="w-6 h-6" />
             </div>
             <div className="flex flex-col">
-              <span className="text-xs font-semibold text-text-base opacity-70">{t("dashboard.username")}</span>
-              {isLoadingUser ? <Skeleton className="h-6 w-32 mt-1" /> : <span className="text-lg font-medium text-text-base">{user?.username}</span>}
+              <span className="text-caption font-semibold text-text-base opacity-70">{t("dashboard.username")}</span>
+              {isLoadingUser ? <Skeleton className="h-6 w-32 mt-1" /> : <span className="text-title font-medium text-text-base">{user?.username}</span>}
             </div>
           </div>
 
-          <div className="flex items-center gap-4 p-4 bg-bg-base rounded-xl border border-border-base">
-            <div className="w-12 h-12 rounded-full bg-primary-50 dark:bg-primary-900/20 text-primary-500 flex items-center justify-center border border-primary-100 dark:border-primary-800">
+          <div className="flex items-center gap-4 p-4 bg-bg-base rounded-input border border-border-base">
+            <div className="w-12 h-12 rounded-full bg-primary-50 dark:bg-primary-500/10 text-primary-500 flex items-center justify-center border border-primary-100 dark:border-primary-800">
               <BadgeCheck className="w-6 h-6" />
             </div>
             <div className="flex flex-col">
-              <span className="text-xs font-semibold text-text-base opacity-70">{t("dashboard.fullName")}</span>
-              {isLoadingUser ? <Skeleton className="h-6 w-40 mt-1" /> : <span className="text-lg font-medium text-text-base">{fullName || t("dashboard.na")}</span>}
+              <span className="text-caption font-semibold text-text-base opacity-70">{t("dashboard.fullName")}</span>
+              {isLoadingUser ? <Skeleton className="h-6 w-40 mt-1" /> : <span className="text-title font-medium text-text-base">{fullName || t("dashboard.na")}</span>}
             </div>
           </div>
 
@@ -173,22 +173,22 @@ export const Dashboard = () => {
 
           {previewUrl && (
             <div className="animate-in fade-in zoom-in duration-300">
-              <p className="text-sm font-semibold text-text-base mb-3 flex items-center gap-2">
+              <p className="text-body font-semibold text-text-base mb-3 flex items-center gap-2">
                 <ImageIcon className="w-4 h-4 text-text-muted" />
                 {t("dashboard.preview")}
               </p>
-              <img src={previewUrl} alt="Preview" className="w-full max-h-72 object-cover rounded-xl border-2 border-dashed border-border-base" />
+              <img src={previewUrl} alt="Preview" className="w-full max-h-72 object-cover rounded-card border-2 border-dashed border-border-base" />
             </div>
           )}
 
           {uploadedImageUrl && (
-            <div className="p-5 border border-green-200 dark:border-green-900/50 bg-green-50/50 dark:bg-green-900/10 rounded-xl animate-in fade-in duration-300">
-              <p className="text-sm font-bold text-green-700 dark:text-green-400 mb-3 flex items-center gap-2">
+            <div className="p-5 border border-signal-success/30 bg-signal-success/10 rounded-input animate-in fade-in duration-300">
+              <p className="text-body font-semibold text-signal-success mb-3 flex items-center gap-2">
                 <BadgeCheck className="w-5 h-5" />
                 {t("dashboard.uploadSuccessTitle")}
               </p>
-              <img src={uploadedImageUrl} alt="Uploaded result" className="w-full max-h-72 object-cover rounded-xl shadow-md mb-3" />
-              <a href={uploadedImageUrl} target="_blank" rel="noreferrer" className="text-sm font-medium text-primary-500 hover:text-primary-600 transition-colors inline-flex items-center gap-1.5">
+              <img src={uploadedImageUrl} alt="Uploaded result" className="w-full max-h-72 object-cover rounded-card mb-3" />
+              <a href={uploadedImageUrl} target="_blank" rel="noreferrer" className="text-body font-medium text-primary-500 hover:text-primary-600 transition-colors inline-flex items-center gap-1.5">
                 {t("dashboard.openOriginal")} &rarr;
               </a>
             </div>
@@ -233,7 +233,7 @@ export const Dashboard = () => {
         <p className="mb-4">{t("dashboard.demoIntro")}</p>
         <div className="space-y-2">
           {Array.from({ length: 30 }).map((_, i) => (
-            <p key={i} className="text-sm">
+            <p key={i} className="text-body">
               {t("dashboard.demoLine", { n: i + 1 })}
             </p>
           ))}

@@ -35,13 +35,13 @@ export const ServerTime = () => {
   const driftSeconds = Math.round(-offset / 1000); // positivo = tu reloj va adelantado
 
   return (
-    <div className="flex items-start gap-3 p-4 bg-bg-base rounded-xl border border-border-base">
-      <div className="w-10 h-10 rounded-full bg-primary-50 dark:bg-primary-900/20 text-primary-500 flex items-center justify-center shrink-0">
+    <div className="flex items-start gap-3 p-4 bg-bg-base rounded-input border border-border-base">
+      <div className="w-10 h-10 rounded-full bg-primary-50 dark:bg-primary-500/10 text-primary-500 flex items-center justify-center shrink-0">
         <Clock className="w-5 h-5" />
       </div>
       <div className="min-w-0 space-y-1.5">
-        <p className="text-xs font-semibold text-text-base opacity-70">{t("serverTime.title")}</p>
-        <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-sm">
+        <p className="text-caption font-semibold text-text-base opacity-70">{t("serverTime.title")}</p>
+        <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-body">
           <span className="text-text-muted">
             {t("serverTime.server")} <span className="opacity-70">({info.serverTimezone})</span>:
           </span>
@@ -49,7 +49,7 @@ export const ServerTime = () => {
           <span className="text-text-muted">{t("serverTime.guatemala")}:</span>
           <span className="font-mono tabular-nums text-text-base">{guatemalaTime}</span>
         </div>
-        <p className="text-xs text-text-muted">{t("serverTime.drift", { seconds: driftSeconds })}</p>
+        <p className="text-caption text-text-muted">{t("serverTime.drift", { seconds: driftSeconds })}</p>
       </div>
     </div>
   );

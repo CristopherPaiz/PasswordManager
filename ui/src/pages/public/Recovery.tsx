@@ -121,16 +121,16 @@ export const Recovery = () => {
     return (
       <div className="flex items-center justify-center min-h-[70dvh] animate-in fade-in duration-300">
         <Card className="w-full max-w-md space-y-6">
-          <div className="flex items-start gap-3 rounded-xl bg-amber-50 dark:bg-amber-500/10 p-4">
-            <ShieldAlert className="w-6 h-6 shrink-0 text-amber-600 dark:text-amber-400" />
+          <div className="flex items-start gap-3 rounded-input bg-signal-accent/10 p-4">
+            <ShieldAlert className="w-6 h-6 shrink-0 text-signal-accent" />
             <div>
-              <h2 className="font-bold text-text-base">{t("recovery.newKey.title")}</h2>
-              <p className="text-sm text-text-muted mt-1">{t("recovery.newKey.warning")}</p>
+              <h2 className="font-semibold text-text-base">{t("recovery.newKey.title")}</h2>
+              <p className="text-body text-text-muted mt-1">{t("recovery.newKey.warning")}</p>
             </div>
           </div>
 
-          <div className="rounded-xl border border-border-base bg-bg-base p-4">
-            <p className="font-mono text-center text-lg tracking-wider text-text-base break-all select-all">
+          <div className="rounded-input border border-border-base bg-bg-base p-4">
+            <p className="font-mono text-center text-title tracking-wider text-text-base break-all select-all">
               {newRecoveryKey}
             </p>
           </div>
@@ -145,7 +145,7 @@ export const Recovery = () => {
             {copied ? t("recovery.newKey.copied") : t("recovery.newKey.copy")}
           </Button>
 
-          <label className="flex items-start gap-3 cursor-pointer text-sm text-text-base">
+          <label className="flex items-start gap-3 cursor-pointer text-body text-text-base">
             <input
               type="checkbox"
               checked={savedConfirmed}
@@ -171,10 +171,10 @@ export const Recovery = () => {
 
   return (
     <div className="flex items-center justify-center min-h-[70dvh] animate-in fade-in scale-in-95 duration-300">
-      <Card className="w-full max-w-md space-y-6 shadow-xl shadow-primary-500/5">
+      <Card className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
-          <h2 className="text-2xl font-bold text-text-base">{t("recovery.title")}</h2>
-          <p className="text-text-muted text-sm">{t("recovery.subtitle")}</p>
+          <h2 className="text-subheading font-medium text-text-base">{t("recovery.title")}</h2>
+          <p className="text-text-muted text-body">{t("recovery.subtitle")}</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
@@ -227,7 +227,7 @@ export const Recovery = () => {
 
         <Link
           to={ROUTES.LOGIN}
-          className="flex items-center justify-center gap-2 text-sm text-text-muted hover:text-text-base transition-colors"
+          className="flex items-center justify-center gap-2 text-body text-text-muted hover:text-text-base transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
           {t("recovery.backToLogin")}

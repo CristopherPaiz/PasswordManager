@@ -138,7 +138,7 @@ export const VaultItemModal = ({ isOpen, onClose, vaultKey, item, folders, onDel
                 type="button"
                 onClick={() => setTipo(value)}
                 aria-pressed={tipo === value}
-                className={`flex flex-col items-center gap-1 rounded-xl border p-3 text-xs font-medium transition-colors cursor-pointer ${
+                className={`flex flex-col items-center gap-1 rounded-button border p-3 text-caption font-medium transition-colors cursor-pointer ${
                   tipo === value
                     ? "border-primary-500 bg-primary-500/10 text-primary-600 dark:text-primary-400"
                     : "border-border-base text-text-muted hover:border-primary-500/40 hover:text-text-base"
@@ -187,15 +187,15 @@ export const VaultItemModal = ({ isOpen, onClose, vaultKey, item, folders, onDel
                 <button
                   type="button"
                   onClick={() => setShowGen((v) => !v)}
-                  className="text-sm text-primary-500 hover:text-primary-600 cursor-pointer"
+                  className="text-body text-primary-500 hover:text-primary-600 cursor-pointer"
                 >
                   {showGen ? t("vault.generator.hide") : t("vault.generator.options")}
                 </button>
               </div>
 
               {showGen && (
-                <div className="rounded-xl border border-border-base bg-bg-base p-4 space-y-3">
-                  <label className="flex items-center justify-between gap-3 text-sm text-text-base">
+                <div className="rounded-input border border-border-base bg-bg-base p-4 space-y-3">
+                  <label className="flex items-center justify-between gap-3 text-body text-text-base">
                     <span>{t("vault.generator.length")}: {genOptions.length}</span>
                     <input
                       type="range"
@@ -206,7 +206,7 @@ export const VaultItemModal = ({ isOpen, onClose, vaultKey, item, folders, onDel
                       className="w-1/2 accent-primary-500"
                     />
                   </label>
-                  <div className="grid grid-cols-2 gap-2 text-sm text-text-base">
+                  <div className="grid grid-cols-2 gap-2 text-body text-text-base">
                     {(["uppercase", "lowercase", "numbers", "symbols"] as const).map((key) => (
                       <label key={key} className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -255,7 +255,7 @@ export const VaultItemModal = ({ isOpen, onClose, vaultKey, item, folders, onDel
               />
               {(form.cardNumber ?? "").replace(/\D/g, "").length >= 2 &&
                 detectCardBrand(form.cardNumber ?? "").label && (
-                  <span className="pointer-events-none absolute right-3 top-9 rounded-md bg-bg-base px-2 py-1 text-xs font-semibold text-text-muted">
+                  <span className="pointer-events-none absolute right-3 top-9 rounded-badge bg-bg-base px-2 py-1 text-caption font-semibold text-text-muted">
                     {detectCardBrand(form.cardNumber ?? "").label}
                   </span>
                 )}
@@ -313,14 +313,14 @@ export const VaultItemModal = ({ isOpen, onClose, vaultKey, item, folders, onDel
           />
         </div>
 
-        <label className="flex items-center gap-2 text-sm text-text-base cursor-pointer">
+        <label className="flex items-center gap-2 text-body text-text-base cursor-pointer">
           <input
             type="checkbox"
             checked={form.favorite ?? false}
             onChange={(e) => setField("favorite", e.target.checked)}
             className="h-4 w-4 accent-primary-500"
           />
-          <Star className="h-4 w-4 text-amber-500" />
+          <Star className="h-4 w-4 text-signal-accent" />
           {t("vault.fields.favorite")}
         </label>
       </div>

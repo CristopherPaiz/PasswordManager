@@ -55,7 +55,7 @@ export const Navbar = () => {
   const closeMenu = () => setIsMobileMenuOpen(false);
 
   return (
-    <nav className="bg-bg-surface/75 backdrop-blur-lg border-b border-border-base sticky top-0 z-50 transition-colors shadow-sm">
+    <nav className="bg-bg-surface/75 backdrop-blur-lg border-b border-border-base sticky top-0 z-50 transition-colors">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-8">
           <Link to={ROUTES.HOME} onClick={closeMenu} className="text-body font-semibold text-text-base tracking-tight">
@@ -109,7 +109,7 @@ export const Navbar = () => {
             <>
               {user ? (
                 <div className="flex items-center gap-4 border-l border-border-base pl-4 ml-2">
-                  <div className="flex items-center gap-2 text-sm font-medium text-text-base">
+                  <div className="flex items-center gap-2 text-body font-medium text-text-base">
                     <div className="w-7 h-7 rounded-full bg-bg-elevated border border-border-base text-text-muted flex items-center justify-center">
                       <UserIcon className="w-4 h-4" />
                     </div>
@@ -150,7 +150,7 @@ export const Navbar = () => {
       </div>
 
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-bg-surface border-t border-border-base px-4 py-4 space-y-2 animate-in slide-in-from-top-2 duration-200 shadow-xl">
+        <div className="md:hidden bg-bg-surface border-t border-border-base px-4 py-4 space-y-2 animate-in slide-in-from-top-2 duration-200">
           {NAVIGATION.PUBLIC.map((item) => (
             <Link
               key={item.path}
@@ -191,8 +191,8 @@ export const Navbar = () => {
                         <UserIcon className="w-5 h-5" />
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-xs text-text-muted">{t("nav.connectedAs")}</span>
-                        <span className="text-sm font-medium text-text-base">{user.username}</span>
+                        <span className="text-caption text-text-muted">{t("nav.connectedAs")}</span>
+                        <span className="text-body font-medium text-text-base">{user.username}</span>
                       </div>
                     </div>
                     <button

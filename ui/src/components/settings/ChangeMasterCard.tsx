@@ -78,10 +78,10 @@ export const ChangeMasterCard = () => {
         <KeyRound className="h-5 w-5 text-primary-500" />
         <CardTitle className="mb-0">{t("settings.master.title")}</CardTitle>
       </div>
-      <p className="text-sm text-text-muted">{t("settings.master.description")}</p>
+      <p className="text-body text-text-muted">{t("settings.master.description")}</p>
 
       {!vaultKeyRaw ? (
-        <p className="rounded-xl bg-bg-base p-3 text-sm text-text-muted">
+        <p className="rounded-input bg-bg-base p-3 text-body text-text-muted">
           {t("settings.master.needUnlock")}
         </p>
       ) : (

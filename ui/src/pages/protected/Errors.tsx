@@ -14,7 +14,7 @@ import { StackTrace } from "@components/ui/StackTrace";
 
 const Field = ({ label, children }: { label: string; children: ReactNode }) => (
   <div>
-    <p className="text-xs font-semibold text-text-base opacity-70 mb-1">{label}</p>
+    <p className="text-caption font-semibold text-text-base opacity-70 mb-1">{label}</p>
     {children}
   </div>
 );
@@ -72,7 +72,7 @@ export const Errors = () => {
           type="button"
           onClick={() => setSelected(row)}
           aria-label={t("errors.view")}
-          className="p-1.5 text-text-muted hover:text-primary-500 hover:bg-bg-base rounded-lg transition-colors cursor-pointer"
+          className="p-1.5 text-text-muted hover:text-primary-500 hover:bg-bg-base rounded-button transition-colors cursor-pointer"
         >
           <Eye className="w-4 h-4" />
         </button>
@@ -115,7 +115,7 @@ export const Errors = () => {
         }
       >
         {selected && (
-          <div className="space-y-4 text-sm">
+          <div className="space-y-4 text-body">
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="neutral">#{selected.id}</Badge>
               <Badge variant="primary">{selected.method}</Badge>

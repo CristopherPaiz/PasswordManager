@@ -139,8 +139,8 @@ export const Login = () => {
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary-500/10">
               <ShieldCheck className="h-7 w-7 text-primary-500" />
             </div>
-            <h2 className="text-2xl font-bold text-text-base">{t("login.totpTitle")}</h2>
-            <p className="text-text-muted text-sm">{t("login.totpSubtitle")}</p>
+            <h2 className="text-subheading font-medium text-text-base">{t("login.totpTitle")}</h2>
+            <p className="text-text-muted text-body">{t("login.totpSubtitle")}</p>
           </div>
           <form onSubmit={onSubmitTotp} className="space-y-5" noValidate>
             <Input
@@ -172,9 +172,9 @@ export const Login = () => {
   // ---- Paso credenciales ----
   return (
     <div className="flex items-center justify-center min-h-[70dvh] animate-in fade-in scale-in-95 duration-300">
-      <Card className="w-full max-w-md space-y-8 shadow-xl shadow-primary-500/5">
+      <Card className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-text-base">{t("login.title")}</h2>
+          <h2 className="text-heading font-medium text-text-base">{t("login.title")}</h2>
           <p className="text-text-muted mt-2">{t("login.subtitle")}</p>
         </div>
 
@@ -208,7 +208,7 @@ export const Login = () => {
           </Button>
         </form>
 
-        <div className="space-y-2 text-center text-sm text-text-muted">
+        <div className="space-y-2 text-center text-body text-text-muted">
           <p>
             {t("login.noAccount")}{" "}
             <Link to={ROUTES.REGISTER} className="font-semibold text-primary-500 hover:text-primary-600">

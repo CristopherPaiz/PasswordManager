@@ -157,7 +157,7 @@ export const Settings = () => {
 
   return (
     <div className="mx-auto w-full max-w-2xl space-y-6 px-4 py-6 min-w-0">
-      <h1 className="text-2xl font-bold text-text-base">{t("settings.title")}</h1>
+      <h1 className="text-subheading font-medium text-text-base">{t("settings.title")}</h1>
 
       {/* --- 2FA --- */}
       <Card className="space-y-5">
@@ -169,11 +169,11 @@ export const Settings = () => {
             <Badge variant="neutral">{t("settings.totp.inactive")}</Badge>
           )}
         </div>
-        <p className="text-sm text-text-muted">{t("settings.totp.description")}</p>
+        <p className="text-body text-text-muted">{t("settings.totp.description")}</p>
 
         {enabled ? (
-          <div className="space-y-3 rounded-xl border border-border-base bg-bg-base p-4">
-            <p className="text-sm font-medium text-text-base">{t("settings.totp.disableHint")}</p>
+          <div className="space-y-3 rounded-input border border-border-base bg-bg-base p-4">
+            <p className="text-body font-medium text-text-base">{t("settings.totp.disableHint")}</p>
             <Input
               label={t("settings.totp.code")}
               inputMode="numeric"
@@ -194,16 +194,16 @@ export const Settings = () => {
             </Button>
           </div>
         ) : setupData ? (
-          <div className="space-y-4 rounded-xl border border-border-base bg-bg-base p-4">
-            <p className="text-sm text-text-muted">{t("settings.totp.scan")}</p>
+          <div className="space-y-4 rounded-input border border-border-base bg-bg-base p-4">
+            <p className="text-body text-text-muted">{t("settings.totp.scan")}</p>
             <img
               src={setupData.qr}
               alt={t("settings.totp.qrAlt")}
-              className="mx-auto h-48 w-48 rounded-xl bg-white p-2"
+              className="mx-auto h-48 w-48 rounded-button bg-white p-2"
             />
             <div className="text-center">
-              <p className="text-xs text-text-muted">{t("settings.totp.manualKey")}</p>
-              <p className="font-mono text-sm break-all select-all text-text-base">
+              <p className="text-caption text-text-muted">{t("settings.totp.manualKey")}</p>
+              <p className="font-mono text-body break-all select-all text-text-base">
                 {setupData.secret}
               </p>
             </div>
@@ -247,29 +247,29 @@ export const Settings = () => {
             <Badge variant="neutral">{t("settings.passkey.inactive")}</Badge>
           )}
         </div>
-        <p className="text-sm text-text-muted">{t("settings.passkey.description")}</p>
+        <p className="text-body text-text-muted">{t("settings.passkey.description")}</p>
 
         {!passkeySupported ? (
-          <p className="rounded-xl bg-bg-base p-3 text-sm text-text-muted">
+          <p className="rounded-input bg-bg-base p-3 text-body text-text-muted">
             {t("settings.passkey.unsupported")}
           </p>
         ) : (
           <>
             {isLoadingPasskeys ? (
-              <p className="text-sm text-text-muted">{t("common.loading")}</p>
+              <p className="text-body text-text-muted">{t("common.loading")}</p>
             ) : passkeys.length > 0 ? (
               <ul className="space-y-2">
                 {passkeys.map((pk) => (
                   <li
                     key={pk.id}
-                    className="flex items-center justify-between gap-3 rounded-xl border border-border-base bg-bg-base p-3"
+                    className="flex items-center justify-between gap-3 rounded-input border border-border-base bg-bg-base p-3"
                   >
                     <div className="min-w-0">
-                      <p className="flex items-center gap-2 truncate text-sm font-medium text-text-base">
+                      <p className="flex items-center gap-2 truncate text-body font-medium text-text-base">
                         <Fingerprint className="h-4 w-4 shrink-0 text-primary-500" />
                         {pk.label ?? t("settings.passkey.unknownDevice")}
                       </p>
-                      <p className="text-xs text-text-muted">
+                      <p className="text-caption text-text-muted">
                         {t("settings.passkey.addedOn", {
                           date: formatGuatemalaDate(pk.fecha_creacion.replace(" ", "T") + "Z"),
                         })}
@@ -280,7 +280,7 @@ export const Settings = () => {
                       onClick={() => disablePasskey(pk.id)}
                       disabled={isDeletingPasskey}
                       aria-label={t("settings.passkey.remove")}
-                      className="shrink-0 rounded-lg p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer disabled:opacity-50"
+                      className="shrink-0 rounded-button p-2 text-signal-danger hover:bg-signal-danger/10 transition-colors cursor-pointer disabled:opacity-50"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -288,7 +288,7 @@ export const Settings = () => {
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-text-muted">{t("settings.passkey.none")}</p>
+              <p className="text-body text-text-muted">{t("settings.passkey.none")}</p>
             )}
 
             <div className="space-y-2">
@@ -302,9 +302,9 @@ export const Settings = () => {
                 {t("settings.passkey.addThisDevice")}
               </Button>
               {!vaultKeyRaw && (
-                <p className="text-xs text-text-muted">{t("settings.passkey.needUnlock")}</p>
+                <p className="text-caption text-text-muted">{t("settings.passkey.needUnlock")}</p>
               )}
-              <p className="text-xs text-text-muted">{t("settings.passkey.help")}</p>
+              <p className="text-caption text-text-muted">{t("settings.passkey.help")}</p>
             </div>
           </>
         )}
@@ -316,7 +316,7 @@ export const Settings = () => {
           <Clock className="h-5 w-5 text-primary-500" />
           <CardTitle className="mb-0">{t("settings.autolock.title")}</CardTitle>
         </div>
-        <p className="text-sm text-text-muted">{t("settings.autolock.description")}</p>
+        <p className="text-body text-text-muted">{t("settings.autolock.description")}</p>
         <Select
           label={t("settings.autolock.label")}
           value={autoLockMinutes}
@@ -334,7 +334,7 @@ export const Settings = () => {
           <Compass className="h-5 w-5 text-primary-500" />
           <CardTitle className="mb-0">{t("settings.startpage.title")}</CardTitle>
         </div>
-        <p className="text-sm text-text-muted">{t("settings.startpage.description")}</p>
+        <p className="text-body text-text-muted">{t("settings.startpage.description")}</p>
         <Select
           label={t("settings.startpage.label")}
           value={startPage}

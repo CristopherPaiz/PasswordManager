@@ -69,6 +69,9 @@
   --text-title: 20px;
   --text-title--line-height: 1.33;
   --text-title--letter-spacing: -0.24px;
+  --text-heading: 32px;
+  --text-heading--line-height: 1.13;
+  --text-heading--letter-spacing: -0.704px;
   --text-subheading: 24px;
   --text-subheading--line-height: 1.33;
   --text-subheading--letter-spacing: -0.288px;

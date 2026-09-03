@@ -73,17 +73,17 @@ export const GlobalLoader = ({ children }: GlobalLoaderProps) => {
   if (isHealthError || isConfigError) {
     return (
       <div className="min-h-dvh bg-bg-base flex flex-col items-center justify-center p-4 text-center">
-        <div className="w-16 h-16 text-red-500 mb-4">
+        <div className="w-16 h-16 text-signal-danger mb-4">
           <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <h1 className="text-2xl font-bold text-text-base mb-2">{t("loader.unavailableTitle")}</h1>
+        <h1 className="text-subheading font-medium text-text-base mb-2">{t("loader.unavailableTitle")}</h1>
         <p className="text-text-muted max-w-md">
           {isHealthError ? t("loader.connectError") : t("loader.webError")}
           {t("loader.tryAgainHint")}
         </p>
-        <button onClick={() => window.location.reload()} className="mt-6 px-6 py-2 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors">
+        <button onClick={() => window.location.reload()} className="mt-6 px-6 py-2 bg-primary-500 text-white rounded-card hover:bg-primary-600 transition-colors">
           {t("loader.retry")}
         </button>
       </div>
@@ -100,7 +100,7 @@ export const GlobalLoader = ({ children }: GlobalLoaderProps) => {
           <div className="absolute inset-0 border-4 border-primary-500 rounded-full border-t-transparent animate-spin"></div>
         </div>
 
-        <p className="text-lg font-medium text-text-muted animate-in fade-in slide-in-from-bottom-2 duration-500 text-center">
+        <p className="text-title font-medium text-text-muted animate-in fade-in slide-in-from-bottom-2 duration-500 text-center">
           {!isHealthSuccess ? loadingMessages[messageIndex] : t("loader.preparing")}
         </p>
       </div>
