@@ -29,6 +29,7 @@ import {
   onlyDigits,
 } from "@utils/card-brand";
 import { CardVisual } from "./CardVisual";
+import { CardStylePicker } from "./CardStylePicker";
 import { VaultItem, VaultItemData, VaultItemType } from "@apptypes";
 import { Modal } from "@components/ui/Modal";
 import { Input } from "@components/ui/Input";
@@ -330,10 +331,21 @@ export const VaultItemModal = ({
                 holder={form.cardHolder}
                 expiry={form.cardExpiry}
                 issuer={form.cardIssuer}
+                color={form.cardColor}
+                design={form.cardDesign}
                 revealed
                 size="md"
               />
             </div>
+
+            <CardStylePicker
+              brand={cardBrand}
+              color={form.cardColor ?? "brand"}
+              design={form.cardDesign ?? "gradient"}
+              onColorChange={(color) => setForm((prev) => ({ ...prev, cardColor: color }))}
+              onDesignChange={(design) => setForm((prev) => ({ ...prev, cardDesign: design }))}
+            />
+            <p className="text-caption text-text-muted">{t("vault.card.styleNotice")}</p>
 
             <Input
               label={t("vault.fields.cardIssuer")}

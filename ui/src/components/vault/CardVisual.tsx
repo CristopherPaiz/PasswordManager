@@ -1,11 +1,17 @@
 import { useTranslation } from "react-i18next";
 import {
   CardBrandInfo,
-  brandGradient,
   cardLast4,
   formatCardNumber,
   maskCardNumber,
 } from "@utils/card-brand";
+import {
+  CardColorId,
+  CardDesignId,
+  isCardColorId,
+  isCardDesignId,
+  resolveCardStyle,
+} from "@utils/card-design";
 
 /**
  * Mini-visual de una tarjeta, con la proporción real (85.6 × 53.98 mm ≈ 1.586).
@@ -26,6 +32,10 @@ interface CardVisualProps {
   issuer?: string;
   /** Muestra el número completo. Por defecto solo los últimos 4. */
   revealed?: boolean;
+  /** Color elegido por el usuario. `brand` (o ausente) usa el de la marca. */
+  color?: CardColorId;
+  /** Acabado del fondo. Ausente = degradado diagonal. */
+  design?: CardDesignId;
   /** `sm` para la lista, `md` para el modal. */
   size?: "sm" | "md";
   className?: string;
@@ -37,6 +47,8 @@ export const CardVisual = ({
   holder,
   expiry,
   issuer,
+  color = "brand",
+  design = "gradient",
   revealed = false,
   size = "sm",
   className = "",
@@ -44,6 +56,17 @@ export const CardVisual = ({
   const { t } = useTranslation();
   const digits = number.replace(/\D/g, "");
   const isCompact = size === "sm";
+  // Color y acabado se resuelven en una función pura compartida, así la vista
+  // previa del modal y la lista del baúl no pueden divergir.
+  //
+  // Se VALIDAN antes de usarse: estos valores salen de un blob descifrado que
+  // pudo venir de un respaldo importado o de una versión futura de la app. Un
+  // id desconocido cae al valor por defecto en vez de romper el render.
+  const style = resolveCardStyle(
+    brand,
+    isCardColorId(color) ? color : "brand",
+    isCardDesignId(design) ? design : "gradient",
+  );
 
   // Sin número aún, se muestran los cuatro grupos como guía visual.
   const displayNumber = digits
@@ -57,19 +80,22 @@ export const CardVisual = ({
       className={`relative w-full overflow-hidden rounded-card ${isCompact ? "max-w-[19rem]" : "max-w-[22rem]"} ${className}`}
       style={{
         aspectRatio: "1.586 / 1",
-        backgroundImage: brandGradient(brand),
-        color: brand.fg,
+        backgroundImage: style.backgroundImage,
+        color: style.fg,
       }}
     >
       {/* Brillo diagonal: da volumen sin necesidad de sombra. */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-60"
-        style={{
-          backgroundImage:
-            "linear-gradient(115deg, rgba(255,255,255,0.16) 0%, transparent 42%)",
-        }}
-        aria-hidden="true"
-      />
+      {style.sheen > 0 && (
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            opacity: style.sheen,
+            backgroundImage:
+              "linear-gradient(115deg, rgba(255,255,255,0.16) 0%, transparent 42%)",
+          }}
+          aria-hidden="true"
+        />
+      )}
 
       <div
         className={`relative flex h-full flex-col justify-between ${isCompact ? "p-3.5" : "p-4"}`}

@@ -1,3 +1,5 @@
+import type { CardColorId, CardDesignId } from "@utils/card-design";
+
 export interface User {
   id: number;
   username: string;
@@ -106,6 +108,11 @@ export interface VaultItemData {
   cardPin?: string;
   /** Banco emisor, para distinguir dos tarjetas de la misma marca. */
   cardIssuer?: string;
+  /** Color elegido por el usuario. Se guarda el ID, no el hex, para poder
+   *  afinar la paleta después sin migrar datos. `undefined` = color de marca. */
+  cardColor?: CardColorId;
+  /** Acabado del visual. `undefined` = degradado diagonal. */
+  cardDesign?: CardDesignId;
 }
 
 // Fila tal cual la guarda/devuelve el server: cifrada, ilegible para el server.

@@ -305,7 +305,30 @@
       "luhnWarning": "This number fails the checksum. Double-check the digits.",
       "lengthWarning": "Unusual length for {{brand}}.",
       "expiryWarning": "This card looks expired.",
-      "pinNotice": "The PIN is encrypted like everything else. It is never shown by default."
+      "pinNotice": "The PIN is encrypted like everything else. It is never shown by default.",
+      "color": "Color",
+      "design": "Finish",
+      "styleNotice": "Pick how your card looks. The app cannot read the real design: system wallets get it from your bank through the card network, and making that lookup would expose your card to a third party.",
+      "colors": {
+        "brand": "Brand color",
+        "midnight": "Midnight",
+        "graphite": "Graphite",
+        "ocean": "Ocean",
+        "teal": "Teal",
+        "forest": "Forest",
+        "gold": "Gold",
+        "ember": "Ember",
+        "wine": "Wine",
+        "violet": "Violet",
+        "rose": "Rose",
+        "platinum": "Platinum"
+      },
+      "designs": {
+        "gradient": "Gradient",
+        "solid": "Solid",
+        "horizon": "Horizon",
+        "duotone": "Duotone"
+      }
     },
     "copyPin": "Copy PIN",
     "pinCopied": "PIN copied",

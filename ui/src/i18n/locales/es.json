@@ -305,7 +305,30 @@
       "luhnWarning": "El número no pasa la verificación. Revisa los dígitos.",
       "lengthWarning": "Longitud inusual para {{brand}}.",
       "expiryWarning": "La tarjeta parece vencida.",
-      "pinNotice": "El PIN se guarda cifrado igual que el resto. Nunca se muestra solo."
+      "pinNotice": "El PIN se guarda cifrado igual que el resto. Nunca se muestra solo.",
+      "color": "Color",
+      "design": "Acabado",
+      "styleNotice": "Elige cómo se ve tu tarjeta. La app no puede leer el diseño real: los wallets del sistema se lo piden al banco a través de la red, y hacer esa consulta expondría tu tarjeta a un tercero.",
+      "colors": {
+        "brand": "Color de la marca",
+        "midnight": "Medianoche",
+        "graphite": "Grafito",
+        "ocean": "Océano",
+        "teal": "Turquesa",
+        "forest": "Bosque",
+        "gold": "Oro",
+        "ember": "Brasa",
+        "wine": "Vino",
+        "violet": "Violeta",
+        "rose": "Rosa",
+        "platinum": "Platino"
+      },
+      "designs": {
+        "gradient": "Degradado",
+        "solid": "Plano",
+        "horizon": "Horizonte",
+        "duotone": "Bitono"
+      }
     },
     "copyPin": "Copiar PIN",
     "pinCopied": "PIN copiado",

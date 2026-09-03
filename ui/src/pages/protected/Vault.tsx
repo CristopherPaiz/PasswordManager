@@ -412,6 +412,8 @@ export const Vault = () => {
                       holder={item.data.cardHolder}
                       expiry={item.data.cardExpiry}
                       issuer={item.data.cardIssuer}
+                      color={item.data.cardColor}
+                      design={item.data.cardDesign}
                     />
                     <SecretRow
                       label={t("vault.card.number")}
