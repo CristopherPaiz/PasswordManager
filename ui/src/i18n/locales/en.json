@@ -328,7 +328,10 @@
         "solid": "Solid",
         "horizon": "Horizon",
         "duotone": "Duotone"
-      }
+      },
+      "issuerDetected": "Issuer detected from the BIN, locally",
+      "useIssuer": "Use",
+      "issuerSource": "Community data (CC-BY-4.0). The BIN never leaves your device."
     },
     "copyPin": "Copy PIN",
     "pinCopied": "PIN copied",

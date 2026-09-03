@@ -328,7 +328,10 @@
         "solid": "Plano",
         "horizon": "Horizonte",
         "duotone": "Bitono"
-      }
+      },
+      "issuerDetected": "Emisor detectado por el BIN, en local",
+      "useIssuer": "Usar",
+      "issuerSource": "Datos comunitarios (CC-BY-4.0). El BIN nunca sale de tu dispositivo."
     },
     "copyPin": "Copiar PIN",
     "pinCopied": "PIN copiado",

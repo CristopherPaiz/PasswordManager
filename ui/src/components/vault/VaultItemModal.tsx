@@ -30,6 +30,7 @@ import {
 } from "@utils/card-brand";
 import { CardVisual } from "./CardVisual";
 import { CardStylePicker } from "./CardStylePicker";
+import { IssuerSuggestion } from "./IssuerSuggestion";
 import { VaultItem, VaultItemData, VaultItemType } from "@apptypes";
 import { Modal } from "@components/ui/Modal";
 import { Input } from "@components/ui/Input";
@@ -388,6 +389,19 @@ export const VaultItemModal = ({
                   </span>
                 )}
               </div>
+              {/* Sugerencia de emisor: tabla LOCAL, sin red. Aparece con 6
+                  dígitos y NO pisa lo que el usuario haya escrito. */}
+              {cardDigits.length >= 6 && (
+                <div className="mt-2">
+                  <IssuerSuggestion
+                    cardNumber={cardDigits}
+                    currentIssuer={form.cardIssuer}
+                    onApply={(issuer, color) =>
+                      setForm((prev) => ({ ...prev, cardIssuer: issuer, cardColor: color }))
+                    }
+                  />
+                </div>
+              )}
               {/* Avisos, nunca bloqueos: el usuario siempre puede guardar. Luhn
                   detecta dígitos mal tecleados, no valida que la tarjeta exista. */}
               {cardDigits.length >= 12 && !isValidLuhn(cardDigits) && (
