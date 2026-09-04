@@ -1,7 +1,7 @@
 # Guía de Convenciones — Plantilla (API + UI)
 
 Reglas **obligatorias** para cualquier IA o persona que toque este repo. Léelas antes de editar.
-Monorepo: `api/` (Express + TypeScript + Turso + Cloudinary) y `ui/` (React 19 + Vite + Tailwind v4 + TanStack Query + Zustand + i18n).
+Monorepo: `api/` (Express + TypeScript + Turso) y `ui/` (React 19 + Vite + Tailwind v4 + TanStack Query + Zustand + i18n).
 
 ---
 

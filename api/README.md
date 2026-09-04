@@ -1,6 +1,6 @@
-# Backend Template TS (Express + Turso + Cloudinary)
+# API del gestor de contraseñas (Express + Turso)
 
-Plantilla base para proyectos Backend utilizando Node.js, TypeScript, base de datos Turso (SQLite) y Cloudinary para manejo de imágenes.
+Backend zero-knowledge del gestor de contraseñas: Node.js, TypeScript y base de datos Turso (SQLite). El servidor solo guarda blobs cifrados en el navegador; nunca ve la contraseña maestra ni el contenido del baúl.
 
 ## 🚀 Instalación desde Cero
 
@@ -16,7 +16,7 @@ Plantilla base para proyectos Backend utilizando Node.js, TypeScript, base de da
    npm run setup
    ```
 
-   _(Sigue las instrucciones en consola para ingresar tus credenciales de Turso, Cloudinary, etc.)_
+   _(Sigue las instrucciones en consola para ingresar tus credenciales de Turso, el secreto JWT, etc.)_
 
 3. **Inicializar la Base de Datos (Crear tablas y usuario admin):**
 
@@ -69,20 +69,7 @@ curl.exe -X GET http://localhost:3000/api/auth/me ^
   -b cookies.txt
 ```
 
-### 4. Subir Imagen de Prueba (Ruta Protegida)
-
-**Método:** `POST` | **Ruta:** `/api/upload/test`
-_(Asegúrate de tener una imagen llamada `foto.jpg` en la misma carpeta donde ejecutas este comando)_
-
-```bash
-curl.exe -X POST http://localhost:3000/api/upload/test ^
-  -b cookies.txt ^
-  -F "imagen_prueba=@foto.jpg"
-```
-
-_En Postman:_ Ve a Body -> Form-Data -> Key: `imagen_prueba` (cámbialo a tipo File) -> Value: Selecciona un archivo.
-
-### 5. Cerrar Sesión (Logout)
+### 4. Cerrar Sesión (Logout)
 
 **Método:** `POST` | **Ruta:** `/api/auth/logout`
 
@@ -91,7 +78,7 @@ curl.exe -X POST http://localhost:3000/api/auth/logout ^
   -b cookies.txt
 ```
 
-### 6. Simular un Error del Servidor (Prueba de ErrorLogs)
+### 5. Simular un Error del Servidor (Prueba de ErrorLogs)
 
 **Método:** `GET` | **Ruta:** `/api/force-error`
 _(Genera un error 500 intencional para verificar que se guarde en la tabla ErrorLogs de Turso)_
