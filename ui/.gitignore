@@ -33,7 +33,7 @@ dist-ssr
 
 # Cache and Build
 .eslintcache
-.tsbuildinfo
+*.tsbuildinfo
 
 # pnpm
 pnpm-lock.yaml
