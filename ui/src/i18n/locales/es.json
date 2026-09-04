@@ -84,7 +84,8 @@
       "salt": "Salt (público)",
       "authHash": "authHash (base64)",
       "wrapKey": "wrapKey (base64)",
-      "row": "Fila en VaultItems"
+      "row": "Fila en VaultItems",
+      "sourceNote": "Lo que acabas de ejecutar sale de este archivo, sin cambios:"
     },
     "scenarios": {
       "title": "Qué pasa si…",
@@ -111,7 +112,14 @@
     },
     "verify": {
       "title": "No tienes que creerme",
-      "text": "Abre las herramientas de desarrollo, pestaña Red, y regístrate. Vas a ver salir el authHash y blobs cifrados; no vas a ver tu contraseña maestra ni el contenido de un solo elemento. Es la misma comprobación que hace la demostración de arriba, pero con tráfico real."
+      "text": "Abre las herramientas de desarrollo, pestaña Red, y regístrate. Vas a ver salir el authHash y blobs cifrados; no vas a ver tu contraseña maestra ni el contenido de un solo elemento. Es la misma comprobación que hace la demostración de arriba, pero con tráfico real.",
+      "repo": "Ver el código en GitHub",
+      "linksTitle": "Los archivos que importan",
+      "cryptoLink": "Núcleo criptográfico (corre en tu navegador)",
+      "vaultLink": "Flujos de registro, login y recuperación",
+      "manifestLink": "Verificación de integridad del baúl",
+      "apiLink": "Lo que el servidor hace con tus datos",
+      "schemaLink": "Esquema completo de la base de datos"
     }
   },
   "login": {

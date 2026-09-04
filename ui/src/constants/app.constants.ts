@@ -17,6 +17,22 @@ export const ROUTES = {
 // Opciones (en minutos) para el bloqueo automático del baúl, configurables en Ajustes.
 export const AUTO_LOCK_OPTIONS = [1, 5, 10, 15, 30, 60] as const;
 
+// Repositorio público. La comprobación final de todo lo que promete la página
+// de seguridad no es un texto: es el código. Los enlaces apuntan a los archivos
+// concretos, no al repo genérico, para que revisarlo no cueste una búsqueda.
+export const REPO_URL = "https://github.com/CristopherPaiz/PasswordManager";
+
+const REPO_FILE = (path: string): string => `${REPO_URL}/blob/main/${path}`;
+
+export const REPO_LINKS = {
+  ROOT: REPO_URL,
+  CRYPTO: REPO_FILE("ui/src/utils/crypto.ts"),
+  VAULT_FLOWS: REPO_FILE("ui/src/utils/vault.ts"),
+  MANIFEST: REPO_FILE("ui/src/utils/manifest.ts"),
+  VAULT_API: REPO_FILE("api/src/controllers/vault.controller.ts"),
+  SCHEMA: REPO_FILE("api/src/database/init_tables.ts"),
+} as const;
+
 export const API_ENDPOINTS = {
   AUTH: {
     REGISTER: "/api/auth/register",

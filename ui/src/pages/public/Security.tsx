@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import {
   AlertTriangle,
+  GitBranch,
   Database,
   Fingerprint,
   KeyRound,
@@ -9,11 +10,12 @@ import {
   MonitorSmartphone,
   ScanEye,
   ServerCrash,
+  SquareArrowOutUpRight,
   ShieldCheck,
   Terminal,
   UserPlus,
 } from "lucide-react";
-import { ROUTES } from "@constants/app.constants";
+import { REPO_LINKS, ROUTES } from "@constants/app.constants";
 import { useAuthQuery } from "@hooks/queries/auth.queries";
 import { KeyHierarchy } from "@components/security/KeyHierarchy";
 import { ZeroKnowledgeDemo } from "@components/security/ZeroKnowledgeDemo";
@@ -45,6 +47,33 @@ const Section = ({ id, title, description, children }: SectionProps) => (
     </div>
     {children}
   </section>
+);
+
+interface SourceLinkProps {
+  href: string;
+  label: string;
+  file: string;
+}
+
+// Enlace a un archivo concreto del repositorio. Se nombra el archivo además de
+// describirlo: quien quiera auditar necesita saber DÓNDE está, no solo que
+// existe.
+const SourceLink = ({ href, label, file }: SourceLinkProps) => (
+  <a
+    href={href}
+    target="_blank"
+    rel="noreferrer noopener"
+    className="group flex min-w-0 items-start gap-2 rounded-input border border-border-base bg-bg-base px-3 py-2 transition-colors hover:border-primary-500/50"
+  >
+    <SquareArrowOutUpRight
+      className="mt-0.5 h-3.5 w-3.5 shrink-0 text-text-muted group-hover:text-primary-500"
+      aria-hidden="true"
+    />
+    <span className="min-w-0">
+      <span className="block text-body text-text-base">{label}</span>
+      <span className="block break-all font-mono text-caption text-text-muted">{file}</span>
+    </span>
+  </a>
 );
 
 interface TopicProps {
@@ -86,6 +115,18 @@ export const Security = () => {
         </h1>
         <p className="mx-auto max-w-2xl text-body text-text-muted md:text-lg">
           {t("security.hero.subtitle")}
+        </p>
+
+        <p className="flex justify-center">
+          <a
+            href={REPO_LINKS.ROOT}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="inline-flex items-center gap-2 text-body text-text-muted underline underline-offset-4 transition-colors hover:text-text-base"
+          >
+            <GitBranch className="h-4 w-4" aria-hidden="true" />
+            {t("security.verify.repo")}
+          </a>
         </p>
 
         {!data?.user && (
@@ -192,6 +233,37 @@ export const Security = () => {
           <Terminal className="mt-1 h-4 w-4 shrink-0" aria-hidden="true" />
           <span>{t("security.verify.text")}</span>
         </p>
+
+        <p className="mt-6 mb-3 text-caption font-semibold uppercase tracking-wide text-text-muted">
+          {t("security.verify.linksTitle")}
+        </p>
+        <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+          <SourceLink
+            href={REPO_LINKS.CRYPTO}
+            label={t("security.verify.cryptoLink")}
+            file="ui/src/utils/crypto.ts"
+          />
+          <SourceLink
+            href={REPO_LINKS.VAULT_FLOWS}
+            label={t("security.verify.vaultLink")}
+            file="ui/src/utils/vault.ts"
+          />
+          <SourceLink
+            href={REPO_LINKS.MANIFEST}
+            label={t("security.verify.manifestLink")}
+            file="ui/src/utils/manifest.ts"
+          />
+          <SourceLink
+            href={REPO_LINKS.VAULT_API}
+            label={t("security.verify.apiLink")}
+            file="api/src/controllers/vault.controller.ts"
+          />
+          <SourceLink
+            href={REPO_LINKS.SCHEMA}
+            label={t("security.verify.schemaLink")}
+            file="api/src/database/init_tables.ts"
+          />
+        </div>
       </Card>
     </div>
   );

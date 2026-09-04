@@ -1,6 +1,14 @@
 import { ReactNode, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, Database, Eye, KeyRound, ShieldOff, Unlock } from "lucide-react";
+import {
+  ArrowRight,
+  Database,
+  Eye,
+  FileCode,
+  KeyRound,
+  ShieldOff,
+  Unlock,
+} from "lucide-react";
 import {
   DEFAULT_KDF_PARAMS,
   EncryptedBlob,
@@ -16,6 +24,7 @@ import {
   toBase64,
   wrapVaultKey,
 } from "@utils/crypto";
+import { REPO_LINKS } from "@constants/app.constants";
 import { Input } from "@components/ui/Input";
 import { Button } from "@components/ui/Button";
 
@@ -158,6 +167,21 @@ export const ZeroKnowledgeDemo = () => {
             ? t("security.demo.again")
             : t("security.demo.run")}
       </Button>
+
+      {/* El enlace va SIEMPRE, no solo tras correr la demo: la afirmación
+          "esto usa el código real" tiene que poder comprobarse antes. */}
+      <p className="flex flex-wrap items-center gap-1.5 text-caption text-text-muted">
+        <FileCode className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+        {t("security.demo.sourceNote")}{" "}
+        <a
+          href={REPO_LINKS.CRYPTO}
+          target="_blank"
+          rel="noreferrer noopener"
+          className="font-mono text-primary-500 underline underline-offset-2 hover:text-primary-600"
+        >
+          ui/src/utils/crypto.ts
+        </a>
+      </p>
 
       {result && (
         <div className="space-y-4 animate-in fade-in duration-300">

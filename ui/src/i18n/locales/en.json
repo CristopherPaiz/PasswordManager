@@ -84,7 +84,8 @@
       "salt": "Salt (public)",
       "authHash": "authHash (base64)",
       "wrapKey": "wrapKey (base64)",
-      "row": "Row in VaultItems"
+      "row": "Row in VaultItems",
+      "sourceNote": "What you just ran comes from this file, unchanged:"
     },
     "scenarios": {
       "title": "What happens if…",
@@ -111,7 +112,14 @@
     },
     "verify": {
       "title": "You do not have to take my word",
-      "text": "Open your developer tools, Network tab, and sign up. You will see the authHash and encrypted blobs go out; you will not see your master password or the contents of a single item. It is the same check the demo above performs, but against real traffic."
+      "text": "Open your developer tools, Network tab, and sign up. You will see the authHash and encrypted blobs go out; you will not see your master password or the contents of a single item. It is the same check the demo above performs, but against real traffic.",
+      "repo": "Read the code on GitHub",
+      "linksTitle": "The files that matter",
+      "cryptoLink": "Cryptographic core (runs in your browser)",
+      "vaultLink": "Sign-up, login and recovery flows",
+      "manifestLink": "Vault integrity verification",
+      "apiLink": "What the server does with your data",
+      "schemaLink": "Full database schema"
     }
   },
   "login": {
