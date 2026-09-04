@@ -3,12 +3,14 @@ import { createBrowserRouter } from "react-router";
 import { ROUTES } from "@constants/app.constants";
 import { RootLayout } from "@layouts/RootLayout";
 import { ProtectedLayout } from "@layouts/ProtectedLayout";
+import { AdminLayout } from "@layouts/AdminLayout";
 import { IndexRedirect } from "@components/IndexRedirect";
 
 // Carga diferida (code splitting): cada página es su propio chunk.
 const Login = lazy(() => import("@pages/public/Login").then((m) => ({ default: m.Login })));
 const Register = lazy(() => import("@pages/public/Register").then((m) => ({ default: m.Register })));
 const Recovery = lazy(() => import("@pages/public/Recovery").then((m) => ({ default: m.Recovery })));
+const Security = lazy(() => import("@pages/public/Security").then((m) => ({ default: m.Security })));
 const Vault = lazy(() => import("@pages/protected/Vault").then((m) => ({ default: m.Vault })));
 const Settings = lazy(() => import("@pages/protected/Settings").then((m) => ({ default: m.Settings })));
 const Dashboard = lazy(() => import("@pages/protected/Dashboard").then((m) => ({ default: m.Dashboard })));
@@ -36,6 +38,11 @@ export const router = createBrowserRouter([
         element: <Recovery />,
       },
       {
+        // Pública: se lee ANTES de tener cuenta, que es cuando importa.
+        path: ROUTES.SECURITY,
+        element: <Security />,
+      },
+      {
         element: <ProtectedLayout />,
         children: [
           {
@@ -51,8 +58,14 @@ export const router = createBrowserRouter([
             element: <Dashboard />,
           },
           {
-            path: ROUTES.ERRORS,
-            element: <Errors />,
+            // Solo admin: los stack traces filtran rutas internas y SQL.
+            element: <AdminLayout />,
+            children: [
+              {
+                path: ROUTES.ERRORS,
+                element: <Errors />,
+              },
+            ],
           },
         ],
       },

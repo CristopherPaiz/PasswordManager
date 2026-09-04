@@ -1,11 +1,16 @@
 import type { CardColorId, CardDesignId } from "@utils/card-design";
 import type { TotpAlgorithm } from "@utils/totp";
 
+// El rol lo decide el servidor; en el cliente solo sirve para no mostrar
+// pantallas que terminarían en 403 (la autorización real vive en la API).
+export type UserRole = "user" | "admin";
+
 export interface User {
   id: number;
   username: string;
   nombre: string | null;
   apellido: string | null;
+  rol?: UserRole;
   totpEnabled?: boolean;
   passkeyEnabled?: boolean;
 }

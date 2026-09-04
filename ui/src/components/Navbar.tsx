@@ -19,6 +19,7 @@ import {
   API_ENDPOINTS,
   THEMES,
   NAVIGATION,
+  navigationFor,
   LANGUAGES,
 } from "@constants/app.constants";
 import { useQueryClient } from "@tanstack/react-query";
@@ -99,7 +100,7 @@ export const Navbar = () => {
             ))}
 
             {user &&
-              NAVIGATION.PRIVATE.map((item) => (
+              navigationFor(user?.rol).map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
@@ -222,7 +223,7 @@ export const Navbar = () => {
           ))}
 
           {user &&
-            NAVIGATION.PRIVATE.map((item) => (
+            navigationFor(user?.rol).map((item) => (
               <Link
                 key={item.path}
                 to={item.path}

@@ -96,6 +96,7 @@ interface DbUser {
   totp_secret?: string
   totp_enabled?: number
   totp_last_step?: number | null
+  rol?: string
 }
 
 export const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -398,7 +399,7 @@ export const getMe = async (
     const dbClient = await DatabaseService.getInstance().getClient()
 
     const { rows: users } = await dbClient.execute({
-      sql: 'SELECT id, username, nombre, apellido, activo, totp_enabled FROM Usuarios WHERE id = ?',
+      sql: 'SELECT id, username, nombre, apellido, activo, rol, totp_enabled FROM Usuarios WHERE id = ?',
       args: [userId]
     })
 
@@ -426,6 +427,10 @@ export const getMe = async (
         username: user.username,
         nombre: user.nombre,
         apellido: user.apellido,
+        // El rol viaja para que la UI no ofrezca pantallas de admin a quien
+        // recibiría un 403 igual. La autorización real la hace adminMiddleware
+        // contra la BD: esto es presentación, no control de acceso.
+        rol: user.rol ?? 'user',
         totpEnabled: Boolean(user.totp_enabled),
         passkeyEnabled: Number(pkCount[0].c) > 0
       }

@@ -1,11 +1,13 @@
-import { AlertTriangle, KeyRound, Settings } from "lucide-react";
+import { AlertTriangle, KeyRound, Settings, ShieldCheck } from "lucide-react";
 import { ElementType } from "react";
+import type { UserRole } from "@apptypes";
 
 export const ROUTES = {
   HOME: "/",
   LOGIN: "/login",
   REGISTER: "/register",
   RECOVERY: "/recovery",
+  SECURITY: "/security",
   VAULT: "/vault",
   SETTINGS: "/settings",
   DASHBOARD: "/dashboard",
@@ -75,17 +77,34 @@ export interface NavigationItem {
   labelKey: string;
   path: string;
   icon?: ElementType;
+  // Solo para rol admin. Ocultarlo NO es la protección: la API responde 403
+  // igual. Es para no ofrecer una pantalla que va a fallar.
+  adminOnly?: boolean;
 }
 
 export const NAVIGATION = {
   // El logo de la app ya sirve de ancla a inicio; no hace falta enlace "Inicio".
-  PUBLIC: [] as NavigationItem[],
+  // Seguridad es pública a propósito: quien todavía no confía en la app es
+  // justamente quien necesita leerla, y para eso no puede hacer falta cuenta.
+  PUBLIC: [
+    { labelKey: "security.nav", path: ROUTES.SECURITY, icon: ShieldCheck },
+  ] as NavigationItem[],
   PRIVATE: [
     { labelKey: "nav.vault", path: ROUTES.VAULT, icon: KeyRound },
     { labelKey: "nav.settings", path: ROUTES.SETTINGS, icon: Settings },
-    { labelKey: "nav.errors", path: ROUTES.ERRORS, icon: AlertTriangle },
+    {
+      labelKey: "nav.errors",
+      path: ROUTES.ERRORS,
+      icon: AlertTriangle,
+      adminOnly: true,
+    },
   ] as NavigationItem[],
 } as const;
+
+// Navegación visible para un rol concreto. Sin rol (todavía cargando) se
+// asume el mínimo: nada de admin.
+export const navigationFor = (rol?: UserRole): NavigationItem[] =>
+  NAVIGATION.PRIVATE.filter((item) => !item.adminOnly || rol === "admin");
 
 // Páginas válidas como destino de inicio (reusa la navegación privada).
 export const START_PAGE_PATHS = NAVIGATION.PRIVATE.map((item) => item.path);

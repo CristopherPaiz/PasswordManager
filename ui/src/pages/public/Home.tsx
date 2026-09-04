@@ -1,4 +1,4 @@
-import { LogIn, LayoutDashboard } from "lucide-react";
+import { LogIn, LayoutDashboard, ShieldCheck } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { ROUTES } from "@constants/app.constants";
 import { useAuthQuery } from "@hooks/queries/auth.queries";
@@ -24,14 +24,24 @@ export const Home = () => {
             {t("home.goToDashboard")}
           </LinkButton>
         ) : (
-          <LinkButton
-            to={ROUTES.LOGIN}
-            variant="secondary"
-            size="lg"
-            icon={LogIn}
-          >
-            {t("home.login")}
-          </LinkButton>
+          <>
+            <LinkButton
+              to={ROUTES.LOGIN}
+              variant="secondary"
+              size="lg"
+              icon={LogIn}
+            >
+              {t("home.login")}
+            </LinkButton>
+            <LinkButton
+              to={ROUTES.SECURITY}
+              variant="ghost"
+              size="lg"
+              icon={ShieldCheck}
+            >
+              {t("security.nav")}
+            </LinkButton>
+          </>
         )}
       </div>
     </div>

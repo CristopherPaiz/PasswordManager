@@ -17,7 +17,7 @@ import { useSettingsStore } from "@store/settings.store";
 import {
   API_ENDPOINTS,
   AUTO_LOCK_OPTIONS,
-  NAVIGATION,
+  navigationFor,
 } from "@constants/app.constants";
 import { wrapVaultKey, deriveWrapKeyBytes, EncryptedBlob } from "@utils/crypto";
 import {
@@ -413,7 +413,7 @@ export const Settings = () => {
           label={t("settings.startpage.label")}
           value={startPage}
           onChange={(e) => setStartPage(e.target.value)}
-          options={NAVIGATION.PRIVATE.map((item) => ({
+          options={navigationFor(authData?.user?.rol).map((item) => ({
             value: item.path,
             label: t(item.labelKey),
           }))}
