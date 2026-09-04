@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // Solo se comprueban tipos: sin emitir, `rootDir` (src/) sobra y estorba,
+    // porque los tests viven fuera para no acabar en dist/.
+    "noEmit": true,
+    "rootDir": "."
+  },
+  "include": ["src/**/*", "tests/**/*", "vitest.config.ts"]
+}

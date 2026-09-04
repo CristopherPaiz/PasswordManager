@@ -1,20 +1,26 @@
+import { Client } from '@libsql/client'
+import { pathToFileURL } from 'node:url'
 import { DatabaseService } from './connection.js'
 import dotenv from 'dotenv'
 
 dotenv.config()
 
-const initializeDatabase = async (): Promise<void> => {
-  try {
-    const dbClient = await DatabaseService.getInstance().getClient()
-
-    // Usuarios: además de la cuenta, guarda los parámetros cripto del baúl.
-    // IMPORTANTE: `password` NO es la contraseña maestra. Es el bcrypt de un
-    // authHash derivado en el navegador (la maestra nunca llega al server).
-    // kdf_salt / kdf_params: para re-derivar la llave maestra en el cliente.
-    // wrapped_vault_key: la vaultKey (que cifra el baúl) envuelta por la maestra.
-    // wrapped_vault_key_recovery: la misma vaultKey envuelta por la llave de recuperación.
-    // El server NUNCA puede abrir estos blobs: es zero-knowledge.
-    await dbClient.execute(`
+/**
+ * Único punto de verdad del esquema (idempotente, `CREATE TABLE IF NOT EXISTS`).
+ * Se exporta como función para que los tests puedan levantar el MISMO esquema
+ * contra una BD en memoria: si una columna se agrega aquí, los tests la ven sin
+ * duplicar DDL (y si falta, fallan). No es un archivo de migración: sigue siendo
+ * el estado deseado completo, no un delta.
+ */
+export const applySchema = async (dbClient: Client): Promise<void> => {
+  // Usuarios: además de la cuenta, guarda los parámetros cripto del baúl.
+  // IMPORTANTE: `password` NO es la contraseña maestra. Es el bcrypt de un
+  // authHash derivado en el navegador (la maestra nunca llega al server).
+  // kdf_salt / kdf_params: para re-derivar la llave maestra en el cliente.
+  // wrapped_vault_key: la vaultKey (que cifra el baúl) envuelta por la maestra.
+  // wrapped_vault_key_recovery: la misma vaultKey envuelta por la llave de recuperación.
+  // El server NUNCA puede abrir estos blobs: es zero-knowledge.
+  await dbClient.execute(`
       CREATE TABLE IF NOT EXISTS Usuarios (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT NOT NULL UNIQUE,
@@ -38,14 +44,14 @@ const initializeDatabase = async (): Promise<void> => {
       )
     `)
 
-    // Baúl: el server solo ve blobs cifrados. `ciphertext` es el JSON del item
-    // (título, usuario, contraseña, url, notas) cifrado con AES-256-GCM en el
-    // navegador usando la vaultKey. `iv` es el nonce por item. `tipo` queda en
-    // claro solo para poder listar/filtrar sin descifrar (password|note|card).
-    // `uid`: id generado por el cliente, usado como AAD del GCM; liga el blob a
-    // su fila (el server no puede intercambiar ciphertexts entre items). Carpetas,
-    // etiquetas y favoritos viven DENTRO del blob: el server no ve esa metadata.
-    await dbClient.execute(`
+  // Baúl: el server solo ve blobs cifrados. `ciphertext` es el JSON del item
+  // (título, usuario, contraseña, url, notas) cifrado con AES-256-GCM en el
+  // navegador usando la vaultKey. `iv` es el nonce por item. `tipo` queda en
+  // claro solo para poder listar/filtrar sin descifrar (password|note|card).
+  // `uid`: id generado por el cliente, usado como AAD del GCM; liga el blob a
+  // su fila (el server no puede intercambiar ciphertexts entre items). Carpetas,
+  // etiquetas y favoritos viven DENTRO del blob: el server no ve esa metadata.
+  await dbClient.execute(`
       CREATE TABLE IF NOT EXISTS VaultItems (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         usuario_id INTEGER NOT NULL,
@@ -59,10 +65,10 @@ const initializeDatabase = async (): Promise<void> => {
       )
     `)
 
-    // Passkeys: una por dispositivo. Cada una guarda la vaultKey envuelta por el
-    // secreto PRF de ESE autenticador (Windows Hello, Touch ID, teléfono...).
-    // `label` es un nombre legible del dispositivo/navegador para mostrar la lista.
-    await dbClient.execute(`
+  // Passkeys: una por dispositivo. Cada una guarda la vaultKey envuelta por el
+  // secreto PRF de ESE autenticador (Windows Hello, Touch ID, teléfono...).
+  // `label` es un nombre legible del dispositivo/navegador para mostrar la lista.
+  await dbClient.execute(`
       CREATE TABLE IF NOT EXISTS Passkeys (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         usuario_id INTEGER NOT NULL,
@@ -74,7 +80,7 @@ const initializeDatabase = async (): Promise<void> => {
       )
     `)
 
-    await dbClient.execute(`
+  await dbClient.execute(`
       CREATE TABLE IF NOT EXISTS Sesiones (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         usuario_id INTEGER NOT NULL,
@@ -88,7 +94,7 @@ const initializeDatabase = async (): Promise<void> => {
       )
     `)
 
-    await dbClient.execute(`
+  await dbClient.execute(`
       CREATE TABLE IF NOT EXISTS ErrorLogs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         endpoint TEXT NOT NULL,
@@ -100,7 +106,7 @@ const initializeDatabase = async (): Promise<void> => {
       )
     `)
 
-    await dbClient.execute(`
+  await dbClient.execute(`
       CREATE TABLE IF NOT EXISTS Configuraciones (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         Nombre TEXT NOT NULL UNIQUE,
@@ -108,26 +114,36 @@ const initializeDatabase = async (): Promise<void> => {
       )
     `)
 
-    const { rows: configCount } = await dbClient.execute(
-      "SELECT COUNT(*) as count FROM Configuraciones WHERE Nombre = 'nombreApp'"
-    )
+  const { rows: configCount } = await dbClient.execute(
+    "SELECT COUNT(*) as count FROM Configuraciones WHERE Nombre = 'nombreApp'"
+  )
 
-    if (Number(configCount[0].count) === 0) {
-      await dbClient.execute({
-        sql: 'INSERT INTO Configuraciones (Nombre, Valor) VALUES (?, ?)',
-        args: ['nombreApp', 'Plantilla Web']
-      })
-    }
+  if (Number(configCount[0].count) === 0) {
+    await dbClient.execute({
+      sql: 'INSERT INTO Configuraciones (Nombre, Valor) VALUES (?, ?)',
+      args: ['nombreApp', 'Plantilla Web']
+    })
+  }
 
-    // Nota: NO se siembra un usuario admin. En un gestor de contraseñas la
-    // primera cuenta se crea por el flujo de registro (que genera salt, vaultKey
-    // y llave de recuperación en el navegador). Un admin con bcrypt('admin') no
-    // tendría parámetros cripto y no podría abrir ningún baúl.
+  // Nota: NO se siembra un usuario admin. En un gestor de contraseñas la
+  // primera cuenta se crea por el flujo de registro (que genera salt, vaultKey
+  // y llave de recuperación en el navegador). Un admin con bcrypt('admin') no
+  // tendría parámetros cripto y no podría abrir ningún baúl.
+}
 
+const initializeDatabase = async (): Promise<void> => {
+  try {
+    const dbClient = await DatabaseService.getInstance().getClient()
+    await applySchema(dbClient)
     process.exit(0)
   } catch (error) {
     process.exit(1)
   }
 }
 
-initializeDatabase()
+// Solo corre el runner cuando se ejecuta el archivo directo (`pnpm db:init`).
+// Importarlo (tests) solo trae `applySchema`, sin tocar Turso ni matar el proceso.
+const entry = process.argv[1] ? pathToFileURL(process.argv[1]).href : ''
+if (entry === import.meta.url) {
+  initializeDatabase()
+}

@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Una corrida por rama: un push nuevo cancela la anterior.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# NOTA: `api/pnpm-lock.yaml` y `ui/pnpm-lock.yaml` están en .gitignore, así que
+# CI no puede usar `--frozen-lockfile` y resuelve versiones nuevas en cada
+# corrida. Si se dejan de ignorar (recomendado: fija el árbol de dependencias
+# transitivas), cambiar los `install` a `pnpm install --frozen-lockfile` y el
+# `cache-dependency-path` al lockfile de cada paquete.
+jobs:
+  api:
+    name: API (lint · tipos · tests · build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: api/package.json
+
+      - run: pnpm install --no-frozen-lockfile
+
+      - run: pnpm lint
+
+      - run: pnpm typecheck
+
+      # Los tests corren contra SQLite en memoria con el esquema real de
+      # init_tables.ts: no tocan Turso ni necesitan credenciales.
+      - run: pnpm test
+
+      - run: pnpm build
+
+  ui:
+    name: UI (lint · tests · build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ui
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: ui/package.json
+
+      - run: pnpm install --no-frozen-lockfile
+
+      - run: pnpm lint
+
+      - run: pnpm test
+
+      # `build` corre `tsc -b` antes de Vite: cubre el typecheck del front.
+      - run: pnpm build
