@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useGetQuery, useMutationQuery } from "@hooks/queries/core.queries";
+import { useAuthQuery } from "@hooks/queries/auth.queries";
+import { useVaultIntegrity } from "@hooks/useVaultIntegrity";
 import { useVaultStore } from "@store/vault.store";
 import { API_ENDPOINTS } from "@constants/app.constants";
 import {
@@ -38,6 +40,7 @@ import { SearchBar } from "@components/ui/SearchBar";
 import { Select } from "@components/ui/Select";
 import { Skeleton } from "@components/ui/Skeleton";
 import { Modal } from "@components/ui/Modal";
+import { IntegrityAlert } from "@components/vault/IntegrityAlert";
 import { UnlockVault } from "@components/vault/UnlockVault";
 import { VaultItemModal } from "@components/vault/VaultItemModal";
 
@@ -75,6 +78,8 @@ interface FavoritePayload {
 export const Vault = () => {
   const { t } = useTranslation();
   const { isUnlocked, vaultKey } = useVaultStore();
+  const markPendingSync = useVaultStore((s) => s.markPendingSync);
+  const { data: authData } = useAuthQuery();
 
   const [items, setItems] = useState<VaultItem[]>([]);
   const [isDecrypting, setIsDecrypting] = useState(false);
@@ -92,6 +97,13 @@ export const Vault = () => {
     endpoint: API_ENDPOINTS.VAULT.LIST,
     enabled: isUnlocked,
   });
+
+  // Integridad: compara lo que el server entrega contra el inventario firmado
+  // por el usuario (detecta items borrados o revertidos desde el servidor).
+  const { report: integrity, acknowledge } = useVaultIntegrity(
+    data?.items,
+    authData?.user?.id,
+  );
 
   const { mutateAsync: deleteItem, isPending: isDeleting } = useMutationQuery<
     { message: string },
@@ -201,6 +213,8 @@ export const Vault = () => {
       const uid = item.uid ?? newVaultItemUid();
       const newData = { ...item.data, favorite: !item.data.favorite };
       const { ciphertext, iv } = await encryptVaultData(vaultKey, newData, uid);
+      // El manifiesto queda obsoleto con este cambio: se re-firma al refrescar.
+      markPendingSync();
       await updateFavorite({
         id: item.id,
         tipo: item.tipo,
@@ -216,6 +230,7 @@ export const Vault = () => {
   const confirmDelete = async () => {
     if (!deleteTarget) return;
     try {
+      markPendingSync();
       await deleteItem();
     } finally {
       setDeleteTarget(null);
@@ -238,6 +253,10 @@ export const Vault = () => {
           {t("vault.add")}
         </Button>
       </div>
+
+      {integrity && (
+        <IntegrityAlert report={integrity} onAcknowledge={acknowledge} />
+      )}
 
       <SearchBar
         onSearch={setQuery}

@@ -32,6 +32,7 @@ interface EncItem {
 export const BackupCard = () => {
   const { t } = useTranslation();
   const vaultKey = useVaultStore((s) => s.vaultKey);
+  const markPendingSync = useVaultStore((s) => s.markPendingSync);
 
   const [exportPw, setExportPw] = useState("");
   const [importPw, setImportPw] = useState("");
@@ -148,6 +149,8 @@ export const BackupCard = () => {
         }),
       );
 
+      // Import propio: marca el manifiesto para re-firmarse al abrir el baúl.
+      markPendingSync();
       const res = await bulkImport({ items: encrypted });
       setImportFile(null);
       setImportPw("");

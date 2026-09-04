@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vitest'
 import request from 'supertest'
-import bcrypt from 'bcryptjs'
+import { compare as bcryptCompare } from '@node-rs/bcrypt'
 import type { Request, Response, NextFunction } from 'express'
 
 // Los límites por IP/cuenta se prueban aparte (auth.rate-limit.test.ts). Aquí
@@ -60,12 +60,12 @@ describe('POST /api/auth/register', () => {
     const stored = String(rows[0].password)
     expect(stored).not.toBe(user.password)
     expect(stored.startsWith('$2')).toBe(true)
-    expect(await bcrypt.compare(user.password, stored)).toBe(true)
+    expect(await bcryptCompare(user.password, stored)).toBe(true)
 
     // Igual con la prueba de posesión de la llave de recuperación.
     const storedRecovery = String(rows[0].recovery_hash)
     expect(storedRecovery).not.toBe(user.recovery_auth)
-    expect(await bcrypt.compare(user.recovery_auth, storedRecovery)).toBe(true)
+    expect(await bcryptCompare(user.recovery_auth, storedRecovery)).toBe(true)
   })
 
   it('la respuesta no filtra material sensible', async () => {

@@ -358,6 +358,21 @@
       "copy": "Copiar código 2FA",
       "copied": "Código 2FA copiado.",
       "expiresIn": "Caduca en {{seconds}} segundos"
+    },
+    "integrity": {
+      "title": "Revisión de integridad",
+      "hint": "Si los cambios los hiciste tú desde otro dispositivo, reconócelos para volver a firmar el inventario. Si no, cambia tu contraseña maestra y revisa tus datos.",
+      "acknowledge": "Reconocer cambios",
+      "unreadable": "El inventario firmado no se pudo leer: puede haber sido alterado.",
+      "rolledBack": "El servidor devolvió una versión anterior de tu baúl.",
+      "missing_one": "{{count}} elemento ya no aparece en el servidor.",
+      "missing_other": "{{count}} elementos ya no aparecen en el servidor.",
+      "modified_one": "{{count}} elemento tiene un contenido distinto al que guardaste.",
+      "modified_other": "{{count}} elementos tienen un contenido distinto al que guardaste.",
+      "unknown_one": "{{count}} elemento no estaba en tu inventario firmado.",
+      "unknown_other": "{{count}} elementos no estaban en tu inventario firmado.",
+      "missingLegacy_one": "{{count}} elemento antiguo (sin identificador) desapareció.",
+      "missingLegacy_other": "{{count}} elementos antiguos (sin identificador) desaparecieron."
     }
   },
   "dashboard": {
@@ -366,13 +381,6 @@
     "username": "Username",
     "fullName": "Nombre Completo",
     "na": "N/A",
-    "uploadImage": "Subir Imagen",
-    "selectImage": "Selecciona una imagen",
-    "preview": "Vista Previa",
-    "uploadSuccessTitle": "¡Subida Exitosa a Cloudinary!",
-    "openOriginal": "Abrir imagen original",
-    "confirmUpload": "Confirmar Subida",
-    "uploadSuccess": "Imagen procesada y subida con éxito",
     "demoButton": "Ver ejemplo de Modal",
     "demoTitle": "Ejemplo de Modal",
     "demoIntro": "Este modal demuestra los arreglos: cierre con la tecla Escape, clic fuera para cerrar y bloqueo del scroll de fondo. Desplázate hasta el final: el contenido detrás NO se mueve.",

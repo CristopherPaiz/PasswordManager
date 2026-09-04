@@ -1,31 +1,14 @@
-import { useState, useMemo, ChangeEvent } from "react";
+import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  CloudUpload,
-  UserCheck,
-  BadgeCheck,
-  Fingerprint,
-  Image as ImageIcon,
-  Layers,
-} from "lucide-react";
+import { UserCheck, BadgeCheck, Fingerprint, Layers } from "lucide-react";
 import { useAuthQuery } from "@hooks/queries/auth.queries";
-import { useMutationQuery } from "@hooks/queries/core.queries";
-import { API_ENDPOINTS, FORM_FIELDS } from "@constants/app.constants";
 import { Card, CardTitle } from "@components/ui/Card";
 import { Button } from "@components/ui/Button";
-import { Input } from "@components/ui/Input";
 import { Modal } from "@components/ui/Modal";
 import { Skeleton } from "@components/ui/Skeleton";
 import { Badge } from "@components/ui/Badge";
 import { Avatar } from "@components/ui/Avatar";
 import { Table, Column } from "@components/ui/Table";
-
-interface UploadResponse {
-  data: {
-    url: string;
-    publicId: string;
-  };
-}
 
 interface DemoRow {
   id: number;
@@ -41,9 +24,6 @@ export const Dashboard = () => {
   const { data, isLoading: isLoadingUser } = useAuthQuery();
   const user = data?.user;
 
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Datos de ejemplo para la tabla (en un caso real vendrían de usePaginatedQuery).
@@ -93,43 +73,10 @@ export const Dashboard = () => {
     },
   ];
 
-  const { mutateAsync: uploadImage, isPending: isUploading } = useMutationQuery<
-    UploadResponse,
-    FormData
-  >({
-    endpoint: API_ENDPOINTS.UPLOAD.TEST,
-    messageSuccess: t("dashboard.uploadSuccess"),
-  });
-
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setSelectedFile(file);
-    const objectUrl = URL.createObjectURL(file);
-    setPreviewUrl(objectUrl);
-    setUploadedImageUrl(null);
-  };
-
-  const handleUpload = async () => {
-    if (!selectedFile) return;
-
-    const formData = new FormData();
-    formData.append(FORM_FIELDS.UPLOAD_TEST, selectedFile);
-
-    const response = await uploadImage(formData);
-
-    if (response?.data?.url) {
-      setUploadedImageUrl(response.data.url);
-      setPreviewUrl(null);
-      setSelectedFile(null);
-    }
-  };
-
   const fullName = [user?.nombre, user?.apellido].filter(Boolean).join(" ");
 
   return (
-    <div className="grid md:grid-cols-2 gap-6 max-w-6xl mx-auto animate-in fade-in duration-300">
+    <div className="flex flex-col gap-6 max-w-6xl mx-auto animate-in fade-in duration-300">
       <Card>
         <CardTitle>{t("dashboard.profileInfo")}</CardTitle>
 
@@ -222,67 +169,7 @@ export const Dashboard = () => {
         </div>
       </Card>
 
-      <Card>
-        <CardTitle>{t("dashboard.uploadImage")}</CardTitle>
-
-        <div className="space-y-6">
-          <Input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            disabled={isUploading}
-            label={t("dashboard.selectImage")}
-          />
-
-          {previewUrl && (
-            <div className="animate-in fade-in zoom-in duration-300">
-              <p className="text-body font-semibold text-text-base mb-3 flex items-center gap-2">
-                <ImageIcon className="w-4 h-4 text-text-muted" />
-                {t("dashboard.preview")}
-              </p>
-              <img
-                src={previewUrl}
-                alt="Preview"
-                className="w-full max-h-72 object-cover rounded-card border-2 border-dashed border-border-base"
-              />
-            </div>
-          )}
-
-          {uploadedImageUrl && (
-            <div className="p-5 border border-signal-success/30 bg-signal-success/10 rounded-input animate-in fade-in duration-300">
-              <p className="text-body font-semibold text-signal-success mb-3 flex items-center gap-2">
-                <BadgeCheck className="w-5 h-5" />
-                {t("dashboard.uploadSuccessTitle")}
-              </p>
-              <img
-                src={uploadedImageUrl}
-                alt="Uploaded result"
-                className="w-full max-h-72 object-cover rounded-card mb-3"
-              />
-              <a
-                href={uploadedImageUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="text-body font-medium text-primary-500 hover:text-primary-600 transition-colors inline-flex items-center gap-1.5"
-              >
-                {t("dashboard.openOriginal")} &rarr;
-              </a>
-            </div>
-          )}
-
-          <Button
-            onClick={handleUpload}
-            disabled={!selectedFile || isUploading}
-            isLoading={isUploading}
-            icon={CloudUpload}
-            className="w-full"
-          >
-            {t("dashboard.confirmUpload")}
-          </Button>
-        </div>
-      </Card>
-
-      <Card className="md:col-span-2 min-w-0">
+      <Card className="min-w-0">
         <CardTitle>{t("dashboard.tableTitle")}</CardTitle>
         <Table
           columns={columns}

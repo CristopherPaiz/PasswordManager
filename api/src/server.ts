@@ -13,12 +13,9 @@ validateEnv()
 
 import app from './app.js'
 import { DatabaseService } from '@database/connection.js'
-import { configureCloudinary } from '@config/cloudinary.config.js'
 import { Server } from 'http'
 
 const PORT = process.env.PORT ?? 3000
-
-configureCloudinary()
 
 let serverInstance: Server
 

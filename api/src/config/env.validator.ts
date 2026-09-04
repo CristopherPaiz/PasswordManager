@@ -6,10 +6,7 @@ export const validateEnv = (): void => {
     'TURSO_AUTH_TOKEN',
     'JWT_SECRET_KEY',
     'SALT_ROUNDS',
-    'JWT_EXPIRATION_TIME',
-    'CLOUDINARY_CLOUD_NAME',
-    'CLOUDINARY_API_KEY',
-    'CLOUDINARY_API_SECRET'
+    'JWT_EXPIRATION_TIME'
   ]
 
   const missingVariables = requiredVariables.filter((variable) => !process.env[variable])

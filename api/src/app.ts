@@ -9,7 +9,6 @@ import { originCheckMiddleware } from '@middlewares/origin.middleware.js'
 import { HTTP_STATUS } from '@config/constants.js'
 import authRoutes from '@routes/auth.routes.js'
 import vaultRoutes from '@routes/vault.routes.js'
-import uploadRoutes from '@routes/upload.routes.js'
 import configRoutes from '@routes/config.routes.js'
 import systemRoutes from '@routes/system.routes.js'
 import errorsRoutes from '@routes/errors.routes.js'
@@ -76,7 +75,6 @@ app.use(cookieParser())
 
 app.use('/api/auth', authRoutes)
 app.use('/api/vault', vaultRoutes)
-app.use('/api/upload', uploadRoutes)
 app.use('/api/config', configRoutes)
 app.use('/api/system', systemRoutes)
 app.use('/api/errors', errorsRoutes)

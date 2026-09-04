@@ -8,6 +8,7 @@ import { useVaultStore } from "@store/vault.store";
 import { useAuthStore } from "@store/auth.store";
 import { API_ENDPOINTS } from "@constants/app.constants";
 import { deriveLoginCredentials, openVaultKey } from "@utils/vault";
+import { useKdfUpgrade } from "@hooks/useKdfUpgrade";
 import { EncryptedBlob, KdfParams, deriveWrapKeyBytes } from "@utils/crypto";
 import { getPasskeySecret, isPasskeySupported } from "@utils/webauthn";
 import { Card } from "@components/ui/Card";
@@ -30,6 +31,7 @@ export const UnlockVault = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const setVaultKey = useVaultStore((s) => s.setVaultKey);
+  const upgradeKdf = useKdfUpgrade();
   const { setAuthenticatedHint } = useAuthStore();
 
   const [masterPassword, setMasterPassword] = useState("");
@@ -55,7 +57,7 @@ export const UnlockVault = () => {
     setError("");
     setIsWorking(true);
     try {
-      const { wrapKeyBytes } = await deriveLoginCredentials(
+      const { authHash, wrapKeyBytes } = await deriveLoginCredentials(
         masterPassword,
         keys.kdf_salt,
         keys.kdf_params,
@@ -66,6 +68,14 @@ export const UnlockVault = () => {
         wrapKeyBytes,
       );
       setVaultKey(key, raw);
+      // Aprovecha que la maestra está en memoria para endurecer el KDF si la
+      // cuenta quedó con parámetros viejos (silencioso, best-effort).
+      void upgradeKdf({
+        masterPassword,
+        currentParams: keys.kdf_params,
+        currentAuthHash: authHash,
+        vaultKeyRaw: raw,
+      });
       setMasterPassword("");
     } catch {
       setError(t("unlock.wrongPassword"));

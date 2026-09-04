@@ -28,3 +28,14 @@ export const vaultItemUpdateSchema = z.object({
 export const vaultBulkSchema = z.object({
   items: z.array(vaultItemSchema).min(1).max(2000)
 })
+
+// Manifiesto del baúl: inventario cifrado (con la vaultKey) de qué items
+// existen y con qué contenido. El server lo guarda opaco; solo valida la forma
+// y que la versión avance (monótona), nunca puede leerlo.
+export const vaultManifestSchema = z.object({
+  manifest: z.object({
+    iv: z.string().min(1).max(64),
+    ct: z.string().min(1).max(400000)
+  }),
+  version: z.number().int().min(1)
+})

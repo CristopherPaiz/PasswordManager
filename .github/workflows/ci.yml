@@ -10,11 +10,10 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
-# NOTA: `api/pnpm-lock.yaml` y `ui/pnpm-lock.yaml` están en .gitignore, así que
-# CI no puede usar `--frozen-lockfile` y resuelve versiones nuevas en cada
-# corrida. Si se dejan de ignorar (recomendado: fija el árbol de dependencias
-# transitivas), cambiar los `install` a `pnpm install --frozen-lockfile` y el
-# `cache-dependency-path` al lockfile de cada paquete.
+# Los lockfiles de `api/` y `ui/` están versionados, así que CI instala con
+# `--frozen-lockfile`: falla si el lockfile no cuadra con el package.json en vez
+# de resolver versiones nuevas en silencio (un cambio de dependencia tiene que
+# entrar por commit, no por corrida de CI).
 jobs:
   api:
     name: API (lint · tipos · tests · build)
@@ -34,9 +33,9 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-          cache-dependency-path: api/package.json
+          cache-dependency-path: api/pnpm-lock.yaml
 
-      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm install --frozen-lockfile
 
       - run: pnpm lint
 
@@ -66,9 +65,9 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
-          cache-dependency-path: ui/package.json
+          cache-dependency-path: ui/pnpm-lock.yaml
 
-      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm install --frozen-lockfile
 
       - run: pnpm lint
 

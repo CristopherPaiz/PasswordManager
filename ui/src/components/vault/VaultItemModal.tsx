@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useMutationQuery } from "@hooks/queries/core.queries";
+import { useVaultStore } from "@store/vault.store";
 import { API_ENDPOINTS } from "@constants/app.constants";
 import { encryptVaultData, newVaultItemUid } from "@utils/vault";
 import {
@@ -94,6 +95,7 @@ export const VaultItemModal = ({
     DEFAULT_PASSWORD_OPTIONS,
   );
   const [showGen, setShowGen] = useState(false);
+  const markPendingSync = useVaultStore((s) => s.markPendingSync);
   const [isWorking, setIsWorking] = useState(false);
   // El modal tiene dos vistas. En móvil, apilar la vista previa + 12 colores
   // + 11 acabados + 6 campos en un solo scroll es ilegible, así que la
@@ -199,6 +201,9 @@ export const VaultItemModal = ({
       const uid = item?.uid ?? newVaultItemUid();
       const { ciphertext, iv } = await encryptVaultData(vaultKey, data, uid);
       const payload: EncryptedPayload = { tipo, ciphertext, iv, uid };
+      // Escritura propia: el manifiesto de integridad se re-firma al refrescar
+      // la lista (si no, el cambio se leería como manipulación del servidor).
+      markPendingSync();
       if (item) await updateItem(payload);
       else await createItem(payload);
       onClose();

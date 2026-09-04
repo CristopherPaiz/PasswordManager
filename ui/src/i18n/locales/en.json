@@ -358,6 +358,21 @@
       "copy": "Copy 2FA code",
       "copied": "2FA code copied.",
       "expiresIn": "Expires in {{seconds}} seconds"
+    },
+    "integrity": {
+      "title": "Integrity check",
+      "hint": "If you made these changes from another device, acknowledge them to re-sign the inventory. If not, change your master password and review your data.",
+      "acknowledge": "Acknowledge changes",
+      "unreadable": "The signed inventory could not be read: it may have been tampered with.",
+      "rolledBack": "The server returned an older version of your vault.",
+      "missing_one": "{{count}} item is no longer returned by the server.",
+      "missing_other": "{{count}} items are no longer returned by the server.",
+      "modified_one": "{{count}} item has different content than what you saved.",
+      "modified_other": "{{count}} items have different content than what you saved.",
+      "unknown_one": "{{count}} item was not in your signed inventory.",
+      "unknown_other": "{{count}} items were not in your signed inventory.",
+      "missingLegacy_one": "{{count}} legacy item (without identifier) disappeared.",
+      "missingLegacy_other": "{{count}} legacy items (without identifier) disappeared."
     }
   },
   "dashboard": {
@@ -366,13 +381,6 @@
     "username": "Username",
     "fullName": "Full Name",
     "na": "N/A",
-    "uploadImage": "Upload Image",
-    "selectImage": "Select an image",
-    "preview": "Preview",
-    "uploadSuccessTitle": "Successfully uploaded to Cloudinary!",
-    "openOriginal": "Open original image",
-    "confirmUpload": "Confirm Upload",
-    "uploadSuccess": "Image processed and uploaded successfully",
     "demoButton": "View Modal example",
     "demoTitle": "Modal example",
     "demoIntro": "This modal demonstrates the fixes: close with the Escape key, click outside to close, and background scroll lock. Scroll to the bottom: the content behind does NOT move.",

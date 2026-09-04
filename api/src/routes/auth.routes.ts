@@ -15,6 +15,7 @@ import {
   passkeyList,
   passkeyDelete,
   changeMaster,
+  upgradeKdf,
   sessionsList,
   sessionRevoke
 } from '@controllers/auth.controller.js'
@@ -28,7 +29,8 @@ import {
   recoveryResetSchema,
   totpTokenSchema,
   passkeyRegisterSchema,
-  changeMasterSchema
+  changeMasterSchema,
+  kdfUpgradeSchema
 } from '@validators/auth.schema.js'
 
 const router = Router()
@@ -96,6 +98,8 @@ router.delete('/passkey/:id', authMiddleware, passkeyDelete)
 
 // Cambio de maestra y gestión de sesiones (requieren sesión válida).
 router.put('/master', authMiddleware, validate(changeMasterSchema), changeMaster)
+// Endurecer Argon2id sin cambiar la maestra (migración silenciosa al desbloquear).
+router.put('/kdf', authMiddleware, validate(kdfUpgradeSchema), upgradeKdf)
 router.get('/sessions', authMiddleware, sessionsList)
 router.delete('/sessions/:id', authMiddleware, sessionRevoke)
 

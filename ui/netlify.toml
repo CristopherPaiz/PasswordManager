@@ -31,6 +31,11 @@
   [headers.values]
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://password.cpaiz.es; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests"
     X-Content-Type-Options = "nosniff"
+    # Aísla la pestaña: sin COOP, una ventana abierta por (o que abrió a) la app
+    # conserva una referencia y puede sondearla. CORP evita que otros sitios
+    # incrusten sus recursos.
+    Cross-Origin-Opener-Policy = "same-origin"
+    Cross-Origin-Resource-Policy = "same-origin"
     X-Frame-Options = "DENY"
     Referrer-Policy = "no-referrer"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), publickey-credentials-get=(self), publickey-credentials-create=(self)"

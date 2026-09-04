@@ -21,6 +21,9 @@ export const applySchema = async (dbClient: Client): Promise<void> => {
   // wrapped_vault_key_recovery: la misma vaultKey envuelta por la llave de recuperación.
   // totp_last_step: último paso de tiempo TOTP aceptado (RFC 6238). Impide
   // reusar un código dentro de su ventana de validez (anti-replay).
+  // vault_manifest / vault_manifest_version: inventario firmado del baúl,
+  // cifrado con la vaultKey (el server no lo abre). Detecta borrados o
+  // reversiones hechas desde el servidor. La versión es monótona.
   // El server NUNCA puede abrir estos blobs: es zero-knowledge.
   await dbClient.execute(`
       CREATE TABLE IF NOT EXISTS Usuarios (
@@ -38,8 +41,8 @@ export const applySchema = async (dbClient: Client): Promise<void> => {
         totp_secret TEXT,
         totp_enabled INTEGER DEFAULT 0,
         totp_last_step INTEGER,
-        passkey_cred_id TEXT,
-        wrapped_vault_key_passkey TEXT,
+        vault_manifest TEXT,
+        vault_manifest_version INTEGER NOT NULL DEFAULT 0,
         rol TEXT NOT NULL DEFAULT 'user',
         activo INTEGER DEFAULT 1,
         ultimo_login DATETIME,
@@ -116,6 +119,21 @@ export const applySchema = async (dbClient: Client): Promise<void> => {
         Valor TEXT NOT NULL
       )
     `)
+
+  // Índices: las lecturas calientes filtran por usuario (baúl, sesiones,
+  // passkeys) y el middleware de auth busca la sesión por hash de token en
+  // CADA request. Sin ellos SQLite hace scan completo de la tabla.
+  await dbClient.execute(
+    'CREATE INDEX IF NOT EXISTS idx_vaultitems_usuario ON VaultItems(usuario_id, fecha_modificacion DESC)'
+  )
+  await dbClient.execute('CREATE INDEX IF NOT EXISTS idx_sesiones_token ON Sesiones(token)')
+  await dbClient.execute(
+    'CREATE INDEX IF NOT EXISTS idx_sesiones_usuario ON Sesiones(usuario_id, activa)'
+  )
+  await dbClient.execute(
+    'CREATE INDEX IF NOT EXISTS idx_sesiones_expiracion ON Sesiones(fecha_expiracion)'
+  )
+  await dbClient.execute('CREATE INDEX IF NOT EXISTS idx_passkeys_usuario ON Passkeys(usuario_id)')
 
   const { rows: configCount } = await dbClient.execute(
     "SELECT COUNT(*) as count FROM Configuraciones WHERE Nombre = 'nombreApp'"

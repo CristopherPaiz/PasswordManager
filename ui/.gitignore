@@ -36,5 +36,6 @@ dist-ssr
 *.tsbuildinfo
 
 # pnpm
-pnpm-lock.yaml
+# El lockfile SÍ se versiona: fija el árbol transitivo. En el front una
+# dependencia comprometida ve la contraseña maestra en claro.
 package-lock.json

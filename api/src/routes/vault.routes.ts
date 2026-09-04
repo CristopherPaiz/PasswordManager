@@ -5,14 +5,17 @@ import {
   createVaultItem,
   updateVaultItem,
   deleteVaultItem,
-  bulkCreateVaultItems
+  bulkCreateVaultItems,
+  getVaultManifest,
+  putVaultManifest
 } from '@controllers/vault.controller.js'
 import { authMiddleware } from '@middlewares/auth.middleware.js'
 import { validate } from '@middlewares/validate.middleware.js'
 import {
   vaultItemSchema,
   vaultItemUpdateSchema,
-  vaultBulkSchema
+  vaultBulkSchema,
+  vaultManifestSchema
 } from '@validators/vault.schema.js'
 
 const router = Router()
@@ -21,6 +24,8 @@ const router = Router()
 router.use(authMiddleware)
 
 router.get('/keys', getVaultKeys)
+router.get('/manifest', getVaultManifest)
+router.put('/manifest', validate(vaultManifestSchema), putVaultManifest)
 router.get('/', listVaultItems)
 router.post('/', validate(vaultItemSchema), createVaultItem)
 router.post('/bulk', validate(vaultBulkSchema), bulkCreateVaultItems)

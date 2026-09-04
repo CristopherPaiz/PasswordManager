@@ -11,6 +11,7 @@ import { useVaultStore } from "@store/vault.store";
 import { ROUTES, API_ENDPOINTS } from "@constants/app.constants";
 import { createLoginSchema, LoginForm } from "@validators/auth.schema";
 import { deriveLoginCredentials, openVaultKey } from "@utils/vault";
+import { useKdfUpgrade } from "@hooks/useKdfUpgrade";
 import { EncryptedBlob, KdfParams } from "@utils/crypto";
 import { User } from "@apptypes";
 import { Card } from "@components/ui/Card";
@@ -33,6 +34,10 @@ interface PendingTotp {
   username: string;
   authHash: string;
   wrapKeyBytes: Uint8Array;
+  // Se conservan para poder endurecer el KDF tras validar el 2FA (mismo dato
+  // que en el camino sin 2FA: solo vive en memoria hasta terminar el login).
+  masterPassword: string;
+  kdfParams: KdfParams;
 }
 
 export const Login = () => {
@@ -41,6 +46,7 @@ export const Login = () => {
   const { data: authData, isLoading: isAuthLoading } = useAuthQuery();
   const { setAuthenticatedHint } = useAuthStore();
   const setVaultKey = useVaultStore((s) => s.setVaultKey);
+  const upgradeKdf = useKdfUpgrade();
 
   const [isWorking, setIsWorking] = useState(false);
   const [pending, setPending] = useState<PendingTotp | null>(null);
@@ -81,13 +87,25 @@ export const Login = () => {
   if (authData?.user) return <Navigate to={ROUTES.VAULT} replace />;
 
   // Desbloquea el baúl con la wrapKey ya derivada y navega.
-  const finishLogin = async (res: LoginResponse, wrapKeyBytes: Uint8Array) => {
+  const finishLogin = async (
+    res: LoginResponse,
+    wrapKeyBytes: Uint8Array,
+    credentials: { masterPassword: string; authHash: string; kdfParams: KdfParams },
+  ) => {
     if (res.wrapped_vault_key) {
       const { key, raw } = await openVaultKey(
         res.wrapped_vault_key,
         wrapKeyBytes,
       );
       setVaultKey(key, raw);
+      // Cuenta vieja con Argon2id por debajo del default actual: se re-deriva
+      // en segundo plano. No bloquea la navegación ni se le avisa al usuario.
+      void upgradeKdf({
+        masterPassword: credentials.masterPassword,
+        currentParams: credentials.kdfParams,
+        currentAuthHash: credentials.authHash,
+        vaultKeyRaw: raw,
+      });
     }
     setAuthenticatedHint(true);
     navigate(ROUTES.VAULT);
@@ -109,10 +127,20 @@ export const Login = () => {
 
       if (res.totpRequired) {
         // La cuenta tiene 2FA: guarda lo derivado y pide el código.
-        setPending({ username: values.username, authHash, wrapKeyBytes });
+        setPending({
+          username: values.username,
+          authHash,
+          wrapKeyBytes,
+          masterPassword: values.password,
+          kdfParams: params.kdf_params,
+        });
         return;
       }
-      await finishLogin(res, wrapKeyBytes);
+      await finishLogin(res, wrapKeyBytes, {
+        masterPassword: values.password,
+        authHash,
+        kdfParams: params.kdf_params,
+      });
     } catch {
       setError("password", { message: t("login.invalidCredentials") });
     } finally {
@@ -131,7 +159,11 @@ export const Login = () => {
         password: pending.authHash,
         token: totp,
       });
-      await finishLogin(res, pending.wrapKeyBytes);
+      await finishLogin(res, pending.wrapKeyBytes, {
+        masterPassword: pending.masterPassword,
+        authHash: pending.authHash,
+        kdfParams: pending.kdfParams,
+      });
     } catch {
       setTotpError(t("login.totpInvalid"));
     } finally {

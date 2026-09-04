@@ -7,11 +7,13 @@ import {
   decryptVaultData,
   deriveLoginCredentials,
   encryptVaultData,
+  buildKdfUpgrade,
+  isKdfOutdated,
   newVaultItemUid,
   openVaultKey,
   recoverVaultKeyRaw,
 } from "./vault";
-import { fromBase64, importAesKey } from "./crypto";
+import { DEFAULT_KDF_PARAMS, fromBase64, importAesKey } from "./crypto";
 import { VaultItemData } from "@apptypes";
 
 /**
@@ -461,5 +463,42 @@ describe("openVaultKey", () => {
 
   it("la CryptoKey no es extraíble (no se puede exportar la vaultKey)", async () => {
     expect(account.vaultCryptoKey.extractable).toBe(false);
+  });
+});
+
+describe("endurecer el KDF de una cuenta vieja", () => {
+  it("no propone migrar una cuenta que ya está al día", () => {
+    expect(isKdfOutdated(DEFAULT_KDF_PARAMS)).toBe(false);
+  });
+
+  it("detecta parámetros por debajo del default actual", () => {
+    expect(isKdfOutdated({ ...DEFAULT_KDF_PARAMS, m: 19456 })).toBe(true);
+    expect(isKdfOutdated({ ...DEFAULT_KDF_PARAMS, t: 2 })).toBe(true);
+  });
+
+  // Migrar hacia abajo sería debilitar la cuenta en silencio.
+  it("no propone migrar una cuenta con parámetros MÁS fuertes", () => {
+    expect(isKdfOutdated({ ...DEFAULT_KDF_PARAMS, m: 262144, t: 8 })).toBe(false);
+  });
+
+  it("re-deriva con salt y params nuevos sin tocar la vaultKey", async () => {
+    const raw = new Uint8Array(32).fill(7);
+
+    const upgrade = await buildKdfUpgrade("mi-maestra-larga-123", raw, "auth-hash-actual");
+    const otro = await buildKdfUpgrade("mi-maestra-larga-123", raw, "auth-hash-actual");
+
+    expect(upgrade.current_password).toBe("auth-hash-actual");
+    expect(upgrade.kdf_params).toEqual(DEFAULT_KDF_PARAMS);
+    // Salt nuevo en cada migración: nunca se reusa el de la cuenta vieja.
+    expect(upgrade.kdf_salt).not.toBe(otro.kdf_salt);
+
+    // La MISMA vaultKey sigue abriéndose con la maestra (que no cambió).
+    const { wrapKeyBytes } = await deriveLoginCredentials(
+      "mi-maestra-larga-123",
+      upgrade.kdf_salt,
+      upgrade.kdf_params,
+    );
+    const { raw: reabierta } = await openVaultKey(upgrade.wrapped_vault_key, wrapKeyBytes);
+    expect(reabierta).toEqual(raw);
   });
 });

@@ -106,6 +106,17 @@ export const passkeyRegisterSchema = z.object({
 })
 
 // Cambio de maestra estando dentro: verifica la actual y aplica la nueva.
+// Endurecimiento del KDF: misma maestra, parámetros nuevos. Forma idéntica a
+// changeMaster (el server no distingue una de otra: en ambas recibe un authHash
+// nuevo), pero se separa para no arrastrar el cierre de sesiones.
+export const kdfUpgradeSchema = z.object({
+  current_password: z.string().min(1).max(200),
+  password: z.string().min(20, 'Credencial inválida.').max(200, 'Credencial inválida.'),
+  kdf_salt: z.string().min(1).max(128),
+  kdf_params: kdfParamsSchema,
+  wrapped_vault_key: encryptedBlobSchema
+})
+
 export const changeMasterSchema = z.object({
   current_password: z.string().min(1).max(200),
   password: z.string().min(20, 'Credencial inválida.').max(200, 'Credencial inválida.'),

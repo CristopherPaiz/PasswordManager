@@ -31,17 +31,16 @@ export const API_ENDPOINTS = {
     PASSKEY_LIST: "/api/auth/passkeys",
     PASSKEY_ITEM: (id: number) => `/api/auth/passkey/${id}`,
     MASTER: "/api/auth/master",
+    KDF: "/api/auth/kdf",
     SESSIONS: "/api/auth/sessions",
     SESSION_ITEM: (id: number) => `/api/auth/sessions/${id}`,
   },
   VAULT: {
     KEYS: "/api/vault/keys",
+    MANIFEST: "/api/vault/manifest",
     LIST: "/api/vault",
     BULK: "/api/vault/bulk",
     ITEM: (id: number) => `/api/vault/${id}`,
-  },
-  UPLOAD: {
-    TEST: "/api/upload/test",
   },
   SYSTEM: {
     HEALTH: "/health",
@@ -55,10 +54,6 @@ export const API_ENDPOINTS = {
   ERRORS: {
     LIST: "/api/errors",
   },
-} as const;
-
-export const FORM_FIELDS = {
-  UPLOAD_TEST: "imagen_prueba",
 } as const;
 
 export const STORAGE_KEYS = {

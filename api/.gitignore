@@ -42,7 +42,9 @@ coverage/
 .nyc_output/
 
 # pnpm
-pnpm-lock.yaml
+# OJO: `pnpm-lock.yaml` SÍ se versiona a propósito. Es un gestor de contraseñas:
+# sin lockfile, cada `pnpm install` resuelve dependencias transitivas nuevas sin
+# revisión, y un paquete comprometido corre con acceso total a la app.
 pnpm-workspace.yaml
 .npmrc
 .pnpmfile.yaml

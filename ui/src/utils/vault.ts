@@ -105,6 +105,32 @@ export const buildMasterReset = async (
   return { password: authHash, kdf_salt, kdf_params, wrapped_vault_key };
 };
 
+/**
+ * ¿La cuenta está guardada con parámetros de Argon2id más débiles que los que
+ * hoy usamos al registrar? Pasa con cuentas viejas: el registro fija los
+ * parámetros del día y ahí se quedan aunque el default suba.
+ *
+ * Solo mira si algún parámetro se quedó CORTO (nunca al revés): una cuenta con
+ * parámetros más fuertes que el default no se debilita.
+ */
+export const isKdfOutdated = (params: KdfParams): boolean =>
+  params.algo !== DEFAULT_KDF_PARAMS.algo ||
+  params.m < DEFAULT_KDF_PARAMS.m ||
+  params.t < DEFAULT_KDF_PARAMS.t ||
+  params.hashLen < DEFAULT_KDF_PARAMS.hashLen;
+
+// Cripto para re-derivar la cuenta con los parámetros actuales SIN cambiar la
+// maestra: salt nuevo, authHash nuevo y la MISMA vaultKey re-envuelta. El blob
+// de recuperación no se toca (envuelve la misma vaultKey, que no se rota).
+export const buildKdfUpgrade = async (
+  masterPassword: string,
+  vaultKeyRaw: Uint8Array,
+  currentAuthHash: string,
+): Promise<MasterResetCrypto & { current_password: string }> => {
+  const fresh = await buildMasterReset(masterPassword, vaultKeyRaw);
+  return { ...fresh, current_password: currentAuthHash };
+};
+
 // Deriva authHash + wrapKey para el login (con salt/params obtenidos del prelogin).
 export const deriveLoginCredentials = async (
   masterPassword: string,

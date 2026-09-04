@@ -178,3 +178,90 @@ export const bulkCreateVaultItems = async (
     next(error)
   }
 }
+
+// ---------- Manifiesto del baúl (integridad: anti-borrado y anti-rollback) ----------
+//
+// El AAD por item impide que el server intercambie ciphertexts, pero NO que
+// borre filas o devuelva una versión vieja de un item: el cliente no tiene con
+// qué comparar. El manifiesto es ese punto de comparación: un blob cifrado con
+// la vaultKey que lista el uid de cada item y un digest de su ciphertext, más
+// una versión que solo avanza. El server no puede leerlo ni forjarlo (no tiene
+// la vaultKey), así que cualquier item borrado, revertido o inyectado por el
+// servidor se detecta al abrir el baúl.
+
+export const getVaultManifest = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = req.user?.userId
+    const dbClient = await DatabaseService.getInstance().getClient()
+
+    const { rows } = await dbClient.execute({
+      sql: 'SELECT vault_manifest, vault_manifest_version FROM Usuarios WHERE id = ?',
+      args: [userId ?? 0]
+    })
+
+    if (rows.length === 0) {
+      res.status(HTTP_STATUS.NOT_FOUND).json({ message: MESSAGES.AUTH.UNAUTHORIZED })
+      return
+    }
+
+    res.status(HTTP_STATUS.OK).json({
+      manifest: rows[0].vault_manifest ? JSON.parse(String(rows[0].vault_manifest)) : null,
+      version: Number(rows[0].vault_manifest_version ?? 0)
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+// La versión debe AVANZAR siempre. Rechazar un retroceso evita que un cliente
+// desincronizado (o una carrera entre dos pestañas) pise el manifiesto con uno
+// viejo y dispare falsas alarmas de integridad. Contra un server hostil esto no
+// prueba nada: la defensa real es que el cliente recuerda la última versión que
+// vio y desconfía si el server le devuelve una menor.
+export const putVaultManifest = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = req.user?.userId
+    const { manifest, version } = req.body as {
+      manifest: { iv: string; ct: string }
+      version: number
+    }
+
+    const dbClient = await DatabaseService.getInstance().getClient()
+    const result = await dbClient.execute({
+      sql: `UPDATE Usuarios
+              SET vault_manifest = ?, vault_manifest_version = ?
+            WHERE id = ? AND vault_manifest_version < ?`,
+      args: [JSON.stringify(manifest), version, userId ?? 0, version]
+    })
+
+    if (result.rowsAffected === 0) {
+      const { rows } = await dbClient.execute({
+        sql: 'SELECT vault_manifest_version FROM Usuarios WHERE id = ?',
+        args: [userId ?? 0]
+      })
+
+      if (rows.length === 0) {
+        res.status(HTTP_STATUS.NOT_FOUND).json({ message: MESSAGES.AUTH.UNAUTHORIZED })
+        return
+      }
+
+      res.status(HTTP_STATUS.CONFLICT).json({
+        message: 'Versión del manifiesto desactualizada.',
+        version: Number(rows[0].vault_manifest_version ?? 0)
+      })
+      return
+    }
+
+    res.status(HTTP_STATUS.OK).json({ message: 'Manifiesto actualizado.', version })
+  } catch (error) {
+    next(error)
+  }
+}

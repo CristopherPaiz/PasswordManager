@@ -45,10 +45,6 @@ const runInstaller = async () => {
   const saltRounds = await askQuestion('Bcrypt Salt Rounds', '10')
   const jwtExpiration = await askQuestion('JWT Expiration Time', '7d')
 
-  const cloudName = await askQuestion('Cloudinary Cloud Name')
-  const cloudApiKey = await askQuestion('Cloudinary API Key')
-  const cloudApiSecret = await askQuestion('Cloudinary API Secret')
-
   const userEmail = await askQuestion('Email de administración (Gmail)')
   const userPass = await askQuestion('Password de administración')
 
@@ -65,10 +61,6 @@ TURSO_AUTH_TOKEN=${tursoToken}
 JWT_SECRET_KEY=${jwtSecret}
 SALT_ROUNDS=${saltRounds}
 JWT_EXPIRATION_TIME=${jwtExpiration}
-
-CLOUDINARY_CLOUD_NAME=${cloudName}
-CLOUDINARY_API_KEY=${cloudApiKey}
-CLOUDINARY_API_SECRET=${cloudApiSecret}
 
 ADMIN_EMAIL=${userEmail}
 ADMIN_PASSWORD=${userPass}

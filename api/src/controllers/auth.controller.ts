@@ -1,6 +1,13 @@
 import { Request, Response, NextFunction } from 'express'
 import { randomUUID } from 'node:crypto'
-import bcrypt from 'bcryptjs'
+// bcrypt nativo (napi) en lugar de bcryptjs (JS puro): mismo algoritmo y mismo
+// formato de hash ($2a/$2b), así los hashes ya guardados siguen validando,
+// pero el coste se paga en código nativo y no bloquea el event loop tanto.
+import {
+  compare as bcryptCompare,
+  hash as bcryptHash,
+  hashSync as bcryptHashSync
+} from '@node-rs/bcrypt'
 import jwt, { SignOptions } from 'jsonwebtoken'
 import { generateSecret, generateURI, verify as verifyTotp } from 'otplib'
 import QRCode from 'qrcode'
@@ -67,7 +74,7 @@ const toLastStep = (value: unknown): number | null =>
 // Hash bcrypt real (de un valor aleatorio de proceso) para ejecutar una
 // comparación "de mentira" cuando el usuario NO existe: sin esto, la respuesta
 // rápida (sin bcrypt) delata por timing qué cuentas existen.
-const DUMMY_BCRYPT_HASH = bcrypt.hashSync(
+const DUMMY_BCRYPT_HASH = bcryptHashSync(
   `dummy-${Date.now()}-${Math.random()}`,
   SYSTEM.DEFAULT_SALT_ROUNDS
 )
@@ -89,7 +96,6 @@ interface DbUser {
   totp_secret?: string
   totp_enabled?: number
   totp_last_step?: number | null
-  passkey_cred_id?: string
 }
 
 export const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -138,9 +144,9 @@ export const register = async (req: Request, res: Response, next: NextFunction):
 
     const saltRounds = parseInt(process.env.SALT_ROUNDS ?? String(SYSTEM.DEFAULT_SALT_ROUNDS))
     // `password` aquí es el authHash derivado en el navegador, no la maestra.
-    const hashedPassword = await bcrypt.hash(password, saltRounds)
+    const hashedPassword = await bcryptHash(password, saltRounds)
     // recovery_auth: hash de posesión de la llave de recuperación, bcrypt-eado.
-    const recoveryHash = await bcrypt.hash(recovery_auth, saltRounds)
+    const recoveryHash = await bcryptHash(recovery_auth, saltRounds)
 
     const result = await dbClient.execute({
       sql: `INSERT INTO Usuarios
@@ -226,7 +232,7 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
     if (users.length === 0) {
       // Comparación señuelo: iguala el tiempo de respuesta con el de una cuenta
       // real (anti-enumeración por timing).
-      await bcrypt.compare(password, DUMMY_BCRYPT_HASH)
+      await bcryptCompare(password, DUMMY_BCRYPT_HASH)
       res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: MESSAGES.AUTH.INVALID_CREDENTIALS })
       return
     }
@@ -234,12 +240,12 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
     const user = users[0] as unknown as DbUser
 
     if (!user.password) {
-      await bcrypt.compare(password, DUMMY_BCRYPT_HASH)
+      await bcryptCompare(password, DUMMY_BCRYPT_HASH)
       res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: MESSAGES.AUTH.INVALID_CREDENTIALS })
       return
     }
 
-    const passwordMatch = await bcrypt.compare(password, user.password)
+    const passwordMatch = await bcryptCompare(password, user.password)
 
     if (!passwordMatch) {
       res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: MESSAGES.AUTH.INVALID_CREDENTIALS })
@@ -530,7 +536,7 @@ export const changeMaster = async (
       return
     }
 
-    const ok = await bcrypt.compare(current_password, String(rows[0].password))
+    const ok = await bcryptCompare(current_password, String(rows[0].password))
     if (!ok) {
       res
         .status(HTTP_STATUS.UNAUTHORIZED)
@@ -539,7 +545,7 @@ export const changeMaster = async (
     }
 
     const saltRounds = parseInt(process.env.SALT_ROUNDS ?? String(SYSTEM.DEFAULT_SALT_ROUNDS))
-    const hashedPassword = await bcrypt.hash(password, saltRounds)
+    const hashedPassword = await bcryptHash(password, saltRounds)
 
     await dbClient.execute({
       sql: 'UPDATE Usuarios SET password = ?, kdf_salt = ?, kdf_params = ?, wrapped_vault_key = ? WHERE id = ?',
@@ -561,6 +567,64 @@ export const changeMaster = async (
     })
 
     res.status(HTTP_STATUS.OK).json({ message: 'Contraseña maestra actualizada.' })
+  } catch (error) {
+    next(error)
+  }
+}
+
+// ---------- Endurecer el KDF de una cuenta existente ----------
+
+// Re-deriva la cuenta con parámetros Argon2id MÁS FUERTES sin cambiar la
+// contraseña maestra. El cliente, que ya tiene la maestra en memoria tras un
+// desbloqueo exitoso, genera salt nuevo, re-deriva el authHash y re-envuelve la
+// MISMA vaultKey; aquí solo se valida que la credencial actual sea correcta y
+// se persiste lo nuevo.
+//
+// Diferencias con `changeMaster`: la maestra no cambió, así que NO se cierran
+// las demás sesiones (sería un cierre sorpresivo en otros dispositivos por una
+// migración interna) y el blob de recuperación sigue sirviendo (envuelve la
+// misma vaultKey, que no se rota).
+export const upgradeKdf = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = req.user?.userId
+    const { current_password, password, kdf_salt, kdf_params, wrapped_vault_key } = req.body
+    const dbClient = await DatabaseService.getInstance().getClient()
+
+    const { rows } = await dbClient.execute({
+      sql: 'SELECT password FROM Usuarios WHERE id = ?',
+      args: [userId ?? 0]
+    })
+
+    if (rows.length === 0 || !rows[0].password) {
+      res.status(HTTP_STATUS.NOT_FOUND).json({ message: 'Usuario no encontrado.' })
+      return
+    }
+
+    const ok = await bcryptCompare(current_password, String(rows[0].password))
+    if (!ok) {
+      res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: MESSAGES.AUTH.INVALID_CREDENTIALS })
+      return
+    }
+
+    const saltRounds = parseInt(process.env.SALT_ROUNDS ?? String(SYSTEM.DEFAULT_SALT_ROUNDS))
+    const hashedPassword = await bcryptHash(password, saltRounds)
+
+    await dbClient.execute({
+      sql: 'UPDATE Usuarios SET password = ?, kdf_salt = ?, kdf_params = ?, wrapped_vault_key = ? WHERE id = ?',
+      args: [
+        hashedPassword,
+        kdf_salt,
+        JSON.stringify(kdf_params),
+        JSON.stringify(wrapped_vault_key),
+        userId ?? 0
+      ]
+    })
+
+    res.status(HTTP_STATUS.OK).json({ message: 'Parámetros de cifrado actualizados.' })
   } catch (error) {
     next(error)
   }
@@ -698,12 +762,12 @@ export const recoveryReset = async (
     // Mismo error y mismo costo (compare señuelo) exista o no la cuenta:
     // anti-enumeración por status y por timing.
     if (rows.length === 0 || !rows[0].recovery_hash) {
-      await bcrypt.compare(recovery_auth, DUMMY_BCRYPT_HASH)
+      await bcryptCompare(recovery_auth, DUMMY_BCRYPT_HASH)
       res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: 'Llave de recuperación incorrecta.' })
       return
     }
 
-    const ok = await bcrypt.compare(recovery_auth, String(rows[0].recovery_hash))
+    const ok = await bcryptCompare(recovery_auth, String(rows[0].recovery_hash))
     if (!ok) {
       res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: 'Llave de recuperación incorrecta.' })
       return
@@ -711,8 +775,8 @@ export const recoveryReset = async (
 
     const userId = Number(rows[0].id)
     const saltRounds = parseInt(process.env.SALT_ROUNDS ?? String(SYSTEM.DEFAULT_SALT_ROUNDS))
-    const hashedPassword = await bcrypt.hash(password, saltRounds)
-    const newRecoveryHash = await bcrypt.hash(new_recovery_auth, saltRounds)
+    const hashedPassword = await bcryptHash(password, saltRounds)
+    const newRecoveryHash = await bcryptHash(new_recovery_auth, saltRounds)
 
     await dbClient.execute({
       sql: `UPDATE Usuarios
