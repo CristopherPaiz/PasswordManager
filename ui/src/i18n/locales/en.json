@@ -327,7 +327,14 @@
         "gradient": "Gradient",
         "solid": "Solid",
         "horizon": "Horizon",
-        "duotone": "Duotone"
+        "duotone": "Duotone",
+        "guilloche": "Guilloché",
+        "waves": "Waves",
+        "arcs": "Arcs",
+        "grid": "Grid",
+        "stripes": "Stripes",
+        "mesh": "Mesh",
+        "holo": "Holographic"
       },
       "issuerDetected": "Issuer detected from the BIN, locally",
       "useIssuer": "Use",

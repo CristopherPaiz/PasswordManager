@@ -327,7 +327,14 @@
         "gradient": "Degradado",
         "solid": "Plano",
         "horizon": "Horizonte",
-        "duotone": "Bitono"
+        "duotone": "Bitono",
+        "guilloche": "Guilloché",
+        "waves": "Ondas",
+        "arcs": "Arcos",
+        "grid": "Retícula",
+        "stripes": "Rayas",
+        "mesh": "Malla",
+        "holo": "Holográfico"
       },
       "issuerDetected": "Emisor detectado por el BIN, en local",
       "useIssuer": "Usar",

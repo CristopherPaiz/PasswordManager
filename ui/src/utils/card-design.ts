@@ -1,4 +1,5 @@
 import { CardBrandInfo } from "./card-brand";
+import { PATTERNS, PatternId } from "./card-patterns";
 
 /**
  * Personalización visual de una tarjeta: color y acabado elegidos por el usuario.
@@ -32,7 +33,18 @@ export type CardColorId =
   | "rose"
   | "platinum";
 
-export type CardDesignId = "gradient" | "solid" | "horizon" | "duotone";
+export type CardDesignId =
+  | "gradient"
+  | "solid"
+  | "horizon"
+  | "duotone"
+  | "guilloche"
+  | "waves"
+  | "arcs"
+  | "grid"
+  | "stripes"
+  | "mesh"
+  | "holo";
 
 interface Palette {
   id: CardColorId;
@@ -77,7 +89,19 @@ export const CARD_COLOR_IDS: CardColorId[] = [
   "platinum",
 ];
 
-export const CARD_DESIGN_IDS: CardDesignId[] = ["gradient", "solid", "horizon", "duotone"];
+export const CARD_DESIGN_IDS: CardDesignId[] = [
+  "gradient",
+  "solid",
+  "horizon",
+  "duotone",
+  "guilloche",
+  "waves",
+  "arcs",
+  "grid",
+  "stripes",
+  "mesh",
+  "holo",
+];
 
 export interface ResolvedCardStyle {
   /** Listo para `style={{ backgroundImage }}`. */
@@ -86,6 +110,11 @@ export interface ResolvedCardStyle {
   fg: string;
   /** Opacidad del brillo diagonal: los acabados planos no lo quieren. */
   sheen: number;
+  /**
+   * Capa de patrón que va SOBRE el color, en su propio elemento para poder
+   * darle opacidad sin afectar al texto. `null` en los acabados lisos.
+   */
+  pattern: { image: string; opacity: number } | null;
 }
 
 /** Colores efectivos: los del usuario, o los de la marca si eligió `brand`. */
@@ -108,7 +137,12 @@ export const resolveCardStyle = (
   switch (design) {
     case "solid":
       // Plano de verdad: sin brillo, o dejaría de verse plano.
-      return { backgroundImage: `linear-gradient(${from}, ${from})`, fg, sheen: 0 };
+      return {
+        backgroundImage: `linear-gradient(${from}, ${from})`,
+        fg,
+        sheen: 0,
+        pattern: null,
+      };
 
     case "horizon":
       // Banda inferior más oscura, como muchas tarjetas de banco.
@@ -116,6 +150,7 @@ export const resolveCardStyle = (
         backgroundImage: `linear-gradient(180deg, ${to} 0%, ${from} 62%, ${from} 100%)`,
         fg,
         sheen: 0.35,
+        pattern: null,
       };
 
     case "duotone":
@@ -124,15 +159,32 @@ export const resolveCardStyle = (
         backgroundImage: `linear-gradient(115deg, ${from} 0%, ${from} 48%, ${to} 48%, ${to} 100%)`,
         fg,
         sheen: 0.2,
+        pattern: null,
       };
 
     case "gradient":
-    default:
       return {
         backgroundImage: `linear-gradient(135deg, ${from} 0%, ${to} 100%)`,
         fg,
         sheen: 0.6,
+        pattern: null,
       };
+
+    default: {
+      /**
+       * Acabados con patrón: base de color en degradado suave + la capa del
+       * patrón encima. Al ser ortogonales, cada patrón funciona con los doce
+       * colores sin declarar 12 × 7 combinaciones a mano.
+       */
+      const spec = PATTERNS[design as PatternId];
+      return {
+        backgroundImage: `linear-gradient(150deg, ${from} 0%, ${to} 100%)`,
+        fg,
+        // Los patrones ya aportan luz: un brillo fuerte encima los apaga.
+        sheen: 0.18,
+        pattern: spec ? { image: spec.image, opacity: spec.opacity } : null,
+      };
+    }
   }
 };
 

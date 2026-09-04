@@ -5,6 +5,7 @@ import {
   formatCardNumber,
   maskCardNumber,
 } from "@utils/card-brand";
+import { BrandMark } from "./BrandMark";
 import {
   CardColorId,
   CardDesignId,
@@ -85,6 +86,19 @@ export const CardVisual = ({
       }}
     >
       {/* Brillo diagonal: da volumen sin necesidad de sombra. */}
+      {/* Patrón procedural: capa propia para poder darle opacidad sin tocar
+          el texto. Es SVG/CSS embebido, no descarga nada. */}
+      {style.pattern && (
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            backgroundImage: style.pattern.image,
+            opacity: style.pattern.opacity,
+          }}
+          aria-hidden="true"
+        />
+      )}
+
       {style.sheen > 0 && (
         <div
           className="pointer-events-none absolute inset-0"
@@ -111,12 +125,17 @@ export const CardVisual = ({
             }}
             aria-hidden="true"
           />
-          <span
-            className={`truncate text-right font-semibold uppercase tracking-wide ${isCompact ? "text-caption" : "text-body"}`}
-            style={{ opacity: 0.92 }}
-          >
-            {brand.label || issuer || ""}
-          </span>
+          <div className="flex min-w-0 items-center gap-2">
+            {issuer && (
+              <span
+                className={`truncate text-right ${isCompact ? "text-caption" : "text-body"}`}
+                style={{ opacity: 0.8 }}
+              >
+                {issuer}
+              </span>
+            )}
+            <BrandMark brand={brand.brand} className="shrink-0" />
+          </div>
         </div>
 
         <p
@@ -161,16 +180,6 @@ export const CardVisual = ({
           </div>
         </div>
       </div>
-
-      {/* El emisor va como banda inferior solo si hay espacio y dato. */}
-      {issuer && brand.label && (
-        <span
-          className="absolute bottom-1.5 left-3.5 truncate text-caption"
-          style={{ opacity: 0.55, maxWidth: "55%" }}
-        >
-          {issuer}
-        </span>
-      )}
 
       {/* Lectores de pantalla: el visual es decorativo, esto es el contenido. */}
       <span className="sr-only">

@@ -70,7 +70,7 @@ export const CardStylePicker = ({
           {t("vault.card.design")}
         </span>
         {/* Cada opción se pinta con SU acabado: la muestra ES el resultado. */}
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
           {CARD_DESIGN_IDS.map((id) => {
             const selected = design === id;
             const preview = resolveCardStyle(brand, color, id);
@@ -87,10 +87,22 @@ export const CardStylePicker = ({
                 }`}
               >
                 <span
-                  className="h-6 w-full rounded-badge"
+                  className="relative h-6 w-full overflow-hidden rounded-badge"
                   style={{ backgroundImage: preview.backgroundImage }}
                   aria-hidden="true"
-                />
+                >
+                  {/* La muestra ES el resultado: si el acabado lleva patrón, se
+                      ve aquí. Sin esto, siete opciones se verían idénticas. */}
+                  {preview.pattern && (
+                    <span
+                      className="absolute inset-0"
+                      style={{
+                        backgroundImage: preview.pattern.image,
+                        opacity: preview.pattern.opacity,
+                      }}
+                    />
+                  )}
+                </span>
                 {t(`vault.card.designs.${id}`)}
               </button>
             );

@@ -42,9 +42,18 @@ describe("resolveCardStyle", () => {
     expect(resolveCardStyle(visa, "midnight").fg).toBe("#ffffff");
   });
 
-  it("cada acabado produce un fondo distinto", () => {
+  /**
+   * Los once acabados deben verse distintos, pero NO necesariamente por el
+   * fondo: los siete con patrón comparten la misma base de color a propósito
+   * (el patrón es ortogonal al color) y se diferencian en su capa. El
+   * invariante real es que la combinación fondo + patrón sea única.
+   */
+  it("cada acabado produce un resultado visual distinto", () => {
     const seen = new Set(
-      CARD_DESIGN_IDS.map((d) => resolveCardStyle(visa, "ocean", d).backgroundImage),
+      CARD_DESIGN_IDS.map((d) => {
+        const style = resolveCardStyle(visa, "ocean", d);
+        return `${style.backgroundImage}||${style.pattern?.image ?? "sin-patron"}`;
+      }),
     );
     expect(seen.size).toBe(CARD_DESIGN_IDS.length);
   });
@@ -117,5 +126,67 @@ describe("validación de valores guardados", () => {
   it("sin elección guardada, el resultado es el de marca con degradado", () => {
     const legacy = resolveCardStyle(visa, undefined as unknown as CardColorId);
     expect(legacy).toEqual(resolveCardStyle(visa, "brand", "gradient"));
+  });
+});
+
+describe("acabados con patrón", () => {
+  const CON_PATRON = ["guilloche", "waves", "arcs", "grid", "stripes", "mesh", "holo"] as const;
+  const SIN_PATRON = ["gradient", "solid", "horizon", "duotone"] as const;
+
+  it("los lisos no traen capa de patrón", () => {
+    for (const design of SIN_PATRON) {
+      expect(resolveCardStyle(visa, "ocean", design).pattern).toBeNull();
+    }
+  });
+
+  it("los siete con patrón sí la traen", () => {
+    for (const design of CON_PATRON) {
+      const style = resolveCardStyle(visa, "ocean", design);
+      expect(style.pattern).not.toBeNull();
+      expect(style.pattern!.opacity).toBeGreaterThan(0);
+      expect(style.pattern!.opacity).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it("cada patrón es visualmente distinto", () => {
+    const vistos = new Set(
+      CON_PATRON.map((d) => resolveCardStyle(visa, "ocean", d).pattern!.image),
+    );
+    expect(vistos.size).toBe(CON_PATRON.length);
+  });
+
+  /**
+   * Un `#` sin escapar dentro de un data URI de SVG hace que el navegador lo
+   * lea como fragmento de URL y el patrón desaparece sin error. Es el fallo
+   * clásico con SVG en CSS, así que se fija aquí.
+   */
+  it("los SVG embebidos no llevan '#' sin escapar", () => {
+    for (const design of CON_PATRON) {
+      const image = resolveCardStyle(visa, "ocean", design).pattern!.image;
+      if (image.startsWith("url(")) {
+        expect(image).toContain("data:image/svg+xml,");
+        expect(image).not.toMatch(/[^%]#/);
+      }
+    }
+  });
+
+  it("el patrón es independiente del color (ortogonalidad)", () => {
+    // El mismo acabado sobre dos colores distintos: cambia el fondo, no el patrón.
+    const a = resolveCardStyle(visa, "ocean", "guilloche");
+    const b = resolveCardStyle(visa, "wine", "guilloche");
+    expect(a.pattern!.image).toBe(b.pattern!.image);
+    expect(a.backgroundImage).not.toBe(b.backgroundImage);
+  });
+
+  it("los acabados con patrón bajan el brillo para no apagarlo", () => {
+    const conPatron = resolveCardStyle(visa, "ocean", "waves").sheen;
+    const degradado = resolveCardStyle(visa, "ocean", "gradient").sheen;
+    expect(conPatron).toBeLessThan(degradado);
+  });
+
+  it("un id de acabado inválido no rompe el render", () => {
+    const style = resolveCardStyle(visa, "ocean", "inventado" as never);
+    expect(style.backgroundImage).toMatch(/^linear-gradient\(/);
+    expect(style.pattern).toBeNull();
   });
 });
