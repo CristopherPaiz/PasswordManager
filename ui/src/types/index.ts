@@ -1,4 +1,5 @@
 import type { CardColorId, CardDesignId } from "@utils/card-design";
+import type { TotpAlgorithm } from "@utils/totp";
 
 export interface User {
   id: number;
@@ -96,6 +97,14 @@ export interface VaultItemData {
   folder?: string;
   tags?: string[];
   favorite?: boolean;
+  /** Secreto TOTP (base32) del 2FA de ESE servicio, para generar sus códigos
+   *  aquí mismo. Viaja dentro del blob cifrado: el server nunca lo ve. */
+  totp?: string;
+  /** Parámetros del TOTP cuando el servicio no usa los estándar (6/30/SHA1).
+   *  `undefined` = valores por defecto, así los items viejos siguen valiendo. */
+  totpDigits?: number;
+  totpPeriod?: number;
+  totpAlgorithm?: TotpAlgorithm;
   // Tarjeta (tipo "card"). Todo esto viaja DENTRO del blob cifrado, así que
   // agregar un campo NO requiere tocar la BD ni la API: los items viejos
   // simplemente no lo traen y descifran igual.

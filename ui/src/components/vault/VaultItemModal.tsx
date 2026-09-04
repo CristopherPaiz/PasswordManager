@@ -34,6 +34,7 @@ import { CardVisual } from "./CardVisual";
 import { CardStylePicker } from "./CardStylePicker";
 import { colorSwatch } from "@utils/card-design";
 import { useBackClose } from "@hooks/useBackClose";
+import { TOTP_DEFAULTS, parseTotpInput } from "@utils/totp";
 import { IssuerSuggestion } from "./IssuerSuggestion";
 import { VaultItem, VaultItemData, VaultItemType } from "@apptypes";
 import { Modal } from "@components/ui/Modal";
@@ -85,6 +86,10 @@ export const VaultItemModal = ({
   const [form, setForm] = useState<VaultItemData>(EMPTY);
   const [tipo, setTipo] = useState<VaultItemType>("password");
   const [tagsText, setTagsText] = useState("");
+  // El TOTP se edita como texto libre (secreto o URI otpauth) y solo se parsea
+  // al guardar: validar en cada tecla marcaría en rojo todo lo que va a medias.
+  const [totpText, setTotpText] = useState("");
+  const [totpError, setTotpError] = useState(false);
   const [genOptions, setGenOptions] = useState<PasswordOptions>(
     DEFAULT_PASSWORD_OPTIONS,
   );
@@ -100,6 +105,8 @@ export const VaultItemModal = ({
       setForm(item ? item.data : EMPTY);
       setTipo(item ? item.tipo : "password");
       setTagsText(item?.data.tags?.join(", ") ?? "");
+      setTotpText(item?.data.totp ?? "");
+      setTotpError(false);
       setShowGen(false);
       setView("form");
     }
@@ -142,16 +149,49 @@ export const VaultItemModal = ({
       toast.error(t("vault.titleRequired"));
       return;
     }
+    if (totpText.trim()) {
+      try {
+        parseTotpInput(totpText);
+        setTotpError(false);
+      } catch {
+        setTotpError(true);
+        toast.error(t("vault.totp.invalid"));
+        return;
+      }
+    }
     setIsWorking(true);
     try {
       const tags = tagsText
         .split(",")
         .map((tag) => tag.trim())
         .filter(Boolean);
+      // Vacío = quitar el 2FA del item. Con contenido, se guarda el secreto ya
+      // normalizado (no el URI crudo) más los parámetros solo si NO son los
+      // estándar: así el blob no engorda con datos por defecto.
+      // Arranca en `undefined` explícito: vaciar el campo tiene que BORRAR el
+      // 2FA guardado, y `...form` todavía trae el valor viejo del item.
+      // `JSON.stringify` descarta las claves undefined, así el blob no crece.
+      let totpFields: Pick<
+        VaultItemData,
+        "totp" | "totpDigits" | "totpPeriod" | "totpAlgorithm"
+      > = { totp: undefined, totpDigits: undefined, totpPeriod: undefined, totpAlgorithm: undefined };
+      if (totpText.trim()) {
+        const config = parseTotpInput(totpText);
+        totpFields = {
+          totp: config.secret,
+          ...(config.digits === TOTP_DEFAULTS.digits ? {} : { totpDigits: config.digits }),
+          ...(config.period === TOTP_DEFAULTS.period ? {} : { totpPeriod: config.period }),
+          ...(config.algorithm === TOTP_DEFAULTS.algorithm
+            ? {}
+            : { totpAlgorithm: config.algorithm }),
+        };
+      }
+
       const data: VaultItemData = {
         ...form,
         tags,
         folder: form.folder?.trim() || undefined,
+        ...totpFields,
       };
 
       // Cifrado en el navegador. El server solo recibe ciphertext + iv + uid.
@@ -376,6 +416,27 @@ export const VaultItemModal = ({
               spellCheck={false}
               onChange={(e) => setField("url", e.target.value)}
             />
+
+            {/* 2FA del servicio: acepta el secreto pelado o el otpauth:// del
+                QR. Se normaliza al salir del campo para no pelear con el
+                usuario mientras escribe. */}
+            <div className="space-y-1">
+              <Input
+                label={t("vault.fields.totp")}
+                value={totpText}
+                autoComplete="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                className="[&_input]:font-mono"
+                placeholder={t("vault.totp.placeholder")}
+                error={totpError ? t("vault.totp.invalid") : undefined}
+                onChange={(e) => setTotpText(e.target.value)}
+                onBlur={() => setTotpText((v) => v.trim())}
+              />
+              <p className="text-caption text-text-muted">
+                {t("vault.totp.hint")}
+              </p>
+            </div>
           </>
         )}
 

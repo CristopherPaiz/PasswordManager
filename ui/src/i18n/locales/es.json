@@ -262,7 +262,8 @@
       "cardPin": "PIN de desbloqueo",
       "cardPinHint": "4 a 12 dígitos",
       "cardCvvHint": "3 dígitos al reverso",
-      "cardCvvHintAmex": "4 dígitos al frente"
+      "cardCvvHintAmex": "4 dígitos al frente",
+      "totp": "Código de verificación (2FA)"
     },
     "generator": {
       "generate": "Generar",
@@ -347,7 +348,17 @@
     "copyHolder": "Copiar titular",
     "holderCopied": "Titular copiado",
     "showValue": "Mostrar {{label}}",
-    "hideValue": "Ocultar {{label}}"
+    "hideValue": "Ocultar {{label}}",
+    "totp": {
+      "label": "Código 2FA",
+      "placeholder": "Secreto o enlace otpauth://",
+      "hint": "Pega el secreto que te muestra el servicio o el enlace otpauth:// del QR.",
+      "invalid": "El código de verificación no es válido.",
+      "invalidStored": "El secreto 2FA guardado no es válido. Edita el elemento para corregirlo.",
+      "copy": "Copiar código 2FA",
+      "copied": "Código 2FA copiado.",
+      "expiresIn": "Caduca en {{seconds}} segundos"
+    }
   },
   "dashboard": {
     "profileInfo": "Información del Perfil",

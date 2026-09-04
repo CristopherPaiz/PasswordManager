@@ -30,6 +30,7 @@ import {
 } from "@utils/card-brand";
 import { CardVisual } from "@components/vault/CardVisual";
 import { SecretRow } from "@components/vault/SecretRow";
+import { TotpCode } from "@components/vault/TotpCode";
 import { VaultItem, VaultItemRow, VaultItemType } from "@apptypes";
 import { Card } from "@components/ui/Card";
 import { Button } from "@components/ui/Button";
@@ -387,19 +388,30 @@ export const Vault = () => {
                   </div>
                 </div>
 
-                {item.tipo === "password" && item.data.password && (
-                  <div className="mt-3">
-                    <SecretRow
-                      label={t("vault.fields.password")}
-                      value={item.data.password}
-                      copyLabel={t("vault.copyPassword")}
-                      copiedMessage={t("vault.passwordCopied")}
-                      onCopy={(value, message) =>
-                        copy(value, message, `${item.id}:pw`)
-                      }
-                    />
-                  </div>
-                )}
+                {item.tipo === "password" &&
+                  (item.data.password || item.data.totp) && (
+                    <div className="mt-3 space-y-2">
+                      {item.data.password && (
+                        <SecretRow
+                          label={t("vault.fields.password")}
+                          value={item.data.password}
+                          copyLabel={t("vault.copyPassword")}
+                          copiedMessage={t("vault.passwordCopied")}
+                          onCopy={(value, message) =>
+                            copy(value, message, `${item.id}:pw`)
+                          }
+                        />
+                      )}
+                      {/* El código 2FA se recalcula solo mientras el item esté
+                          en pantalla; al bloquearse el baúl desaparece con él. */}
+                      <TotpCode
+                        data={item.data}
+                        onCopy={(value, message) =>
+                          copy(value, message, `${item.id}:totp`)
+                        }
+                      />
+                    </div>
+                  )}
 
                 {/* Tarjeta: el MISMO visual que la vista previa del modal, más
                     los tres datos sensibles como filas revelables e independientes.

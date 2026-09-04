@@ -19,6 +19,8 @@ export const applySchema = async (dbClient: Client): Promise<void> => {
   // kdf_salt / kdf_params: para re-derivar la llave maestra en el cliente.
   // wrapped_vault_key: la vaultKey (que cifra el baúl) envuelta por la maestra.
   // wrapped_vault_key_recovery: la misma vaultKey envuelta por la llave de recuperación.
+  // totp_last_step: último paso de tiempo TOTP aceptado (RFC 6238). Impide
+  // reusar un código dentro de su ventana de validez (anti-replay).
   // El server NUNCA puede abrir estos blobs: es zero-knowledge.
   await dbClient.execute(`
       CREATE TABLE IF NOT EXISTS Usuarios (
@@ -35,6 +37,7 @@ export const applySchema = async (dbClient: Client): Promise<void> => {
         recovery_hash TEXT,
         totp_secret TEXT,
         totp_enabled INTEGER DEFAULT 0,
+        totp_last_step INTEGER,
         passkey_cred_id TEXT,
         wrapped_vault_key_passkey TEXT,
         rol TEXT NOT NULL DEFAULT 'user',

@@ -14,17 +14,9 @@ const { setupTestDb, resetTestDb, closeTestDb, getTestDb } = await import('./hel
 const { buildUser, registerAndLogin, extractCookie, fakeBlob, validKdfParams } =
   await import('./helpers/fixtures.js')
 
-/**
- * Segundo login del MISMO usuario (simula otro dispositivo).
- *
- * El `sleep` no es adorno: el JWT solo lleva `{ userId, username, iat, exp }` y
- * `iat` tiene resolución de un segundo, así que dos logins dentro del mismo
- * segundo generan un token IDÉNTICO — y con él, dos filas de Sesiones con el
- * mismo hash, indistinguibles para revocar. Esperar cruza el borde de segundo y
- * da dos sesiones de verdad distintas.
- */
+// Segundo login del MISMO usuario (simula otro dispositivo). Sale una sesión
+// distinta aunque caiga en el mismo segundo: el `jti` del payload lo garantiza.
 const loginAgain = async (username: string, password: string): Promise<string> => {
-  await new Promise((resolve) => setTimeout(resolve, 1100))
   const res = await request(app).post('/api/auth/login').send({ username, password })
   return String(extractCookie(res.headers['set-cookie'] as unknown as string[]))
 }
@@ -91,6 +83,22 @@ describe('sesión: /me, logout, listado y revocación', () => {
 
     const despues = await request(app).get('/api/auth/me').set('Cookie', cookie)
     expect(despues.status).toBe(401)
+  })
+
+  /**
+   * Dos logins seguidos caen casi siempre en el mismo segundo. Sin un `jti` en
+   * el payload, el JWT resultante sería byte a byte idéntico (solo variaba
+   * `iat`, en segundos) y las dos sesiones quedarían con el mismo hash en BD:
+   * indistinguibles al listar, y revocar una dejaría el token vivo por la otra.
+   */
+  it('dos logins del mismo usuario producen sesiones distintas', async () => {
+    const { user, cookie } = await registerAndLogin(app)
+    const otraCookie = await loginAgain(user.username, user.password)
+
+    expect(otraCookie).not.toBe(cookie)
+
+    const { rows } = await getTestDb().execute('SELECT DISTINCT token FROM Sesiones')
+    expect(rows).toHaveLength(2)
   })
 
   it('GET /sessions lista las activas, marca la actual y no expone el token', async () => {

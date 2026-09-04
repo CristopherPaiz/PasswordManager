@@ -15,6 +15,19 @@ const { setupTestDb, resetTestDb, closeTestDb, getTestDb } = await import('./hel
 const { registerAndLogin, extractCookie } = await import('./helpers/fixtures.js')
 const { isEncryptedSecret, decryptSecret } = await import('@utils/crypto.helper.js')
 
+/**
+ * Código del PRÓXIMO paso de tiempo (dentro de la tolerancia de ±30s).
+ *
+ * Hace falta por el anti-replay: activar el 2FA quema el paso actual, así que
+ * un test que reusara ese mismo código recibiría un rechazo legítimo. Se ancla
+ * al paso siguiente al reloj de ahora — no a "el de enable + 1" — para que no
+ * dependa de en qué punto del paso de 30s cayó la petición anterior.
+ */
+const codigoProximoPaso = (secret: string): Promise<string> => {
+  const paso = Math.floor(Date.now() / 1000 / 30) + 1
+  return generateTotp({ secret, epoch: paso * 30 })
+}
+
 // Activa el 2FA de punta a punta y devuelve el secreto en claro para poder
 // fabricar códigos válidos en los tests.
 const enableTotp = async (cookie: string): Promise<string> => {
@@ -186,7 +199,7 @@ describe('TOTP en el login', () => {
     const { user, cookie } = await registerAndLogin(app)
     const secret = await enableTotp(cookie)
 
-    const token = await generateTotp({ secret })
+    const token = await codigoProximoPaso(secret)
     const res = await request(app)
       .post('/api/auth/login')
       .send({ username: user.username, password: user.password, token })
@@ -194,6 +207,62 @@ describe('TOTP en el login', () => {
     expect(res.status).toBe(200)
     expect(res.body.wrapped_vault_key).toEqual(user.wrapped_vault_key)
     expect(extractCookie(res.headers['set-cookie'] as unknown as string[])).not.toBeNull()
+  })
+
+  /**
+   * Anti-replay (RFC 6238): un código vive 30s más la tolerancia, así que quien
+   * lo vea de reojo o lo capture en un proxy podría reusarlo dentro de esa
+   * ventana. Se recuerda el último paso aceptado y se rechaza ese o anteriores.
+   */
+  it('no acepta el mismo código dos veces', async () => {
+    const { user, cookie } = await registerAndLogin(app)
+    const secret = await enableTotp(cookie)
+    const token = await codigoProximoPaso(secret)
+
+    const primero = await request(app)
+      .post('/api/auth/login')
+      .send({ username: user.username, password: user.password, token })
+    expect(primero.status).toBe(200)
+
+    const replay = await request(app)
+      .post('/api/auth/login')
+      .send({ username: user.username, password: user.password, token })
+
+    expect(replay.status).toBe(401)
+    expect(extractCookie(replay.headers['set-cookie'] as unknown as string[])).toBeNull()
+  })
+
+  it('guarda el paso de tiempo consumido en cada verificación', async () => {
+    const { user, cookie } = await registerAndLogin(app)
+    const secret = await enableTotp(cookie)
+
+    const { rows: trasEnable } = await getTestDb().execute('SELECT totp_last_step FROM Usuarios')
+    const pasoEnable = Number(trasEnable[0].totp_last_step)
+    expect(pasoEnable).toBeGreaterThan(0)
+
+    await request(app)
+      .post('/api/auth/login')
+      .send({
+        username: user.username,
+        password: user.password,
+        token: await codigoProximoPaso(secret)
+      })
+
+    const { rows } = await getTestDb().execute('SELECT totp_last_step FROM Usuarios')
+    expect(Number(rows[0].totp_last_step)).toBeGreaterThan(pasoEnable)
+  })
+
+  // Un `setup` nuevo estrena secreto: el paso quemado del anterior no puede
+  // seguir bloqueando códigos del nuevo.
+  it('rehacer el setup reinicia el paso consumido', async () => {
+    const { cookie } = await registerAndLogin(app)
+    const secret = await enableTotp(cookie)
+
+    const token = await codigoProximoPaso(secret)
+    await request(app).post('/api/auth/totp/disable').set('Cookie', cookie).send({ token })
+
+    const { rows } = await getTestDb().execute('SELECT totp_last_step FROM Usuarios')
+    expect(rows[0].totp_last_step).toBeNull()
   })
 
   // Fallback LEGACY: secretos guardados en claro antes de habilitar el cifrado
@@ -207,7 +276,7 @@ describe('TOTP en el login', () => {
       args: [secret, user.username]
     })
 
-    const token = await generateTotp({ secret })
+    const token = await codigoProximoPaso(secret)
     const res = await request(app)
       .post('/api/auth/login')
       .send({ username: user.username, password: user.password, token })
@@ -236,7 +305,7 @@ describe('POST /api/auth/totp/disable', () => {
     const { cookie } = await registerAndLogin(app)
     const secret = await enableTotp(cookie)
 
-    const token = await generateTotp({ secret })
+    const token = await codigoProximoPaso(secret)
     const res = await request(app)
       .post('/api/auth/totp/disable')
       .set('Cookie', cookie)

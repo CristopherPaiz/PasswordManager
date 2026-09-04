@@ -1,8 +1,10 @@
 import { Request, Response, NextFunction } from 'express'
+import { randomUUID } from 'node:crypto'
 import bcrypt from 'bcryptjs'
 import jwt, { SignOptions } from 'jsonwebtoken'
 import { generateSecret, generateURI, verify as verifyTotp } from 'otplib'
 import QRCode from 'qrcode'
+import { Client } from '@libsql/client'
 import { DatabaseService } from '@database/connection.js'
 import { HTTP_STATUS, MESSAGES, SYSTEM } from '@config/constants.js'
 import { AuthenticatedRequest } from '@apptypes/index.js'
@@ -17,6 +19,50 @@ import { durationToMs } from '@utils/duration.helper.js'
 
 // Tolera ±30s de desfase de reloj al verificar códigos TOTP.
 const TOTP_EPOCH_TOLERANCE = 30
+
+/**
+ * Verifica un código TOTP con protección anti-replay.
+ *
+ * Un código vive 30s (±30 de tolerancia), así que sin esto un atacante que lo
+ * vea —hombro, keylogger, proxy— puede reusarlo dentro de esa ventana. RFC 6238
+ * lo resuelve recordando el último `timeStep` aceptado y rechazando cualquier
+ * código de ese paso o anterior (`afterTimeStep`).
+ *
+ * Efecto visible: el mismo código no sirve dos veces. Tras activar el 2FA con
+ * un código hay que esperar al siguiente para volver a usarlo.
+ */
+const verifyTotpOnce = async (
+  dbClient: Client,
+  userId: number,
+  secret: string,
+  token: string,
+  lastStep: number | null
+): Promise<boolean> => {
+  const result = await verifyTotp({
+    token,
+    secret,
+    epochTolerance: TOTP_EPOCH_TOLERANCE,
+    ...(lastStep !== null ? { afterTimeStep: lastStep } : {})
+  })
+
+  if (!result.valid) return false
+
+  // `verify` tipa el resultado para TOTP y HOTP; solo el de TOTP trae
+  // `timeStep`. Aquí la estrategia siempre es TOTP (la de por defecto).
+  if ('timeStep' in result) {
+    await dbClient.execute({
+      sql: 'UPDATE Usuarios SET totp_last_step = ? WHERE id = ?',
+      args: [result.timeStep, userId]
+    })
+  }
+
+  return true
+}
+
+// `totp_last_step` puede venir NULL (2FA recién activado o cuenta anterior a
+// esta columna): NULL significa "sin paso previo", no "paso 0".
+const toLastStep = (value: unknown): number | null =>
+  value === null || value === undefined ? null : Number(value)
 
 // Hash bcrypt real (de un valor aleatorio de proceso) para ejecutar una
 // comparación "de mentira" cuando el usuario NO existe: sin esto, la respuesta
@@ -42,6 +88,7 @@ interface DbUser {
   wrapped_vault_key?: string
   totp_secret?: string
   totp_enabled?: number
+  totp_last_step?: number | null
   passkey_cred_id?: string
 }
 
@@ -207,12 +254,14 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
         return
       }
       const plainSecret = decryptSecret(user.totp_secret)
-      const result = await verifyTotp({
-        token: String(totpToken),
-        secret: plainSecret,
-        epochTolerance: TOTP_EPOCH_TOLERANCE
-      })
-      if (!result.valid) {
+      const valid = await verifyTotpOnce(
+        dbClient,
+        Number(user.id),
+        plainSecret,
+        String(totpToken),
+        toLastStep(user.totp_last_step)
+      )
+      if (!valid) {
         res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: 'Código de verificación inválido.' })
         return
       }
@@ -234,8 +283,13 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
     const secretKey = String(process.env.JWT_SECRET_KEY)
     const expiresInConfig = process.env.JWT_EXPIRATION_TIME ?? SYSTEM.DEFAULT_JWT_EXPIRATION
 
+    // `jti` (id único de sesión): sin él, dos logins del mismo usuario dentro
+    // del mismo segundo producen un JWT IDÉNTICO (el payload solo variaba con
+    // `iat`, que tiene resolución de segundos). Eso dejaba dos filas de Sesiones
+    // con el mismo hash: imposibles de distinguir al listar y, al revocar una,
+    // el token seguía sirviendo por la otra.
     const token = jwt.sign(
-      { userId: Number(user.id), username: String(user.username) },
+      { userId: Number(user.id), username: String(user.username), jti: randomUUID() },
       secretKey,
       { expiresIn: expiresInConfig as SignOptions['expiresIn'] }
     )
@@ -724,8 +778,10 @@ export const totpSetup = async (
     const qr = await QRCode.toDataURL(otpauth)
 
     // Guarda el secreto provisional (cifrado); se activa solo tras verificar.
+    // `totp_last_step` vuelve a NULL: el anti-replay del secreto anterior no
+    // aplica a este, y dejarlo alto rechazaría códigos válidos del nuevo.
     await dbClient.execute({
-      sql: 'UPDATE Usuarios SET totp_secret = ?, totp_enabled = 0 WHERE id = ?',
+      sql: 'UPDATE Usuarios SET totp_secret = ?, totp_enabled = 0, totp_last_step = NULL WHERE id = ?',
       args: [encryptSecret(secret), userId ?? 0]
     })
 
@@ -747,7 +803,7 @@ export const totpEnable = async (
     const dbClient = await DatabaseService.getInstance().getClient()
 
     const { rows } = await dbClient.execute({
-      sql: 'SELECT totp_secret FROM Usuarios WHERE id = ?',
+      sql: 'SELECT totp_secret, totp_last_step FROM Usuarios WHERE id = ?',
       args: [userId ?? 0]
     })
 
@@ -756,12 +812,14 @@ export const totpEnable = async (
       return
     }
 
-    const result = await verifyTotp({
-      token: String(token),
-      secret: decryptSecret(String(rows[0].totp_secret)),
-      epochTolerance: TOTP_EPOCH_TOLERANCE
-    })
-    if (!result.valid) {
+    const valid = await verifyTotpOnce(
+      dbClient,
+      Number(userId ?? 0),
+      decryptSecret(String(rows[0].totp_secret)),
+      String(token),
+      toLastStep(rows[0].totp_last_step)
+    )
+    if (!valid) {
       res.status(HTTP_STATUS.BAD_REQUEST).json({ message: 'Código inválido. Intenta de nuevo.' })
       return
     }
@@ -789,7 +847,7 @@ export const totpDisable = async (
     const dbClient = await DatabaseService.getInstance().getClient()
 
     const { rows } = await dbClient.execute({
-      sql: 'SELECT totp_secret, totp_enabled FROM Usuarios WHERE id = ?',
+      sql: 'SELECT totp_secret, totp_enabled, totp_last_step FROM Usuarios WHERE id = ?',
       args: [userId ?? 0]
     })
 
@@ -798,18 +856,20 @@ export const totpDisable = async (
       return
     }
 
-    const result = await verifyTotp({
-      token: String(token),
-      secret: decryptSecret(String(rows[0].totp_secret)),
-      epochTolerance: TOTP_EPOCH_TOLERANCE
-    })
-    if (!result.valid) {
+    const valid = await verifyTotpOnce(
+      dbClient,
+      Number(userId ?? 0),
+      decryptSecret(String(rows[0].totp_secret)),
+      String(token),
+      toLastStep(rows[0].totp_last_step)
+    )
+    if (!valid) {
       res.status(HTTP_STATUS.BAD_REQUEST).json({ message: 'Código inválido. Intenta de nuevo.' })
       return
     }
 
     await dbClient.execute({
-      sql: 'UPDATE Usuarios SET totp_enabled = 0, totp_secret = NULL WHERE id = ?',
+      sql: 'UPDATE Usuarios SET totp_enabled = 0, totp_secret = NULL, totp_last_step = NULL WHERE id = ?',
       args: [userId ?? 0]
     })
 

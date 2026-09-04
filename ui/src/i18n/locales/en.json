@@ -262,7 +262,8 @@
       "cardPin": "Unlock PIN",
       "cardPinHint": "4 to 12 digits",
       "cardCvvHint": "3 digits on the back",
-      "cardCvvHintAmex": "4 digits on the front"
+      "cardCvvHintAmex": "4 digits on the front",
+      "totp": "Verification code (2FA)"
     },
     "generator": {
       "generate": "Generate",
@@ -347,7 +348,17 @@
     "copyHolder": "Copy cardholder",
     "holderCopied": "Cardholder copied",
     "showValue": "Show {{label}}",
-    "hideValue": "Hide {{label}}"
+    "hideValue": "Hide {{label}}",
+    "totp": {
+      "label": "2FA code",
+      "placeholder": "Secret or otpauth:// link",
+      "hint": "Paste the secret the service shows you, or the otpauth:// link from its QR.",
+      "invalid": "That verification code secret is not valid.",
+      "invalidStored": "The stored 2FA secret is not valid. Edit the item to fix it.",
+      "copy": "Copy 2FA code",
+      "copied": "2FA code copied.",
+      "expiresIn": "Expires in {{seconds}} seconds"
+    }
   },
   "dashboard": {
     "profileInfo": "Profile Information",
