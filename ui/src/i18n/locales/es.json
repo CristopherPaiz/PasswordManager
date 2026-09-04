@@ -3,7 +3,8 @@
     "appName": "MiApp",
     "loading": "Cargando...",
     "close": "Cerrar",
-    "verifying": "Verificando sesión..."
+    "verifying": "Verificando sesión...",
+    "back": "Volver"
   },
   "nav": {
     "home": "Inicio",
@@ -338,7 +339,8 @@
       },
       "issuerDetected": "Emisor detectado por el BIN, en local",
       "useIssuer": "Usar",
-      "issuerSource": "Datos comunitarios (CC-BY-4.0). El BIN nunca sale de tu dispositivo."
+      "issuerSource": "Datos comunitarios (CC-BY-4.0). El BIN nunca sale de tu dispositivo.",
+      "customize": "Personalizar diseño"
     },
     "copyPin": "Copiar PIN",
     "pinCopied": "PIN copiado",

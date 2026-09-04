@@ -3,7 +3,8 @@
     "appName": "MyApp",
     "loading": "Loading...",
     "close": "Close",
-    "verifying": "Verifying session..."
+    "verifying": "Verifying session...",
+    "back": "Back"
   },
   "nav": {
     "home": "Home",
@@ -338,7 +339,8 @@
       },
       "issuerDetected": "Issuer detected from the BIN, locally",
       "useIssuer": "Use",
-      "issuerSource": "Community data (CC-BY-4.0). The BIN never leaves your device."
+      "issuerSource": "Community data (CC-BY-4.0). The BIN never leaves your device.",
+      "customize": "Customize design"
     },
     "copyPin": "Copy PIN",
     "pinCopied": "PIN copied",

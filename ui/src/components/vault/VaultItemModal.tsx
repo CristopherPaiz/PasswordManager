@@ -1,6 +1,8 @@
 import { useEffect, useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  ChevronLeft,
+  ChevronRight,
   CreditCard,
   KeyRound,
   RefreshCw,
@@ -30,6 +32,8 @@ import {
 } from "@utils/card-brand";
 import { CardVisual } from "./CardVisual";
 import { CardStylePicker } from "./CardStylePicker";
+import { colorSwatch } from "@utils/card-design";
+import { useBackClose } from "@hooks/useBackClose";
 import { IssuerSuggestion } from "./IssuerSuggestion";
 import { VaultItem, VaultItemData, VaultItemType } from "@apptypes";
 import { Modal } from "@components/ui/Modal";
@@ -86,6 +90,10 @@ export const VaultItemModal = ({
   );
   const [showGen, setShowGen] = useState(false);
   const [isWorking, setIsWorking] = useState(false);
+  // El modal tiene dos vistas. En móvil, apilar la vista previa + 12 colores
+  // + 11 acabados + 6 campos en un solo scroll es ilegible, así que la
+  // personalización vive en su propio panel.
+  const [view, setView] = useState<"form" | "style">("form");
 
   useEffect(() => {
     if (isOpen) {
@@ -93,6 +101,7 @@ export const VaultItemModal = ({
       setTipo(item ? item.tipo : "password");
       setTagsText(item?.data.tags?.join(", ") ?? "");
       setShowGen(false);
+      setView("form");
     }
   }, [isOpen, item]);
 
@@ -117,6 +126,8 @@ export const VaultItemModal = ({
 
   const setField = (key: keyof VaultItemData, value: string | boolean) =>
     setForm((prev) => ({ ...prev, [key]: value }));
+
+  useBackClose(isOpen && view === "style", () => setView("form"));
 
   const handleGenerate = () =>
     setField("password", generatePassword(genOptions));
@@ -162,6 +173,53 @@ export const VaultItemModal = ({
 
   const toggleOption = (key: keyof Omit<PasswordOptions, "length">) =>
     setGenOptions((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  // Vista de personalización: reemplaza el contenido del modal en vez de abrir
+  // un modal anidado. En móvil un modal sobre otro atrapa el scroll y confunde
+  // qué cierra qué; esto se comporta como una pantalla de ajustes nativa.
+  if (isOpen && view === "style") {
+    return (
+      <Modal
+        isOpen
+        onClose={() => setView("form")}
+        title={t("vault.card.customize")}
+        size="lg"
+        footer={
+          <div className="flex w-full justify-end">
+            <Button type="button" icon={ChevronLeft} variant="secondary" onClick={() => setView("form")}>
+              {t("common.back")}
+            </Button>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <div className="flex justify-center">
+            <CardVisual
+              brand={cardBrand}
+              number={form.cardNumber}
+              holder={form.cardHolder}
+              expiry={form.cardExpiry}
+              issuer={form.cardIssuer}
+              color={form.cardColor}
+              design={form.cardDesign}
+              revealed
+              size="md"
+            />
+          </div>
+
+          <CardStylePicker
+            brand={cardBrand}
+            color={form.cardColor ?? "brand"}
+            design={form.cardDesign ?? "gradient"}
+            onColorChange={(color) => setForm((prev) => ({ ...prev, cardColor: color }))}
+            onDesignChange={(design) => setForm((prev) => ({ ...prev, cardDesign: design }))}
+          />
+
+          <p className="text-caption text-text-muted">{t("vault.card.styleNotice")}</p>
+        </div>
+      </Modal>
+    );
+  }
 
   return (
     <Modal
@@ -339,14 +397,29 @@ export const VaultItemModal = ({
               />
             </div>
 
-            <CardStylePicker
-              brand={cardBrand}
-              color={form.cardColor ?? "brand"}
-              design={form.cardDesign ?? "gradient"}
-              onColorChange={(color) => setForm((prev) => ({ ...prev, cardColor: color }))}
-              onDesignChange={(design) => setForm((prev) => ({ ...prev, cardDesign: design }))}
-            />
-            <p className="text-caption text-text-muted">{t("vault.card.styleNotice")}</p>
+            {/* Disparador compacto: una fila que muestra la elección actual y
+                abre el panel. Sustituye a 23 controles apilados. */}
+            <button
+              type="button"
+              onClick={() => setView("style")}
+              className="flex min-h-11 w-full items-center gap-3 rounded-input border border-border-base bg-bg-base px-3 py-2 text-left transition-colors hover:border-primary-500/40 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40"
+            >
+              <span
+                className="h-6 w-9 shrink-0 rounded-badge"
+                style={{ backgroundImage: colorSwatch(cardBrand, form.cardColor ?? "brand") }}
+                aria-hidden="true"
+              />
+              <span className="min-w-0 flex-1">
+                <span className="block text-body text-text-base">
+                  {t("vault.card.customize")}
+                </span>
+                <span className="block truncate text-caption text-text-muted">
+                  {t(`vault.card.colors.${form.cardColor ?? "brand"}`)} ·{" "}
+                  {t(`vault.card.designs.${form.cardDesign ?? "gradient"}`)}
+                </span>
+              </span>
+              <ChevronRight className="h-4 w-4 shrink-0 text-text-muted" aria-hidden="true" />
+            </button>
 
             <Input
               label={t("vault.fields.cardIssuer")}

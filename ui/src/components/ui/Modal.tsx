@@ -2,6 +2,7 @@ import { ReactNode, useEffect, useId, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { X } from "lucide-react";
+import { useBackClose } from "@hooks/useBackClose";
 
 type ModalSize = "sm" | "md" | "lg" | "xl";
 
@@ -38,6 +39,10 @@ export const Modal = ({
 }: ModalProps) => {
   const { t } = useTranslation();
   const titleId = useId();
+
+  // El botón atrás del sistema cierra el modal en vez de salirse de la página.
+  // Vive aquí, en el primitivo, para que valga en TODOS los modales de la app.
+  useBackClose(isOpen, onClose);
   const panelRef = useRef<HTMLDivElement>(null);
   // Track where the press started so dragging from inside and releasing on the
   // backdrop (e.g. selecting text) does not close the modal.
